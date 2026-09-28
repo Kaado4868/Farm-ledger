@@ -1,377 +1,2556 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GoatFarm Cloud Ledger</title>
-    
-    <!-- Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Firebase V8 (Stable for all mobile webviews) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { margin: 0; padding: 0; background-color: #f0f2f5; color: #333; -webkit-tap-highlight-color: transparent; }
+<title>GoatFarm Cloud Ledger</title>
 
-        /* App Layout */
-        .app-wrapper { max-width: 500px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; background: #fff; position: relative; overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.1);}
-        
-        .header { background: #1b5e20; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;}
-        .header h1 { margin: 0; font-size: 1.3rem; }
-        .header p { margin: 3px 0 0 0; font-size: 0.8rem; opacity: 0.8; }
-        .btn-logout { background: transparent; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-        .content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
-        
-        /* Screens */
-        .screen { display: none; }
-        .screen.active { display: block; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
-        /* Auth Screen */
-        .auth-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: #e8f5e9; padding: 20px; }
-        .auth-box { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
-        .auth-box h2 { margin-top: 0; color: #2e7d32; }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        .btn-main { width: 100%; padding: 14px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .btn-google { width: 100%; padding: 12px; background: white; color: #555; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .toggle-auth { color: #2e7d32; text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 15px; display: block; }
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
 
-        /* Dashboard Stats */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; text-align: center; }
-        .stat-card h4 { margin: 0 0 5px 0; color: #666; font-size: 0.85rem; text-transform: uppercase; }
-        .stat-card h2 { margin: 0; color: #1b5e20; font-size: 1.6rem; }
+body {
+    margin: 0;
+    background: #f0f2f5;
+    color: #333;
+}
 
-        /* Breakdowns */
-        .breakdown-box { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
-        .breakdown-box span { color: #555; font-weight: 500; }
-        .breakdown-box strong { color: #d32f2f; }
+button,
+input,
+select {
+    font: inherit;
+}
 
-        /* Lists */
-        .list-item { background: white; border: 1px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .list-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .list-header strong { font-size: 1.1rem; }
-        .list-header span { color: #d32f2f; font-weight: bold; background: #ffebee; padding: 2px 8px; border-radius: 5px; }
-        .list-meta { font-size: 0.85rem; color: #888; margin-bottom: 10px; }
-        
-        .img-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .img-thumb { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; border: 1px solid #ddd; cursor: pointer; }
-        .btn-receipt { display: inline-block; background: #fff9c4; color: #f57f17; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #fbc02d; cursor: pointer; margin-top: 10px; }
-        
-        .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; }
-        .btn-edit { background: none; border: none; color: #f57c00; font-weight: bold; font-size: 14px; cursor: pointer; }
-        .btn-delete { background: none; border: none; color: #d32f2f; font-weight: bold; font-size: 14px; cursor: pointer; }
+button {
+    cursor: pointer;
+}
 
-        /* Forms */
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #555;}
-        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; background: #f9f9f9; }
-        
-        /* Bottom Nav */
-        .nav-bar { position: absolute; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; display: flex; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #999; cursor: pointer; display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: bold; }
-        .nav-item i { font-size: 20px; }
-        .nav-item.active { color: #2e7d32; }
+.app {
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    margin: auto;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+}
 
-        /* Modal Image Viewer */
-        .full-img-overlay { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; justify-content: center; align-items: center; }
-        .full-img-overlay img { max-width: 95%; max-height: 90%; border-radius: 10px; }
-        .close-btn { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; font-weight: bold; }
+/* AUTH */
 
-        /* Admin Block */
-        .admin-section { background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-    </style>
+.auth-screen {
+    min-height: 100vh;
+    background: #e8f5e9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+    text-align: center;
+}
+
+.auth-box h2 {
+    color: #2e7d32;
+    margin-top: 0;
+}
+
+.input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.main-btn {
+    width: 100%;
+    padding: 13px;
+    border: 0;
+    border-radius: 8px;
+    background: #2e7d32;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.main-btn:disabled {
+    opacity: .6;
+}
+
+.google-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.toggle {
+    display: block;
+    margin-top: 15px;
+    color: #2e7d32;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* HEADER */
+
+.header {
+    background: #1b5e20;
+    color: white;
+    padding: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 18px 18px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.header p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    opacity: .85;
+}
+
+.logout-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid white;
+    border-radius: 6px;
+    padding: 7px 11px;
+}
+
+/* CONTENT */
+
+.content {
+    height: calc(100vh - 72px);
+    overflow-y: auto;
+    padding: 18px;
+    padding-bottom: 90px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* DASHBOARD */
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat small {
+    display: block;
+    color: #777;
+    margin-bottom: 5px;
+}
+
+.stat strong {
+    font-size: 22px;
+    color: #1b5e20;
+}
+
+.breakdown-title {
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 7px;
+}
+
+.breakdown {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.breakdown strong {
+    color: #d32f2f;
+}
+
+/* FORMS */
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #555;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+/* RECORDS */
+
+.record {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.record-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.record-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.goat-tag {
+    background: #ffebee;
+    color: #d32f2f;
+    padding: 3px 7px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.record-meta {
+    color: #888;
+    font-size: 12px;
+    margin: 7px 0 10px;
+}
+
+.images {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+}
+
+.thumbnail {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 7px;
+    border: 1px solid #ddd;
+    flex-shrink: 0;
+}
+
+.receipt-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 9px;
+    border: 1px solid #fbc02d;
+    border-radius: 5px;
+    background: #fff9c4;
+    color: #f57f17;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.record-actions {
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+    padding-top: 9px;
+    text-align: right;
+}
+
+.edit-btn,
+.delete-btn {
+    background: none;
+    border: 0;
+    font-weight: bold;
+    margin-left: 12px;
+}
+
+.edit-btn {
+    color: #f57c00;
+}
+
+.delete-btn {
+    color: #d32f2f;
+}
+
+/* NAVIGATION */
+
+.nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+    flex: 1;
+    padding: 10px 2px;
+    text-align: center;
+    color: #999;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.nav-item i {
+    display: block;
+    font-size: 19px;
+    margin-bottom: 3px;
+}
+
+.nav-item.active {
+    color: #2e7d32;
+}
+
+/* ADMIN */
+
+.admin-box {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* UPLOAD */
+
+.upload-status {
+    display: none;
+    margin: 10px 0;
+    padding: 9px;
+    border-radius: 7px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    text-align: center;
+    font-size: 13px;
+}
+
+.progress-wrap {
+    display: none;
+    margin: 10px 0;
+}
+
+.progress-bg {
+    height: 8px;
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress {
+    width: 0;
+    height: 100%;
+    background: #2e7d32;
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* IMAGE VIEWER */
+
+.viewer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.9);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.viewer img {
+    max-width: 95%;
+    max-height: 90%;
+    border-radius: 10px;
+}
+
+.viewer-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: white;
+    font-size: 35px;
+}
+
+/* PENDING */
+
+.pending {
+    min-height: 100vh;
+    background: #e8f5e9;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* ERROR */
+
+#error-box {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #d32f2f;
+    color: white;
+    padding: 10px;
+    z-index: 10000;
+    text-align: center;
+    font-size: 13px;
+}
+</style>
 </head>
+
 <body>
 
-    <!-- AUTHENTICATION VIEW -->
-    <div id="view-auth" class="auth-container">
-        <div class="auth-box">
-            <h2><i class="fas fa-leaf"></i> GoatFarm</h2>
-            <h3 id="auth-header-text">Login to Account</h3>
-            
-            <div class="input-group">
-                <input type="email" id="in-email" class="auth-input" placeholder="Email Address" required>
+<div id="error-box"></div>
+
+<!-- LOGIN -->
+<div id="auth-view" class="auth-screen">
+
+    <div class="auth-box">
+
+        <h2>
+            <i class="fas fa-leaf"></i>
+            GoatFarm
+        </h2>
+
+        <h3 id="auth-title">
+            Login to Account
+        </h3>
+
+        <input
+            id="email"
+            class="auth-input input"
+            type="email"
+            placeholder="Email Address"
+        >
+
+        <input
+            id="password"
+            class="auth-input input"
+            type="password"
+            placeholder="Password"
+        >
+
+        <button
+            id="email-btn"
+            class="main-btn"
+        >
+            Login
+        </button>
+
+        <p style="color:#999;font-size:12px;">
+            — OR —
+        </p>
+
+        <button
+            id="google-btn"
+            class="google-btn"
+        >
+            <i class="fab fa-google"
+               style="color:#db4437"></i>
+            Sign in with Google
+        </button>
+
+        <span
+            id="auth-toggle"
+            class="toggle"
+        >
+            Need an account? Register here
+        </span>
+
+    </div>
+
+</div>
+
+<!-- PENDING -->
+<div id="pending-view" class="pending">
+
+    <div class="auth-box">
+
+        <h2>
+            <i class="fas fa-lock"></i>
+            Access Denied
+        </h2>
+
+        <p>
+            Your account exists, but no farm has been assigned to you.
+        </p>
+
+        <p>
+            Contact the farm administrator for access.
+        </p>
+
+        <button
+            id="pending-logout"
+            class="main-btn"
+            style="background:#d32f2f"
+        >
+            Log Out
+        </button>
+
+    </div>
+
+</div>
+
+<!-- APP -->
+<div
+    id="app-view"
+    class="app"
+    style="display:none;"
+>
+
+    <div class="header">
+
+        <div>
+            <h1>
+                <i class="fas fa-leaf"></i>
+                Goat Ledger
+            </h1>
+
+            <p id="farm-name">
+                Farm: Loading...
+            </p>
+        </div>
+
+        <button
+            id="logout"
+            class="logout-btn"
+        >
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+
+    </div>
+
+    <div class="content">
+
+        <!-- DASHBOARD -->
+        <section
+            id="dashboard"
+            class="screen active"
+        >
+
+            <div class="stats">
+
+                <div class="stat">
+                    <small>Total Goats</small>
+                    <strong id="total-goats">0</strong>
+                </div>
+
+                <div class="stat">
+                    <small>Total Spent</small>
+                    <strong id="total-spent">₦0</strong>
+                </div>
+
             </div>
-            <div class="input-group">
-                <input type="password" id="in-pass" class="auth-input" placeholder="Password" required>
+
+            <h3 class="breakdown-title">
+                Expense Breakdown
+            </h3>
+
+            <div class="breakdown">
+                <span>
+                    <i class="fas fa-pills"></i>
+                    Medical
+                </span>
+                <strong id="medical-total">₦0</strong>
             </div>
-            
-            <button id="btn-email-auth" class="btn-main">Login</button>
-            
-            <p style="color: #999; font-size: 12px; margin: 15px 0;">— OR —</p>
-            
-            <button id="btn-google-auth" class="btn-google">
-                <i class="fab fa-google" style="color: #DB4437;"></i> Sign in with Google
+
+            <div class="breakdown">
+                <span>
+                    <i class="fas fa-wheat-awn"></i>
+                    Feed
+                </span>
+                <strong id="feed-total">₦0</strong>
+            </div>
+
+            <div class="breakdown">
+                <span>
+                    <i class="fas fa-user"></i>
+                    Herdsman
+                </span>
+                <strong id="herdsman-total">₦0</strong>
+            </div>
+
+            <div class="breakdown">
+                <span>
+                    <i class="fas fa-ellipsis-h"></i>
+                    Other
+                </span>
+                <strong id="other-total">₦0</strong>
+            </div>
+
+        </section>
+
+        <!-- HISTORY -->
+        <section
+            id="history"
+            class="screen"
+        >
+
+            <div class="form-group">
+
+                <select
+                    id="history-filter"
+                    class="form-control"
+                >
+                    <option value="all">
+                        All Records
+                    </option>
+
+                    <option value="purchase">
+                        Purchases
+                    </option>
+
+                    <option value="medical">
+                        Medical
+                    </option>
+
+                    <option value="feed">
+                        Feed
+                    </option>
+
+                    <option value="herdsman">
+                        Herdsman
+                    </option>
+
+                    <option value="other">
+                        Other
+                    </option>
+                </select>
+
+            </div>
+
+            <div id="history-list"></div>
+
+        </section>
+
+        <!-- MANAGE -->
+        <section
+            id="manage"
+            class="screen"
+        >
+
+            <p style="font-size:13px;color:#777;">
+                Edit or delete farm records.
+            </p>
+
+            <div id="manage-list"></div>
+
+        </section>
+
+        <!-- ADD -->
+        <section
+            id="add"
+            class="screen"
+        >
+
+            <h2 id="form-title">
+                Create Record
+            </h2>
+
+            <input
+                type="hidden"
+                id="record-id"
+            >
+
+            <div class="form-group">
+
+                <label>Category</label>
+
+                <select
+                    id="record-type"
+                    class="form-control"
+                >
+
+                    <option value="purchase">
+                        Goat Purchase
+                    </option>
+
+                    <option value="medical">
+                        Medical / Drugs
+                    </option>
+
+                    <option value="feed">
+                        Feed / Fodder
+                    </option>
+
+                    <option value="herdsman">
+                        Herdsman Payment
+                    </option>
+
+                    <option value="other">
+                        Other Expense
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Amount (₦)</label>
+
+                <input
+                    id="record-amount"
+                    class="form-control"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="50000"
+                >
+
+            </div>
+
+            <div
+                id="goat-count-box"
+                class="form-group"
+            >
+
+                <label>Number of Goats</label>
+
+                <input
+                    id="goat-count"
+                    class="form-control"
+                    type="number"
+                    min="1"
+                    value="1"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Description</label>
+
+                <input
+                    id="record-description"
+                    class="form-control"
+                    type="text"
+                    placeholder="e.g. Dewormer"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Date</label>
+
+                <input
+                    id="record-date"
+                    class="form-control"
+                    type="date"
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+                    Goat Images
+                    <small>(Maximum 3)</small>
+                </label>
+
+                <input
+                    id="goat-images"
+                    class="form-control"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                >
+
+            </div>
+
+            <div
+                id="image-preview"
+                class="images"
+            ></div>
+
+            <div class="form-group">
+
+                <label>
+                    Receipt
+                    <small>(Optional)</small>
+                </label>
+
+                <input
+                    id="receipt-image"
+                    class="form-control"
+                    type="file"
+                    accept="image/*"
+                >
+
+            </div>
+
+            <div
+                id="receipt-preview"
+                style="display:none;"
+            >
+                <span class="receipt-btn">
+                    <i class="fas fa-check"></i>
+                    Receipt Attached
+                </span>
+            </div>
+
+            <div
+                id="upload-status"
+                class="upload-status"
+            ></div>
+
+            <div
+                id="progress-wrap"
+                class="progress-wrap"
+            >
+
+                <div class="progress-bg">
+                    <div
+                        id="progress"
+                        class="progress"
+                    ></div>
+                </div>
+
+                <div
+                    id="progress-text"
+                    class="progress-text"
+                >
+                    0%
+                </div>
+
+            </div>
+
+            <button
+                id="save-record"
+                class="main-btn"
+            >
+                Save Record
             </button>
-            
-            <span id="btn-toggle-auth" class="toggle-auth">Need an account? Register here</span>
-        </div>
-    </div>
 
-    <!-- PENDING APPROVAL VIEW -->
-    <div id="view-pending" class="auth-container" style="display: none;">
-        <div class="auth-box">
-            <h2><i class="fas fa-lock" style="color: #f57c00;"></i> Access Denied</h2>
-            <p>Your account is created, but you do not belong to a farm yet.</p>
-            <p style="font-weight: bold;">Contact Abubakar for access.</p>
-            <button id="btn-pending-logout" class="btn-main" style="background: #d32f2f; margin-top: 20px;">Log Out</button>
-        </div>
-    </div>
+        </section>
 
-    <!-- MAIN APPLICATION VIEW -->
-    <div id="view-app" class="app-wrapper" style="display: none;">
-        
-        <div class="header">
-            <div>
-                <h1><i class="fas fa-leaf"></i> Goat Ledger</h1>
-                <p id="ui-farm-name">Farm: Loading...</p>
-            </div>
-            <button id="btn-app-logout" class="btn-logout"><i class="fas fa-sign-out-alt"></i></button>
-        </div>
+        <!-- ADMIN -->
+        <section
+            id="admin"
+            class="screen"
+        >
 
-        <div class="content">
-            
-            <!-- Dashboard -->
-            <div id="tab-dashboard" class="screen active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h4>Total Goats</h4>
-                        <h2 id="ui-total-goats">0</h2>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Total Spent</h4>
-                        <h2 id="ui-total-spent">₦0</h2>
-                    </div>
-                </div>
-                
-                <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">Expense Breakdown</h3>
-                <div class="breakdown-box"><span><i class="fas fa-pills"></i> Medical</span> <strong id="ui-med">₦0</strong></div>
-                <div class="breakdown-box"><span><i class="fas fa-wheat-awn"></i> Feed</span> <strong id="ui-feed">₦0</strong></div>
-                <div class="breakdown-box"><span><i class="fas fa-user"></i> Herdsman</span> <strong id="ui-herd">₦0</strong></div>
-                <div class="breakdown-box"><span><i class="fas fa-ellipsis-h"></i> Other</span> <strong id="ui-other">₦0</strong></div>
+            <div class="admin-box">
+
+                <h3>Switch Farm</h3>
+
+                <select
+                    id="farm-select"
+                    class="form-control"
+                >
+                    <option value="">
+                        Select a farm
+                    </option>
+                </select>
+
             </div>
 
-            <!-- History -->
-            <div id="tab-history" class="screen">
-                <div class="input-group">
-                    <select id="filter-history">
-                        <option value="all">All Records</option>
-                        <option value="purchase">Purchases</option>
-                        <option value="medical">Medical</option>
-                        <option value="feed">Feed</option>
-                        <option value="herdsman">Herdsman</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div id="list-history"></div>
+            <div class="admin-box">
+
+                <h3>Assign User</h3>
+
+                <input
+                    id="assign-email"
+                    class="form-control"
+                    type="email"
+                    placeholder="User Email"
+                >
+
+                <br>
+
+                <input
+                    id="assign-farm"
+                    class="form-control"
+                    type="text"
+                    placeholder="Farm ID"
+                >
+
+                <br>
+
+                <button
+                    id="assign-user"
+                    class="main-btn"
+                >
+                    Grant Access
+                </button>
+
             </div>
 
-            <!-- Manage -->
-            <div id="tab-manage" class="screen">
-                <p style="font-size: 13px; color: #666; margin-top:0;">Edit or delete records from your farm.</p>
-                <div id="list-manage"></div>
-            </div>
-
-            <!-- Add Form -->
-            <div id="tab-add" class="screen">
-                <h2 id="form-title" style="margin-top: 0;">Create Record</h2>
-                <input type="hidden" id="form-id">
-                
-                <div class="input-group">
-                    <label>Category</label>
-                    <select id="form-type">
-                        <option value="purchase">Goat Purchase</option>
-                        <option value="medical">Medical / Drugs</option>
-                        <option value="feed">Feed / Fodder</option>
-                        <option value="herdsman">Herdsman Payment</option>
-                        <option value="other">Other Expense</option>
-                    </select>
-                </div>
-                
-                <div class="input-group">
-                    <label>Amount (₦)</label>
-                    <input type="number" id="form-amount" placeholder="50000" required>
-                </div>
-                
-                <div class="input-group" id="box-goat-count">
-                    <label>Number of Goats</label>
-                    <input type="number" id="form-goats" value="1" min="1">
-                </div>
-                
-                <div class="input-group">
-                    <label>Description</label>
-                    <input type="text" id="form-desc" placeholder="e.g. Dewormer" required>
-                </div>
-                
-                <div class="input-group">
-                    <label>Date</label>
-                    <input type="date" id="form-date" required>
-                </div>
-                
-                <div class="input-group">
-                    <label>Goat Images (Max 3)</label>
-                    <input type="file" id="form-images" accept="image/*" multiple>
-                    <div id="preview-images" class="img-row" style="margin-top: 10px;"></div>
-                </div>
-                
-                <div class="input-group">
-                    <label>Receipt Image (Optional)</label>
-                    <input type="file" id="form-receipt" accept="image/*">
-                    <div id="preview-receipt" style="display: none; margin-top: 5px;">
-                        <span class="btn-receipt"><i class="fas fa-check"></i> Receipt Attached</span>
-                    </div>
-                </div>
-                
-                <button id="btn-save" class="btn-main">Save Record</button>
-            </div>
-
-            <!-- Admin -->
-            <div id="tab-admin" class="screen">
-                <div class="admin-section">
-                    <h3 style="margin-top: 0;">Switch Farm</h3>
-                    <div class="input-group">
-                        <select id="admin-farm-select">
-                            <option value="">Choose a farm...</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="admin-section">
-                    <h3 style="margin-top: 0;">Assign User</h3>
-                    <div class="input-group"><input type="email" id="admin-email" placeholder="User Email"></div>
-                    <div class="input-group"><input type="text" id="admin-farmId" placeholder="Farm ID (e.g. MyFarm)"></div>
-                    <button id="btn-assign" class="btn-main">Grant Access</button>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Navigation -->
-        <div class="nav-bar">
-            <div class="nav-item active" data-target="tab-dashboard"><i class="fas fa-chart-pie"></i> Records</div>
-            <div class="nav-item" data-target="tab-history"><i class="fas fa-history"></i> History</div>
-            <div class="nav-item" data-target="tab-manage"><i class="fas fa-edit"></i> Manage</div>
-            <div class="nav-item" data-target="tab-add"><i class="fas fa-plus-circle"></i> Add</div>
-            <div class="nav-item" id="nav-admin" data-target="tab-admin" style="display:none;"><i class="fas fa-shield-alt"></i> Admin</div>
-        </div>
+        </section>
 
     </div>
 
-    <!-- Full Image Viewer -->
-    <div id="modal-viewer" class="full-img-overlay">
-        <span class="close-btn" id="btn-close-viewer">&times;</span>
-        <img id="viewer-img" src="">
-    </div>
+    <!-- NAVIGATION -->
+    <nav class="nav">
 
-    <!-- APPLICATION LOGIC -->
+        <div
+            class="nav-item active"
+            data-screen="dashboard"
+        >
+            <i class="fas fa-chart-pie"></i>
+            Records
+        </div>
+
+        <div
+            class="nav-item"
+            data-screen="history"
+        >
+            <i class="fas fa-history"></i>
+            History
+        </div>
+
+        <div
+            class="nav-item"
+            data-screen="manage"
+        >
+            <i class="fas fa-edit"></i>
+            Manage
+        </div>
+
+        <div
+            class="nav-item"
+            data-screen="add"
+        >
+            <i class="fas fa-plus-circle"></i>
+            Add
+        </div>
+
+        <div
+            id="admin-nav"
+            class="nav-item"
+            data-screen="admin"
+            style="display:none;"
+        >
+            <i class="fas fa-shield-alt"></i>
+            Admin
+        </div>
+
+    </nav>
+
+</div>
+
+<!-- IMAGE VIEWER -->
+<div
+    id="image-viewer"
+    class="viewer"
+>
+
+    <span
+        id="viewer-close"
+        class="viewer-close"
+    >
+        &times;
+    </span>
+
+    <img
+        id="viewer-image"
+        src=""
+        alt="Image"
+    >
+
+</div>
+
+<!-- Part 2 continues here -->
     <script>
-        // Start script execution safely
-        window.addEventListener('load', function() {
-            
-            // 1. FIREBASE CONFIGURATION
-            const firebaseConfig = {
-                apiKey: "AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
-                authDomain: "goatledger-132c7.firebaseapp.com",
-                projectId: "goatledger-132c7",
-                storageBucket: "goatledger-132c7.firebasestorage.app",
-                messagingSenderId: "576591882291",
-                appId: "1:576591882291:web:9d540d6c99150a63e81b46"
-            };
-            firebase.initializeApp(firebaseConfig);
-            
-            const auth = firebase.auth();
-            const db = firebase.firestore();
-            const googleProvider = new firebase.auth.GoogleAuthProvider();
-            
-            const SUPER_ADMIN = "abdulkadirbukar2006@gmail.com";
+/* =========================================================
+   FIREBASE CONFIGURATION
+   ========================================================= */
 
-            // 2. STATE VARIABLES
-            let isLogin = true;
-            let currentEmail = "";
-            let currentFarmId = "";
-            let dbListener = null;
-            let records = [];
-            let tempImages = [];
-            let tempReceipt = null;
+const firebaseConfig = {
+    apiKey: "AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
+    authDomain: "goatledger-132c7.firebaseapp.com",
+    projectId: "goatledger-132c7",
+    storageBucket: "goatledger-132c7.firebasestorage.app",
+    messagingSenderId: "576591882291",
+    appId: "1:576591882291:web:9d540d6c99150a63e81b46"
+};
 
-            // 3. CACHE DOM ELEMENTS
-            const vAuth = document.getElementById('view-auth');
-            const vPending = document.getElementById('view-pending');
-            const vApp = document.getElementById('view-app');
-            const navItems = document.querySelectorAll('.nav-item');
-            const screens = document.querySelectorAll('.screen');
+firebase.initializeApp(firebaseConfig);
 
-            // Set default date
-            document.getElementById('form-date').valueAsDate = new Date();
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-            // 4. UI NAVIGATION & MODAL LOGIC
-            navItems.forEach(function(item) {
-                item.addEventListener('click', function() {
-                    // Update Nav
-                    navItems.forEach(function(nav) { nav.classList.remove('active'); });
-                    this.classList.add('active');
-                    
-                    // Switch Screen
-                    const targetId = this.getAttribute('data-target');
-                    screens.forEach(function(s) { s.classList.remove('active'); });
-                    document.getElementById(targetId).classList.add('active');
+const googleProvider =
+    new firebase.auth.GoogleAuthProvider();
 
-                    // Reset form if clicking 'Add'
-                    if (targetId === 'tab-add' && !document.getElementById('form-id').value) {
-                        resetForm();
-                    }
-                });
-            });
+const SUPER_ADMIN =
+    "abdulkadirbukar2006@gmail.com";
 
-            // Make viewImage globally available for inline HTML string generation
-            window.viewImage = function(src) {
-                document.getElementById('viewer-img').src = src;
-                document.getElementById('modal-viewer').style.display = 'flex';
-            };
-            
-            document.getElementById('btn-close-viewer').addEventListener('click', function() {
-                document.getElementById('modal-viewer').style.display = 'none';
-            });
 
-            // 5. AUTHENTICATION LOGIC
-            document.getElementById('btn-toggle-auth').addEventListener('click', function() {
-                isLogin = !isLogin;
-                document.getElementById('auth-header-text').innerText = isLogin ? "Login to Account" : "Create an Account";
-                document.getElementById('btn-email-auth').innerText = isLogin ? "Login" : "Sign Up";
-                this.innerText = isLogin ? "Need an account? Register here" : "Already have an account? Login here";
-            });
+/* =========================================================
+   APP STATE
+   ========================================================= */
 
-            document.getElementById('btn-email-auth').addEventListener('click', function() {
-                const email = document.getElementById('in-email').value;
-                const pass = document.getElementById('in-pass').value;
-                if(!email || !pass) return alert("Enter email and password.");
-                
-                this.innerText = "Processing...";
-                if(isLogin) {
-                    auth.signInWithEmailAndPassword(email, pass).catch(err => { alert(err.message); this.innerText="Login"; });
-                } else {
-                    auth.createUserWithEmailAndPassword(email, pass).catch(err => { alert(err.message); this.innerText="Sign Up"; });
+let currentUser = null;
+let currentFarmId = "";
+let records = [];
+let unsubscribeRecords = null;
+
+let selectedGoatFiles = [];
+let selectedReceiptFile = null;
+
+
+/* =========================================================
+   SHORTCUTS
+   ========================================================= */
+
+const $ = id => document.getElementById(id);
+
+const show = el => {
+    if (el) el.style.display = "flex";
+};
+
+const hide = el => {
+    if (el) el.style.display = "none";
+};
+
+
+/* =========================================================
+   ERROR DISPLAY
+   ========================================================= */
+
+function showError(message) {
+
+    const box = $("error-box");
+
+    box.textContent = message;
+    box.style.display = "block";
+
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 6000);
+}
+
+
+/* =========================================================
+   DATE
+   ========================================================= */
+
+$("record-date").valueAsDate = new Date();
+
+
+/* =========================================================
+   AUTH MODE
+   ========================================================= */
+
+let loginMode = true;
+
+$("auth-toggle").onclick = () => {
+
+    loginMode = !loginMode;
+
+    $("auth-title").textContent =
+        loginMode
+            ? "Login to Account"
+            : "Create an Account";
+
+    $("email-btn").textContent =
+        loginMode
+            ? "Login"
+            : "Sign Up";
+
+    $("auth-toggle").textContent =
+        loginMode
+            ? "Need an account? Register here"
+            : "Already have an account? Login here";
+};
+
+
+/* =========================================================
+   EMAIL AUTHENTICATION
+   ========================================================= */
+
+$("email-btn").onclick = async () => {
+
+    const email =
+        $("email").value.trim();
+
+    const password =
+        $("password").value;
+
+    if (!email || !password) {
+        showError("Enter your email and password.");
+        return;
+    }
+
+    const button = $("email-btn");
+
+    button.disabled = true;
+    button.textContent = "Processing...";
+
+    try {
+
+        if (loginMode) {
+
+            await auth.signInWithEmailAndPassword(
+                email,
+                password
+            );
+
+        } else {
+
+            await auth.createUserWithEmailAndPassword(
+                email,
+                password
+            );
+
+        }
+
+    } catch (error) {
+
+        showError(error.message);
+
+    } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            loginMode
+                ? "Login"
+                : "Sign Up";
+    }
+};
+
+
+/* =========================================================
+   GOOGLE AUTHENTICATION
+   ========================================================= */
+
+$("google-btn").onclick = async () => {
+
+    try {
+
+        await auth.signInWithRedirect(
+            googleProvider
+        );
+
+    } catch (error) {
+
+        showError(error.message);
+    }
+};
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+async function logout() {
+
+    if (unsubscribeRecords) {
+        unsubscribeRecords();
+        unsubscribeRecords = null;
+    }
+
+    records = [];
+    currentFarmId = "";
+    currentUser = null;
+
+    try {
+
+        await auth.signOut();
+
+    } catch (error) {
+
+        showError(error.message);
+    }
+}
+
+$("logout").onclick = logout;
+$("pending-logout").onclick = logout;
+
+
+/* =========================================================
+   AUTH STATE
+   ========================================================= */
+
+auth.onAuthStateChanged(async user => {
+
+    if (!user) {
+
+        currentUser = null;
+        currentFarmId = "";
+
+        hide($("app-view"));
+        hide($("pending-view"));
+
+        show($("auth-view"));
+
+        return;
+    }
+
+    currentUser = user;
+
+    hide($("auth-view"));
+    hide($("pending-view"));
+
+    /*
+       SUPER ADMIN
+    */
+
+    if (
+        user.email &&
+        user.email.toLowerCase() ===
+        SUPER_ADMIN.toLowerCase()
+    ) {
+
+        $("admin-nav").style.display = "block";
+
+        $("farm-name").textContent =
+            "Super Admin";
+
+        show($("app-view"));
+
+        loadAdminFarms();
+
+        openScreen("admin");
+
+        return;
+    }
+
+    $("admin-nav").style.display = "none";
+
+    /*
+       NORMAL USER
+    */
+
+    try {
+
+        const userDoc =
+            await db
+                .collection("users")
+                .doc(user.email.toLowerCase())
+                .get();
+
+        if (
+            !userDoc.exists ||
+            !userDoc.data().farmId
+        ) {
+
+            hide($("app-view"));
+            show($("pending-view"));
+
+            return;
+        }
+
+        currentFarmId =
+            userDoc.data().farmId;
+
+        $("farm-name").textContent =
+            "Farm: " + currentFarmId;
+
+        show($("app-view"));
+
+        openScreen("dashboard");
+
+        listenToRecords();
+
+    } catch (error) {
+
+        showError(
+            "Could not load your farm: " +
+            error.message
+        );
+    }
+});
+
+
+/* =========================================================
+   SCREEN NAVIGATION
+   ========================================================= */
+
+function openScreen(screenId) {
+
+    document
+        .querySelectorAll(".screen")
+        .forEach(screen => {
+            screen.classList.remove("active");
+        });
+
+    document
+        .querySelectorAll(".nav-item")
+        .forEach(item => {
+            item.classList.remove("active");
+        });
+
+    const screen =
+        $(screenId);
+
+    if (!screen) return;
+
+    screen.classList.add("active");
+
+    const nav =
+        document.querySelector(
+            `.nav-item[data-screen="${screenId}"]`
+        );
+
+    if (nav) {
+        nav.classList.add("active");
+    }
+}
+
+document
+    .querySelectorAll(".nav-item")
+    .forEach(item => {
+
+        item.onclick = () => {
+
+            const screen =
+                item.dataset.screen;
+
+            if (
+                screen === "add" &&
+                currentFarmId === ""
+            ) {
+                showError(
+                    "No farm is currently selected."
+                );
+                return;
+            }
+
+            openScreen(screen);
+        };
+    });
+
+
+/* =========================================================
+   CATEGORY / GOAT COUNT
+   ========================================================= */
+
+$("record-type").onchange = () => {
+
+    const isPurchase =
+        $("record-type").value === "purchase";
+
+    $("goat-count-box").style.display =
+        isPurchase
+            ? "block"
+            : "none";
+};
+
+
+/* =========================================================
+   IMAGE FILE SELECTION
+   ========================================================= */
+
+$("goat-images").onchange = event => {
+
+    selectedGoatFiles =
+        Array.from(event.target.files)
+            .slice(0, 3);
+
+    renderImagePreview();
+};
+
+
+function renderImagePreview() {
+
+    const container =
+        $("image-preview");
+
+    container.innerHTML = "";
+
+    selectedGoatFiles.forEach(file => {
+
+        const reader =
+            new FileReader();
+
+        reader.onload = event => {
+
+            const img =
+                document.createElement("img");
+
+            img.src =
+                event.target.result;
+
+            img.className =
+                "thumbnail";
+
+            container.appendChild(img);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+
+/* =========================================================
+   RECEIPT SELECTION
+   ========================================================= */
+
+$("receipt-image").onchange = event => {
+
+    selectedReceiptFile =
+        event.target.files[0] || null;
+
+    $("receipt-preview").style.display =
+        selectedReceiptFile
+            ? "block"
+            : "none";
+};
+
+
+/* =========================================================
+   FIREBASE STORAGE UPLOAD
+   ========================================================= */
+
+function uploadFile(file, path) {
+
+    return new Promise((resolve, reject) => {
+
+        const reference =
+            storage.ref().child(path);
+
+        const upload =
+            reference.put(file);
+
+        upload.on(
+            "state_changed",
+
+            snapshot => {
+
+                if (!file) return;
+
+                const percent =
+                    Math.round(
+                        (
+                            snapshot.bytesTransferred /
+                            snapshot.totalBytes
+                        ) * 100
+                    );
+
+                $("progress").style.width =
+                    percent + "%";
+
+                $("progress-text").textContent =
+                    percent + "%";
+            },
+
+            error => {
+                reject(error);
+            },
+
+            async () => {
+
+                try {
+
+                    const url =
+                        await upload.snapshot
+                            .ref
+                            .getDownloadURL();
+
+                    resolve(url);
+
+                } catch (error) {
+
+                    reject(error);
                 }
+            }
+        );
+    });
+}
+
+
+/* =========================================================
+   UPLOAD MULTIPLE GOAT IMAGES
+   ========================================================= */
+
+async function uploadGoatImages(recordId) {
+
+    const urls = [];
+
+    for (
+        let i = 0;
+        i < selectedGoatFiles.length;
+        i++
+    ) {
+
+        const file =
+            selectedGoatFiles[i];
+
+        const extension =
+            file.name
+                .split(".")
+                .pop();
+
+        const path =
+            `farms/${currentFarmId}/records/${recordId}/goat_${Date.now()}_${i}.${extension}`;
+
+        $("upload-status").style.display =
+            "block";
+
+        $("upload-status").textContent =
+            `Uploading goat image ${i + 1} of ${selectedGoatFiles.length}...`;
+
+        const url =
+            await uploadFile(
+                file,
+                path
+            );
+
+        urls.push(url);
+    }
+
+    return urls;
+}
+
+
+/* =========================================================
+   UPLOAD RECEIPT
+   ========================================================= */
+
+async function uploadReceipt(recordId) {
+
+    if (!selectedReceiptFile) {
+        return null;
+    }
+
+    $("upload-status").style.display =
+        "block";
+
+    $("upload-status").textContent =
+        "Uploading receipt...";
+
+    const extension =
+        selectedReceiptFile.name
+            .split(".")
+            .pop();
+
+    const path =
+        `farms/${currentFarmId}/records/${recordId}/receipt_${Date.now()}.${extension}`;
+
+    return await uploadFile(
+        selectedReceiptFile,
+        path
+    );
+}
+
+
+/* =========================================================
+   CREATE NEW RECORD ID
+   ========================================================= */
+
+function createRecordId() {
+
+    return db
+        .collection("transactions")
+        .doc()
+        .id;
+}
+
+
+/* =========================================================
+   RESET UPLOAD UI
+   ========================================================= */
+
+function resetUploadUI() {
+
+    $("upload-status").style.display =
+        "none";
+
+    $("progress-wrap").style.display =
+        "none";
+
+    $("progress").style.width =
+        "0%";
+
+    $("progress-text").textContent =
+        "0%";
+
+    $("image-preview").innerHTML = "";
+
+    $("receipt-preview").style.display =
+        "none";
+
+    $("goat-images").value = "";
+
+    $("receipt-image").value = "";
+
+    selectedGoatFiles = [];
+    selectedReceiptFile = [];
+}
+
+
+/* =========================================================
+   PART 3 CONTINUES HERE
+
+ ========================================================= */
+        <script>
+
+/* =========================================================
+   FIRESTORE RECORD LISTENER
+   ========================================================= */
+
+function listenToRecords() {
+
+    if (!currentFarmId) return;
+
+    if (unsubscribeRecords) {
+        unsubscribeRecords();
+    }
+
+    unsubscribeRecords =
+        db.collection("transactions")
+        .where("farmId", "==", currentFarmId)
+        .onSnapshot(
+
+            snapshot => {
+
+                records = [];
+
+                snapshot.forEach(doc => {
+
+                    records.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+
+                });
+
+                records.sort((a, b) => {
+
+                    const aTime =
+                        a.createdAt || 0;
+
+                    const bTime =
+                        b.createdAt || 0;
+
+                    return bTime - aTime;
+                });
+
+                renderDashboard();
+                renderHistory();
+                renderManage();
+
+            },
+
+            error => {
+
+                showError(
+                    "Database error: " +
+                    error.message
+                );
+
+            }
+        );
+}
+
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+function renderDashboard() {
+
+    let goats = 0;
+    let spent = 0;
+    let medical = 0;
+    let feed = 0;
+    let herdsman = 0;
+    let other = 0;
+
+    records.forEach(record => {
+
+        const amount =
+            Number(record.amount) || 0;
+
+        spent += amount;
+
+        if (record.type === "purchase") {
+
+            goats +=
+                Number(record.goatCount) || 0;
+
+        }
+
+        if (record.type === "medical") {
+            medical += amount;
+        }
+
+        if (record.type === "feed") {
+            feed += amount;
+        }
+
+        if (record.type === "herdsman") {
+            herdsman += amount;
+        }
+
+        if (record.type === "other") {
+            other += amount;
+        }
+
+    });
+
+    $("total-goats").textContent =
+        goats.toLocaleString();
+
+    $("total-spent").textContent =
+        "₦" + spent.toLocaleString();
+
+    $("medical-total").textContent =
+        "₦" + medical.toLocaleString();
+
+    $("feed-total").textContent =
+        "₦" + feed.toLocaleString();
+
+    $("herdsman-total").textContent =
+        "₦" + herdsman.toLocaleString();
+
+    $("other-total").textContent =
+        "₦" + other.toLocaleString();
+}
+
+
+/* =========================================================
+   FORMAT DATE
+   ========================================================= */
+
+function formatDate(date) {
+
+    if (!date) return "";
+
+    const value =
+        new Date(date);
+
+    if (isNaN(value.getTime())) {
+        return date;
+    }
+
+    return value.toLocaleDateString();
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(value) {
+
+    const div =
+        document.createElement("div");
+
+    div.textContent =
+        value == null ? "" : String(value);
+
+    return div.innerHTML;
+}
+
+
+/* =========================================================
+   RECORD HTML
+   ========================================================= */
+
+function recordHTML(record, controls = false) {
+
+    const description =
+        escapeHTML(record.description);
+
+    const author =
+        escapeHTML(
+            record.author
+                ? record.author.split("@")[0]
+                : "Unknown"
+        );
+
+    const amount =
+        Number(record.amount) || 0;
+
+    const goatCount =
+        Number(record.goatCount) || 0;
+
+    let imagesHTML = "";
+
+    if (
+        Array.isArray(record.images) &&
+        record.images.length
+    ) {
+
+        imagesHTML = `
+            <div class="images">
+                ${record.images.map(url => `
+                    <img
+                        src="${escapeHTML(url)}"
+                        class="thumbnail"
+                        onclick="viewImage('${escapeHTML(url)}')"
+                    >
+                `).join("")}
+            </div>
+        `;
+    }
+
+    let receiptHTML = "";
+
+    if (record.receipt) {
+
+        receiptHTML = `
+            <span
+                class="receipt-btn"
+                onclick="viewImage('${escapeHTML(record.receipt)}')"
+            >
+                <i class="fas fa-file-invoice-dollar"></i>
+                View Receipt
+            </span>
+        `;
+    }
+
+    let goatTag = "";
+
+    if (record.type === "purchase") {
+
+        goatTag = `
+            <span class="goat-tag">
+                +${goatCount} Goat${goatCount === 1 ? "" : "s"}
+            </span>
+        `;
+    }
+
+    let actions = "";
+
+    if (controls) {
+
+        actions = `
+            <div class="record-actions">
+
+                <button
+                    class="edit-btn"
+                    onclick="editRecord('${record.id}')"
+                >
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+
+                <button
+                    class="delete-btn"
+                    onclick="deleteRecord('${record.id}')"
+                >
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+
+            </div>
+        `;
+    }
+
+    return `
+        <div class="record">
+
+            <div class="record-top">
+
+                <span class="record-title">
+                    ${description}
+                </span>
+
+                ${goatTag}
+
+            </div>
+
+            <div class="record-meta">
+                ${formatDate(record.date)}
+                |
+                By: ${author}
+                |
+                <strong>
+                    ₦${amount.toLocaleString()}
+                </strong>
+            </div>
+
+            ${imagesHTML}
+
+            ${receiptHTML}
+
+            ${actions}
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
+
+function renderHistory() {
+
+    const container =
+        $("history-list");
+
+    const filter =
+        $("history-filter").value;
+
+    let filtered =
+        records;
+
+    if (filter !== "all") {
+
+        filtered =
+            records.filter(
+                record =>
+                    record.type === filter
+            );
+    }
+
+    if (!filtered.length) {
+
+        container.innerHTML = `
+            <p style="text-align:center;color:#999;">
+                No records found.
+            </p>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        filtered
+            .map(record => recordHTML(record))
+            .join("");
+}
+
+$("history-filter").onchange =
+    renderHistory;
+
+
+/* =========================================================
+   MANAGE
+   ========================================================= */
+
+function renderManage() {
+
+    const container =
+        $("manage-list");
+
+    if (!records.length) {
+
+        container.innerHTML = `
+            <p style="text-align:center;color:#999;">
+                No records found.
+            </p>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        records
+            .map(record =>
+                recordHTML(record, true)
+            )
+            .join("");
+}
+
+
+/* =========================================================
+   IMAGE VIEWER
+   ========================================================= */
+
+window.viewImage = function(url) {
+
+    $("viewer-image").src = url;
+
+    $("image-viewer").style.display =
+        "flex";
+};
+
+
+$("viewer-close").onclick = () => {
+
+    $("image-viewer").style.display =
+        "none";
+
+    $("viewer-image").src = "";
+};
+
+
+$("image-viewer").onclick = event => {
+
+    if (event.target === $("image-viewer")) {
+        return;
+    }
+
+    if (event.target === $("image-viewer").parentElement) {
+
+        $("image-viewer").style.display =
+            "none";
+
+        $("viewer-image").src = "";
+    }
+};
+
+
+/* =========================================================
+   SAVE RECORD
+   ========================================================= */
+
+$("save-record").onclick = async () => {
+
+    if (!currentUser) {
+        showError("You are not logged in.");
+        return;
+    }
+
+    if (
+        !currentFarmId ||
+        currentFarmId === "AdminView"
+    ) {
+        showError("Select a valid farm first.");
+        return;
+    }
+
+    const type =
+        $("record-type").value;
+
+    const amount =
+        Number($("record-amount").value);
+
+    const description =
+        $("record-description")
+            .value
+            .trim();
+
+    const date =
+        $("record-date").value;
+
+    const goatCount =
+        type === "purchase"
+            ? Number($("goat-count").value)
+            : 0;
+
+    if (!amount || amount < 0) {
+
+        showError(
+            "Enter a valid amount."
+        );
+
+        return;
+    }
+
+    if (!description) {
+
+        showError(
+            "Enter a description."
+        );
+
+        return;
+    }
+
+    if (!date) {
+
+        showError(
+            "Select a date."
+        );
+
+        return;
+    }
+
+    if (
+        type === "purchase" &&
+        (!goatCount || goatCount < 1)
+    ) {
+
+        showError(
+            "Enter the number of goats."
+        );
+
+        return;
+    }
+
+    const button =
+        $("save-record");
+
+    button.disabled = true;
+    button.textContent = "Saving...";
+
+    $("progress-wrap").style.display =
+        "block";
+
+    try {
+
+        const existingId =
+            $("record-id").value;
+
+        let recordId =
+            existingId || createRecordId();
+
+        let existing =
+            records.find(
+                record =>
+                    record.id === recordId
+            );
+
+        let imageUrls =
+            existing &&
+            Array.isArray(existing.images)
+                ? existing.images
+                : [];
+
+        let receiptUrl =
+            existing
+                ? existing.receipt || null
+                : null;
+
+
+        /* -----------------------------------------
+           UPLOAD NEW GOAT IMAGES
+           ----------------------------------------- */
+
+        if (selectedGoatFiles.length) {
+
+            imageUrls =
+                await uploadGoatImages(
+                    recordId
+                );
+        }
+
+
+        /* -----------------------------------------
+           UPLOAD RECEIPT
+           ----------------------------------------- */
+
+        if (selectedReceiptFile) {
+
+            receiptUrl =
+                await uploadReceipt(
+                    recordId
+                );
+        }
+
+
+        /* -----------------------------------------
+           FIRESTORE DATA
+           ----------------------------------------- */
+
+        const data = {
+
+            farmId: currentFarmId,
+
+            author:
+                currentUser.email || "",
+
+            type: type,
+
+            amount: amount,
+
+            goatCount: goatCount,
+
+            description: description,
+
+            date: date,
+
+            images: imageUrls,
+
+            receipt: receiptUrl,
+
+            updatedAt:
+                firebase.firestore.FieldValue
+                    .serverTimestamp()
+        };
+
+
+        if (!existingId) {
+
+            data.createdAt =
+                firebase.firestore.FieldValue
+                    .serverTimestamp();
+
+            await db
+                .collection("transactions")
+                .doc(recordId)
+                .set(data);
+
+        } else {
+
+            await db
+                .collection("transactions")
+                .doc(recordId)
+                .update(data);
+        }
+
+
+        /* -----------------------------------------
+           SUCCESS
+           ----------------------------------------- */
+
+        resetForm();
+
+        openScreen("dashboard");
+
+    } catch (error) {
+
+        console.error(error);
+
+        showError(
+            "Could not save record: " +
+            error.message
+        );
+
+    } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "Save Record";
+
+        $("progress-wrap").style.display =
+            "none";
+
+    }
+};
+
+
+/* =========================================================
+   EDIT RECORD
+   ========================================================= */
+
+window.editRecord = function(id) {
+
+    const record =
+        records.find(
+            item => item.id === id
+        );
+
+    if (!record) {
+
+        showError(
+            "Record not found."
+        );
+
+        return;
+    }
+
+    $("record-id").value =
+        record.id;
+
+    $("record-type").value =
+        record.type;
+
+    $("record-amount").value =
+        record.amount;
+
+    $("record-description").value =
+        record.description;
+
+    $("record-date").value =
+        record.date;
+
+    $("goat-count").value =
+        record.goatCount || 1;
+
+    $("goat-count-box").style.display =
+        record.type === "purchase"
+            ? "block"
+            : "none";
+
+    $("form-title").textContent =
+        "Edit Record";
+
+    $("save-record").textContent =
+        "Update Record";
+
+    selectedGoatFiles = [];
+    selectedReceiptFile = null;
+
+    $("goat-images").value = "";
+    $("receipt-image").value = "";
+
+    $("image-preview").innerHTML = "";
+
+    $("receipt-preview").style.display =
+        "none";
+
+    openScreen("add");
+};
+
+
+/* =========================================================
+   DELETE RECORD
+   ========================================================= */
+
+window.deleteRecord = async function(id) {
+
+    const record =
+        records.find(
+            item => item.id === id
+        );
+
+    if (!record) return;
+
+    const confirmed =
+        confirm(
+            "Permanently delete this record?"
+        );
+
+    if (!confirmed) return;
+
+    try {
+
+        await db
+            .collection("transactions")
+            .doc(id)
+            .delete();
+
+    } catch (error) {
+
+        showError(
+            "Delete failed: " +
+            error.message
+        );
+    }
+};
+
+
+/* =========================================================
+   RESET FORM
+   ========================================================= */
+
+function resetForm() {
+
+    $("record-id").value = "";
+
+    $("record-type").value =
+        "purchase";
+
+    $("record-amount").value = "";
+
+    $("record-description").value =
+        "";
+
+    $("record-date").valueAsDate =
+        new Date();
+
+    $("goat-count").value = 1;
+
+    $("goat-count-box").style.display =
+        "block";
+
+    $("form-title").textContent =
+        "Create Record";
+
+    $("save-record").textContent =
+        "Save Record";
+
+    resetUploadUI();
+}
+
+
+/* =========================================================
+   ADMIN: LOAD FARMS
+   ========================================================= */
+
+async function loadAdminFarms() {
+
+    const select =
+        $("farm-select");
+
+    select.innerHTML = `
+        <option value="">
+            Select a farm
+        </option>
+    `;
+
+    try {
+
+        const snapshot =
+            await db
+                .collection("users")
+                .get();
+
+        const farms =
+            new Set();
+
+        snapshot.forEach(doc => {
+
+            const data =
+                doc.data();
+
+            if (data.farmId) {
+                farms.add(data.farmId);
+            }
+        });
+
+        [...farms]
+            .sort()
+            .forEach(farm => {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = farm;
+                option.textContent = farm;
+
+                select.appendChild(option);
             });
 
-            document.getElementById('btn-google-auth').addEventListener('click', function() {
-                auth.signInWithRedirect(googleProvider);
+    } catch (error) {
+
+        showError(
+            "Could not load farms: " +
+            error.message
+        );
+    }
+}
+
+
+/* =========================================================
+   ADMIN: SWITCH FARM
+   ========================================================= */
+
+$("farm-select").onchange = event => {
+
+    const farm =
+        event.target.value;
+
+    if (!farm) return;
+
+    currentFarmId =
+        farm;
+
+    $("farm-name").textContent =
+        "Admin Viewing: " + farm;
+
+    listenToRecords();
+
+    openScreen("dashboard");
+};
+
+
+/* =========================================================
+   ADMIN: ASSIGN USER
+   ========================================================= */
+
+$("assign-user").onclick = async () => {
+
+    const email =
+        $("assign-email")
+            .value
+            .trim()
+            .toLowerCase();
+
+    const farm =
+        $("assign-farm")
+            .value
+            .trim();
+
+    if (!email || !farm) {
+
+        showError(
+            "Enter both the user email and farm ID."
+        );
+
+        return;
+    }
+
+    const button =
+        $("assign-user");
+
+    button.disabled = true;
+    button.textContent = "Saving...";
+
+    try {
+
+        await db
+            .collection("users")
+            .doc(email)
+            .set({
+                farmId: farm
+            }, {
+                merge: true
             });
 
-            const logoutFn = function() {
-                if(dbListener) dbListener();
-                auth.signOut();
-            };
-            document.getElementById('btn-pending-logout').addEventListener('click', logoutFn);
-            document.getElementById('btn-app-logout').addEventListener('click', logoutFn);
+        $("assign-email").value = "";
+        $("assign-farm").value = "";
 
-            // 6. SESSION OBSERVER
-            auth.onAuthStateChanged(function(user) {
-                if (user) {
-                    currentEmail = user.email;
-  
+        await loadAdminFarms();
+
+        alert(
+            "User assigned successfully."
+        );
+
+    } catch (error) {
+
+        showError(
+            "Could not assign user: " +
+            error.message
+        );
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent =
+            "Grant Access";
+    }
+};
+
+
+/* =========================================================
+   CLEANUP
+   ========================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        if (unsubscribeRecords) {
+            unsubscribeRecords();
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
