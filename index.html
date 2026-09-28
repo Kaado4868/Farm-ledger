@@ -3,365 +3,375 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GoatFarm Mobile Ledger</title>
+    <title>GoatFarm Cloud Ledger</title>
+    
     <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <style>
-        :root {
-            --primary: #2e7d32; --primary-dark: #1b5e20; --bg: #f4f7f6;
-            --text: #333; --card-bg: #fff; --danger: #d32f2f; --warning: #f57c00;
-        }
-
-        body { margin: 0; background: #e0e0e0; font-family: 'Segoe UI', sans-serif; color: var(--text); -webkit-tap-highlight-color: transparent;}
-        
-        /* Modals & Screens */
-        .fullscreen-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 9999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
-        }
-        .auth-card { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;}
-        .auth-card h1 { color: var(--primary); margin-top: 0; font-size: 1.8rem;}
-        .form-group { text-align: left; margin-bottom: 16px;}
-        .auth-toggle { color: var(--primary); cursor: pointer; margin-top: 20px; display: block; font-size: 0.95rem; font-weight: 600;}
-
-        /* Google Button */
-        .btn-google {
-            width: 100%; background: white; color: #444; border: 1px solid #ddd; padding: 12px;
-            font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px;
-            display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        /* App Container */
-        .app-container { 
-            max-width: 480px; margin: 0 auto; height: 100vh; background: var(--bg); 
-            position: relative; display: flex; flex-direction: column; overflow: hidden; display: none; 
-        }
-
-        header { 
-            background: var(--primary); color: white; padding: 15px 20px; text-align: center; 
-            border-bottom-left-radius: 15px; border-bottom-right-radius: 15px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; display: flex; justify-content: space-between; align-items: center;
-        }
-        header h1 { margin: 0; font-size: 1.2rem; font-weight: 600; display:flex; flex-direction: column; align-items:flex-start;}
-        header h1 span { font-size: 0.75rem; font-weight: normal; opacity: 0.8;}
-        .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-
-        main { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 90px; }
-        .view { display: none; }
-        
-        /* Grids & Cards */
-        .summary-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; }
-        .card h3 { margin: 0 0 8px 0; font-size: 0.8rem; color: #777; text-transform: uppercase;}
-        .card p { margin: 0; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-        
-        h2 { font-size: 1.15rem; margin-bottom: 15px; color: #444; border-bottom: 2px solid #eee; padding-bottom: 8px;}
-        .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .breakdown-item { background: var(--card-bg); padding: 12px; border-radius: 8px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 5px;}
-        
-        .filter-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; background: #fff; font-size: 0.95rem; }
-
-        /* Transactions */
-        .transaction-list { list-style: none; padding: 0; margin: 0; }
-        .transaction-item { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #eee; }
-        .transaction-header { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;}
-        .transaction-header .amount { font-weight: bold; color: var(--danger); background: #ffebee; padding: 4px 8px; border-radius: 6px; font-size:0.9rem;}
-        
-        .image-gallery { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; padding-bottom: 5px;}
-        .gallery-thumb { width: 65px; height: 65px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer;}
-        .receipt-btn { background: #f0f4c3; color: #827717; border: 1px solid #dce775; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; margin-top: 10px; display: inline-block;}
-        
-        .action-btns { display: flex; gap: 15px; margin-top: 15px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 10px;}
-        .action-btn { background: none; border: none; font-size: 0.95rem; cursor: pointer; padding: 5px; font-weight: bold;}
-        .edit-btn { color: var(--warning); }
-        .delete-btn { color: var(--danger); }
-
-        /* Forms */
-        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.95rem; color: #555;}
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #fafafa;}
-        .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px;}
-        
-        /* Modal ImageViewer */
-        .image-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
-        .image-modal img { max-width: 95%; max-height: 90%; border-radius: 8px;}
-        .close-modal { position: absolute; top: 20px; right: 25px; color: #fff; font-size: 35px; font-weight: bold; cursor: pointer;}
-
-        .admin-box { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; margin-bottom: 15px;}
-        
-        /* Bottom Navigation */
-        .bottom-nav { position: absolute; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; z-index: 10; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-btn { flex: 1; background: none; border: none; padding: 12px 0; font-size: 0.65rem; color: #999; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: bold; }
-        .nav-btn i { font-size: 1.2rem; }
-        .nav-btn.active { color: var(--primary); }
-    </style>
-</head>
-<body>
-
-    <!-- AUTHENTICATION SCREEN -->
-    <div id="auth-screen" class="fullscreen-modal">
-        <div class="auth-card">
-            <h1><i class="fas fa-leaf"></i> GoatFarm</h1>
-            <h2 id="auth-title">Login</h2>
-            
-            <form id="auth-form">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="auth-email" required placeholder="farmer@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="auth-password" required placeholder="••••••••">
-                </div>
-                <button type="submit" class="btn-primary" id="auth-submit-btn">Login via Email</button>
-            </form>
-            
-            <div style="margin: 20px 0; display:flex; align-items:center; color:#999; font-size:0.8rem;">
-                <hr style="flex:1; border:none; border-top:1px solid #eee;"> OR <hr style="flex:1; border:none; border-top:1px solid #eee;">
-            </div>
-
-            <button type="button" id="google-login-btn" class="btn-google">
-                <i class="fab fa-google" style="color: #DB4437; font-size: 1.2rem;"></i> Sign in with Google
-            </button>
-
-            <span class="auth-toggle" id="auth-toggle-btn">Need an account? Register here</span>
-        </div>
-    </div>
-
-    <!-- PENDING APPROVAL SCREEN -->
-    <div id="pending-screen" class="fullscreen-modal" style="display:none;">
-        <div class="auth-card">
-            <h1><i class="fas fa-lock" style="color:var(--warning);"></i> Access Denied</h1>
-            <p style="color: #555; margin: 20px 0;">Your account is created, but you are not assigned to a farm.</p>
-            <p style="font-weight: bold; color: var(--primary);">Contact Super Admin (Abubakar) for access.</p>
-            <button type="button" class="btn-primary" onclick="logoutUser()" style="background:var(--danger);">Log Out</button>
-        </div>
-    </div>
-
-    <!-- MAIN APP CONTAINER -->
-    <div class="app-container" id="main-app">
-        <header>
-            <h1>
-                <div style="display: flex; align-items: center; gap: 6px;"><i class="fas fa-leaf"></i> GoatFarm</div>
-                <span id="display-farm-name">Loading...</span>
-            </h1>
-            <button type="button" class="logout-btn" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i></button>
-        </header>
-        
-        <main>
-            <!-- 1. DASHBOARD -->
-            <section id="dashboard" class="view" style="display:block;">
-                <div class="summary-cards">
-                    <div class="card">
-                        <h3>Total Goats</h3>
-                        <p id="total-goats">0</p>
-                    </div>
-                    <div class="card">
-                        <h3>Total Expenses</h3>
-                        <p id="total-expenses">₦0</p>
-                    </div>
-                </div>
-                <h2>Expense Breakdown</h2>
-                <div class="breakdown-grid">
-                    <div class="breakdown-item"><span><i class="fas fa-pills"></i> Medical</span><strong id="stat-medical">₦0</strong></div>
-                    <div class="breakdown-item"><span><i class="fas fa-wheat-awn"></i> Feed</span><strong id="stat-feed">₦0</strong></div>
-                    <div class="breakdown-item"><span><i class="fas fa-user"></i> Herdsman</span><strong id="stat-herdsman">₦0</strong></div>
-                    <div class="breakdown-item"><span><i class="fas fa-ellipsis-h"></i> Other</span><strong id="stat-other">₦0</strong></div>
-                </div>
-            </section>
-
-            <!-- 2. HISTORY -->
-            <section id="history" class="view">
-                <h2>Activity History</h2>
-                <select id="history-filter" class="filter-select">
-                    <option value="all">All Records</option>
-                    <option value="purchase">🐐 Purchases</option>
-                    <option value="medical">💊 Medical / Drugs</option>
-                    <option value="herdsman">🧑‍🌾 Herdsman Payments</option>
-                    <option value="feed">🌾 Feed / Fodder</option>
-                    <option value="other">📝 Other Expenses</option>
-                </select>
-                <ul id="history-list" class="transaction-list"></ul>
-            </section>
-
-            <!-- 3. MANAGE (Edit/Delete) -->
-            <section id="manage" class="view">
-                <h2>Manage Records</h2>
-                <ul id="manage-list" class="transaction-list"></ul>
-            </section>
-
-            <!-- 4. ADD / EDIT -->
-            <section id="add-entry" class="view">
-                <h2 id="form-title">Add New Record</h2>
-                <form id="entry-form">
-                    <input type="hidden" id="edit-id"> 
-                    
-                    <div class="form-group">
-                        <label>Record Type</label>
-                        <select id="entry-type" required>
-                            <option value="purchase">🐐 Goat Purchase</option>
-                            <option value="medical">💊 Medical / Drugs</option>
-                            <option value="herdsman">🧑‍🌾 Herdsman Payment</option>
-                            <option value="feed">🌾 Feed / Fodder</option>
-                            <option value="other">📝 Other Expense</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Amount Spent (₦)</label>
-                        <input type="number" id="amount" required min="0">
-                    </div>
-                    <div class="form-group" id="goat-count-group">
-                        <label>Number of Goats</label>
-                        <input type="number" id="goat-count" min="1" value="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Description / Notes</label>
-                        <input type="text" id="description" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="date" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Goat Images (Front, Side, Tag)</label>
-                        <input type="file" id="image-upload" accept="image/*" multiple>
-                        <div id="image-preview-container" class="image-gallery"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Attach Receipt (Optional)</label>
-                        <input type="file" id="receipt-upload" accept="image/*">
-                        <div id="receipt-preview-container" style="display:none; margin-top:10px;">
-                            <span class="receipt-btn"><i class="fas fa-check"></i> Receipt Attached</span>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" id="submit-btn" class="btn-primary">Save Record</button>
-                </form>
-            </section>
-
-            <!-- 5. SUPER ADMIN PANEL -->
-            <section id="admin-panel" class="view">
-                <h2><i class="fas fa-shield-alt"></i> Admin Panel</h2>
-                
-                <div class="admin-box">
-                    <h3>Switch Farm View</h3>
-                    <select id="admin-farm-select" class="filter-select">
-                        <option value="">Select a farm...</option>
-                    </select>
-                </div>
-
-                <div class="admin-box">
-                    <h3>Assign User to Farm</h3>
-                    <form id="assign-user-form">
-                        <input type="email" id="assign-email" placeholder="User's Email" required style="margin-bottom:10px;">
-                        <input type="text" id="assign-farmId" placeholder="Farm ID (e.g. BrosGoats)" required style="margin-bottom:10px;">
-                        <button type="submit" class="btn-primary">Grant Access</button>
-                    </form>
-                </div>
-            </section>
-        </main>
-
-        <div id="image-modal" class="image-modal">
-            <span class="close-modal" onclick="document.getElementById('image-modal').style.display='none'">&times;</span>
-            <img id="full-image" src="">
-        </div>
-
-        <nav class="bottom-nav">
-            <button type="button" class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard', 'nav-dashboard')">
-                <i class="fas fa-th-large"></i><span>Dashboard</span>
-            </button>
-            <button type="button" class="nav-btn" id="nav-history" onclick="switchView('history', 'nav-history')">
-                <i class="fas fa-history"></i><span>History</span>
-            </button>
-            <button type="button" class="nav-btn" id="nav-manage" onclick="switchView('manage', 'nav-manage')">
-                <i class="fas fa-edit"></i><span>Manage</span>
-            </button>
-            <button type="button" class="nav-btn" id="nav-add" onclick="switchView('add-entry', 'nav-add')">
-                <i class="fas fa-plus"></i><span>Add</span>
-            </button>
-            <button type="button" class="nav-btn" id="nav-admin" style="display:none;" onclick="switchView('admin-panel', 'nav-admin')">
-                <i class="fas fa-shield-alt"></i><span>Admin</span>
-            </button>
-        </nav>
-    </div>
-
-    <!-- 1. BULLETPROOF UI LOGIC (Runs instantly, independent of Firebase) -->
-    <script>
-        // Toggle Login / Register
-        let isLoginMode = true;
-        document.getElementById('auth-toggle-btn').onclick = function() {
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? "Login" : "Register";
-            document.getElementById('auth-submit-btn').innerText = isLoginMode ? "Login via Email" : "Sign Up";
-            this.innerText = isLoginMode ? "Need an account? Register here" : "Already have an account? Login here";
-        };
-
-        // Navigation Switcher
-        function switchView(viewId, btnId) {
-            document.querySelectorAll('.view').forEach(function(v) { v.style.display = 'none'; });
-            document.getElementById(viewId).style.display = 'block';
-            
-            document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
-            if(btnId) document.getElementById(btnId).classList.add('active');
-
-            if(viewId === 'add-entry' && !document.getElementById('edit-id').value) {
-                resetForm();
-            }
-        }
-
-        // Image Viewer Modal
-        function viewImage(src) {
-            document.getElementById("full-image").src = src;
-            document.getElementById('image-modal').style.display = "flex";
-        }
-    </script>
-
-    <!-- 2. FIREBASE V8 LIBRARIES (The most stable version for mobile browsers) -->
+    <!-- Firebase V8 (Stable for all mobile webviews) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- 3. FIREBASE DATABASE LOGIC -->
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; padding: 0; background-color: #f0f2f5; color: #333; -webkit-tap-highlight-color: transparent; }
+
+        /* App Layout */
+        .app-wrapper { max-width: 500px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; background: #fff; position: relative; overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.1);}
+        
+        .header { background: #1b5e20; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;}
+        .header h1 { margin: 0; font-size: 1.3rem; }
+        .header p { margin: 3px 0 0 0; font-size: 0.8rem; opacity: 0.8; }
+        .btn-logout { background: transparent; border: 1px solid white; color: white; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+
+        .content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
+        
+        /* Screens */
+        .screen { display: none; }
+        .screen.active { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Auth Screen */
+        .auth-container { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; background: #e8f5e9; padding: 20px; }
+        .auth-box { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
+        .auth-box h2 { margin-top: 0; color: #2e7d32; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .btn-main { width: 100%; padding: 14px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .btn-google { width: 100%; padding: 12px; background: white; color: #555; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .toggle-auth { color: #2e7d32; text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 15px; display: block; }
+
+        /* Dashboard Stats */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; text-align: center; }
+        .stat-card h4 { margin: 0 0 5px 0; color: #666; font-size: 0.85rem; text-transform: uppercase; }
+        .stat-card h2 { margin: 0; color: #1b5e20; font-size: 1.6rem; }
+
+        /* Breakdowns */
+        .breakdown-box { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #eee; }
+        .breakdown-box span { color: #555; font-weight: 500; }
+        .breakdown-box strong { color: #d32f2f; }
+
+        /* Lists */
+        .list-item { background: white; border: 1px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .list-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .list-header strong { font-size: 1.1rem; }
+        .list-header span { color: #d32f2f; font-weight: bold; background: #ffebee; padding: 2px 8px; border-radius: 5px; }
+        .list-meta { font-size: 0.85rem; color: #888; margin-bottom: 10px; }
+        
+        .img-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .img-thumb { width: 70px; height: 70px; border-radius: 8px; object-fit: cover; border: 1px solid #ddd; cursor: pointer; }
+        .btn-receipt { display: inline-block; background: #fff9c4; color: #f57f17; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; border: 1px solid #fbc02d; cursor: pointer; margin-top: 10px; }
+        
+        .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; }
+        .btn-edit { background: none; border: none; color: #f57c00; font-weight: bold; font-size: 14px; cursor: pointer; }
+        .btn-delete { background: none; border: none; color: #d32f2f; font-weight: bold; font-size: 14px; cursor: pointer; }
+
+        /* Forms */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #555;}
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; background: #f9f9f9; }
+        
+        /* Bottom Nav */
+        .nav-bar { position: absolute; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; display: flex; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #999; cursor: pointer; display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: bold; }
+        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #2e7d32; }
+
+        /* Modal Image Viewer */
+        .full-img-overlay { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; justify-content: center; align-items: center; }
+        .full-img-overlay img { max-width: 95%; max-height: 90%; border-radius: 10px; }
+        .close-btn { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; font-weight: bold; }
+
+        /* Admin Block */
+        .admin-section { background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- AUTHENTICATION VIEW -->
+    <div id="view-auth" class="auth-container">
+        <div class="auth-box">
+            <h2><i class="fas fa-leaf"></i> GoatFarm</h2>
+            <h3 id="auth-header-text">Login to Account</h3>
+            
+            <div class="input-group">
+                <input type="email" id="in-email" class="auth-input" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="in-pass" class="auth-input" placeholder="Password" required>
+            </div>
+            
+            <button id="btn-email-auth" class="btn-main">Login</button>
+            
+            <p style="color: #999; font-size: 12px; margin: 15px 0;">— OR —</p>
+            
+            <button id="btn-google-auth" class="btn-google">
+                <i class="fab fa-google" style="color: #DB4437;"></i> Sign in with Google
+            </button>
+            
+            <span id="btn-toggle-auth" class="toggle-auth">Need an account? Register here</span>
+        </div>
+    </div>
+
+    <!-- PENDING APPROVAL VIEW -->
+    <div id="view-pending" class="auth-container" style="display: none;">
+        <div class="auth-box">
+            <h2><i class="fas fa-lock" style="color: #f57c00;"></i> Access Denied</h2>
+            <p>Your account is created, but you do not belong to a farm yet.</p>
+            <p style="font-weight: bold;">Contact Abubakar for access.</p>
+            <button id="btn-pending-logout" class="btn-main" style="background: #d32f2f; margin-top: 20px;">Log Out</button>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION VIEW -->
+    <div id="view-app" class="app-wrapper" style="display: none;">
+        
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-leaf"></i> Goat Ledger</h1>
+                <p id="ui-farm-name">Farm: Loading...</p>
+            </div>
+            <button id="btn-app-logout" class="btn-logout"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+
+        <div class="content">
+            
+            <!-- Dashboard -->
+            <div id="tab-dashboard" class="screen active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Goats</h4>
+                        <h2 id="ui-total-goats">0</h2>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Spent</h4>
+                        <h2 id="ui-total-spent">₦0</h2>
+                    </div>
+                </div>
+                
+                <h3 style="border-bottom: 1px solid #ccc; padding-bottom: 5px;">Expense Breakdown</h3>
+                <div class="breakdown-box"><span><i class="fas fa-pills"></i> Medical</span> <strong id="ui-med">₦0</strong></div>
+                <div class="breakdown-box"><span><i class="fas fa-wheat-awn"></i> Feed</span> <strong id="ui-feed">₦0</strong></div>
+                <div class="breakdown-box"><span><i class="fas fa-user"></i> Herdsman</span> <strong id="ui-herd">₦0</strong></div>
+                <div class="breakdown-box"><span><i class="fas fa-ellipsis-h"></i> Other</span> <strong id="ui-other">₦0</strong></div>
+            </div>
+
+            <!-- History -->
+            <div id="tab-history" class="screen">
+                <div class="input-group">
+                    <select id="filter-history">
+                        <option value="all">All Records</option>
+                        <option value="purchase">Purchases</option>
+                        <option value="medical">Medical</option>
+                        <option value="feed">Feed</option>
+                        <option value="herdsman">Herdsman</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div id="list-history"></div>
+            </div>
+
+            <!-- Manage -->
+            <div id="tab-manage" class="screen">
+                <p style="font-size: 13px; color: #666; margin-top:0;">Edit or delete records from your farm.</p>
+                <div id="list-manage"></div>
+            </div>
+
+            <!-- Add Form -->
+            <div id="tab-add" class="screen">
+                <h2 id="form-title" style="margin-top: 0;">Create Record</h2>
+                <input type="hidden" id="form-id">
+                
+                <div class="input-group">
+                    <label>Category</label>
+                    <select id="form-type">
+                        <option value="purchase">Goat Purchase</option>
+                        <option value="medical">Medical / Drugs</option>
+                        <option value="feed">Feed / Fodder</option>
+                        <option value="herdsman">Herdsman Payment</option>
+                        <option value="other">Other Expense</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>Amount (₦)</label>
+                    <input type="number" id="form-amount" placeholder="50000" required>
+                </div>
+                
+                <div class="input-group" id="box-goat-count">
+                    <label>Number of Goats</label>
+                    <input type="number" id="form-goats" value="1" min="1">
+                </div>
+                
+                <div class="input-group">
+                    <label>Description</label>
+                    <input type="text" id="form-desc" placeholder="e.g. Dewormer" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="form-date" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Goat Images (Max 3)</label>
+                    <input type="file" id="form-images" accept="image/*" multiple>
+                    <div id="preview-images" class="img-row" style="margin-top: 10px;"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Receipt Image (Optional)</label>
+                    <input type="file" id="form-receipt" accept="image/*">
+                    <div id="preview-receipt" style="display: none; margin-top: 5px;">
+                        <span class="btn-receipt"><i class="fas fa-check"></i> Receipt Attached</span>
+                    </div>
+                </div>
+                
+                <button id="btn-save" class="btn-main">Save Record</button>
+            </div>
+
+            <!-- Admin -->
+            <div id="tab-admin" class="screen">
+                <div class="admin-section">
+                    <h3 style="margin-top: 0;">Switch Farm</h3>
+                    <div class="input-group">
+                        <select id="admin-farm-select">
+                            <option value="">Choose a farm...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <h3 style="margin-top: 0;">Assign User</h3>
+                    <div class="input-group"><input type="email" id="admin-email" placeholder="User Email"></div>
+                    <div class="input-group"><input type="text" id="admin-farmId" placeholder="Farm ID (e.g. MyFarm)"></div>
+                    <button id="btn-assign" class="btn-main">Grant Access</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-bar">
+            <div class="nav-item active" data-target="tab-dashboard"><i class="fas fa-chart-pie"></i> Records</div>
+            <div class="nav-item" data-target="tab-history"><i class="fas fa-history"></i> History</div>
+            <div class="nav-item" data-target="tab-manage"><i class="fas fa-edit"></i> Manage</div>
+            <div class="nav-item" data-target="tab-add"><i class="fas fa-plus-circle"></i> Add</div>
+            <div class="nav-item" id="nav-admin" data-target="tab-admin" style="display:none;"><i class="fas fa-shield-alt"></i> Admin</div>
+        </div>
+
+    </div>
+
+    <!-- Full Image Viewer -->
+    <div id="modal-viewer" class="full-img-overlay">
+        <span class="close-btn" id="btn-close-viewer">&times;</span>
+        <img id="viewer-img" src="">
+    </div>
+
+    <!-- APPLICATION LOGIC -->
     <script>
-        // Check if Firebase loaded successfully
-        if (typeof firebase === 'undefined') {
-            alert("Internet Error: Could not connect to Google Servers. Please refresh.");
-        } else {
-            // Initialize App
-            firebase.initializeApp({
+        // Start script execution safely
+        window.addEventListener('load', function() {
+            
+            // 1. FIREBASE CONFIGURATION
+            const firebaseConfig = {
                 apiKey: "AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
                 authDomain: "goatledger-132c7.firebaseapp.com",
                 projectId: "goatledger-132c7",
                 storageBucket: "goatledger-132c7.firebasestorage.app",
                 messagingSenderId: "576591882291",
                 appId: "1:576591882291:web:9d540d6c99150a63e81b46"
-            });
+            };
+            firebase.initializeApp(firebaseConfig);
             
             const auth = firebase.auth();
             const db = firebase.firestore();
             const googleProvider = new firebase.auth.GoogleAuthProvider();
+            
             const SUPER_ADMIN = "abdulkadirbukar2006@gmail.com";
 
-            // Global Variables
-            let transactions = [];
-            let currentImagesBase64 = []; 
-            let currentReceiptBase64 = null; 
-            let currentUserEmail = "";
-            let activeFarmId = ""; 
-            let firestoreUnsubscribe = null;
+            // 2. STATE VARIABLES
+            let isLogin = true;
+            let currentEmail = "";
+            let currentFarmId = "";
+            let dbListener = null;
+            let records = [];
+            let tempImages = [];
+            let tempReceipt = null;
 
-            // Handle Google Login Return
-            auth.getRedirectResult().catch(function(error) {
-                alert("Google Sign-In Failed: " + error.message);
+            // 3. CACHE DOM ELEMENTS
+            const vAuth = document.getElementById('view-auth');
+            const vPending = document.getElementById('view-pending');
+            const vApp = document.getElementById('view-app');
+            const navItems = document.querySelectorAll('.nav-item');
+            const screens = document.querySelectorAll('.screen');
+
+            // Set default date
+            document.getElementById('form-date').valueAsDate = new Date();
+
+            // 4. UI NAVIGATION & MODAL LOGIC
+            navItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    // Update Nav
+                    navItems.forEach(function(nav) { nav.classList.remove('active'); });
+                    this.classList.add('active');
+                    
+                    // Switch Screen
+                    const targetId = this.getAttribute('data-target');
+                    screens.forEach(function(s) { s.classList.remove('active'); });
+                    document.getElementById(targetId).classList.add('active');
+
+                    // Reset form if clicking 'Add'
+                    if (targetId === 'tab-add' && !document.getElementById('form-id').value) {
+                        resetForm();
+                    }
+                });
             });
 
-            // Google Button Click
-            document.getElementById('google-login-btn').onclick = function() {
-                auth.signInWithRedirect(googleProvider);
+            // Make viewImage globally available for inline HTML string generation
+            window.viewImage = function(src) {
+                document.getElementById('viewer-img').src = src;
+                document.getElementById('modal-viewer').style.display = 'flex';
             };
+            
+            document.getElementById('btn-close-viewer').addEventListener('click', function() {
+                document.getElementById('modal-viewer').style.display = 'none';
+            });
 
-            // Email Form Submit
-       
+            // 5. AUTHENTICATION LOGIC
+            document.getElementById('btn-toggle-auth').addEventListener('click', function() {
+                isLogin = !isLogin;
+                document.getElementById('auth-header-text').innerText = isLogin ? "Login to Account" : "Create an Account";
+                document.getElementById('btn-email-auth').innerText = isLogin ? "Login" : "Sign Up";
+                this.innerText = isLogin ? "Need an account? Register here" : "Already have an account? Login here";
+            });
+
+            document.getElementById('btn-email-auth').addEventListener('click', function() {
+                const email = document.getElementById('in-email').value;
+                const pass = document.getElementById('in-pass').value;
+                if(!email || !pass) return alert("Enter email and password.");
+                
+                this.innerText = "Processing...";
+                if(isLogin) {
+                    auth.signInWithEmailAndPassword(email, pass).catch(err => { alert(err.message); this.innerText="Login"; });
+                } else {
+                    auth.createUserWithEmailAndPassword(email, pass).catch(err => { alert(err.message); this.innerText="Sign Up"; });
+                }
+            });
+
+            document.getElementById('btn-google-auth').addEventListener('click', function() {
+                auth.signInWithRedirect(googleProvider);
+            });
+
+            const logoutFn = function() {
+                if(dbListener) dbListener();
+                auth.signOut();
+            };
+            document.getElementById('btn-pending-logout').addEventListener('click', logoutFn);
+            document.getElementById('btn-app-logout').addEventListener('click', logoutFn);
+
+            // 6. SESSION OBSERVER
+            auth.onAuthStateChanged(function(user) {
+                if (user) {
+                    currentEmail = user.email;
+  
