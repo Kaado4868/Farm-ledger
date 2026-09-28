@@ -7,33 +7,15 @@
     <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
-    <!-- FIREBASE COMPAT SDKS (Loaded in head to ensure availability) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-
     <style>
         :root {
             --primary: #2e7d32; --primary-dark: #1b5e20; --bg: #f4f7f6;
-            --text: #333; --card-bg: #fff; --danger: #d32f2f;
-            --warning: #f57c00; --info: #0288d1;
+            --text: #333; --card-bg: #fff; --danger: #d32f2f; --warning: #f57c00;
         }
 
         body { margin: 0; background: #e0e0e0; font-family: 'Segoe UI', sans-serif; color: var(--text); -webkit-tap-highlight-color: transparent;}
         
-        /* Modern Toast Notification */
-        .toast {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: #333; color: #fff; padding: 12px 24px; border-radius: 30px;
-            font-size: 0.9rem; z-index: 100000; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            transition: top 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-            display: flex; align-items: center; gap: 10px; white-space: nowrap; width: max-content; max-width: 90%;
-        }
-        .toast.show { top: 20px; }
-        .toast.error { background: var(--danger); }
-        .toast.success { background: var(--primary); }
-
-        /* Modals */
+        /* Modals & Screens */
         .fullscreen-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); z-index: 9999; display: flex; flex-direction: column;
@@ -42,7 +24,7 @@
         .auth-card { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;}
         .auth-card h1 { color: var(--primary); margin-top: 0; font-size: 1.8rem;}
         .form-group { text-align: left; margin-bottom: 16px;}
-        .auth-toggle { color: var(--primary); cursor: pointer; margin-top: 20px; display: block; font-size: 0.9rem; font-weight: 500;}
+        .auth-toggle { color: var(--primary); cursor: pointer; margin-top: 20px; display: block; font-size: 0.95rem; font-weight: 600;}
 
         /* Google Button */
         .btn-google {
@@ -50,13 +32,11 @@
             font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px;
             display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .btn-google:active { background: #f5f5f5; }
 
         /* App Container */
         .app-container { 
             max-width: 480px; margin: 0 auto; height: 100vh; background: var(--bg); 
-            position: relative; display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.15); display: none; 
+            position: relative; display: flex; flex-direction: column; overflow: hidden; display: none; 
         }
 
         header { 
@@ -65,69 +45,59 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; display: flex; justify-content: space-between; align-items: center;
         }
         header h1 { margin: 0; font-size: 1.2rem; font-weight: 600; display:flex; flex-direction: column; align-items:flex-start;}
-        header h1 span { font-size: 0.75rem; font-weight: normal; opacity: 0.8; margin-top: 2px;}
-        .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;}
+        header h1 span { font-size: 0.75rem; font-weight: normal; opacity: 0.8;}
+        .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
 
         main { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 90px; }
-        .view { display: none; animation: fadeIn 0.3s ease; }
-        .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        .view { display: none; }
+        
         /* Grids & Cards */
         .summary-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .card { background: var(--card-bg); padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #e0e0e0; }
         .card h3 { margin: 0 0 8px 0; font-size: 0.8rem; color: #777; text-transform: uppercase;}
         .card p { margin: 0; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
         
         h2 { font-size: 1.15rem; margin-bottom: 15px; color: #444; border-bottom: 2px solid #eee; padding-bottom: 8px;}
-        
         .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .breakdown-item { background: var(--card-bg); padding: 12px; border-radius: 8px; border: 1px solid #eee; display: flex; flex-direction: column; gap: 5px;}
         
-        .filter-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; background: #fff; font-size: 0.95rem; outline:none; }
-        .filter-select:focus { border-color: var(--primary); }
+        .filter-select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; background: #fff; font-size: 0.95rem; }
 
         /* Transactions */
         .transaction-list { list-style: none; padding: 0; margin: 0; }
-        .transaction-item { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+        .transaction-item { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #eee; }
         .transaction-header { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;}
         .transaction-header .amount { font-weight: bold; color: var(--danger); background: #ffebee; padding: 4px 8px; border-radius: 6px; font-size:0.9rem;}
         
         .image-gallery { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; padding-bottom: 5px;}
-        .gallery-thumb { width: 65px; height: 65px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; flex-shrink: 0;}
+        .gallery-thumb { width: 65px; height: 65px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer;}
         .receipt-btn { background: #f0f4c3; color: #827717; border: 1px solid #dce775; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; margin-top: 10px; display: inline-block;}
         
         .action-btns { display: flex; gap: 15px; margin-top: 15px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 10px;}
-        .action-btn { background: none; border: none; font-size: 0.95rem; cursor: pointer; padding: 5px; font-weight: 500;}
+        .action-btn { background: none; border: none; font-size: 0.95rem; cursor: pointer; padding: 5px; font-weight: bold;}
         .edit-btn { color: var(--warning); }
         .delete-btn { color: var(--danger); }
 
         /* Forms */
         label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.95rem; color: #555;}
         input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #fafafa;}
-        input[type="file"] { padding: 8px; background: #fff; font-size: 0.85rem;}
-        .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 10px; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
-        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px;}
         
         /* Modal ImageViewer */
         .image-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
         .image-modal img { max-width: 95%; max-height: 90%; border-radius: 8px;}
         .close-modal { position: absolute; top: 20px; right: 25px; color: #fff; font-size: 35px; font-weight: bold; cursor: pointer;}
 
-        /* Admin Controls */
         .admin-box { background: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; margin-bottom: 15px;}
         
         /* Bottom Navigation */
         .bottom-nav { position: absolute; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; z-index: 10; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-btn { flex: 1; background: none; border: none; padding: 12px 0; font-size: 0.65rem; color: #999; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 600; }
+        .nav-btn { flex: 1; background: none; border: none; padding: 12px 0; font-size: 0.65rem; color: #999; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: bold; }
         .nav-btn i { font-size: 1.2rem; }
         .nav-btn.active { color: var(--primary); }
     </style>
 </head>
 <body>
-
-    <!-- MODERN TOAST NOTIFICATION (Replaces the ugly red badge) -->
-    <div id="app-toast" class="toast"></div>
 
     <!-- AUTHENTICATION SCREEN -->
     <div id="auth-screen" class="fullscreen-modal">
@@ -151,10 +121,8 @@
                 <hr style="flex:1; border:none; border-top:1px solid #eee;"> OR <hr style="flex:1; border:none; border-top:1px solid #eee;">
             </div>
 
-            <!-- Changed to type="button" to prevent form submission bugs -->
             <button type="button" id="google-login-btn" class="btn-google">
-                <i class="fab fa-google" style="color: #DB4437; font-size: 1.2rem;"></i>
-                Sign in with Google
+                <i class="fab fa-google" style="color: #DB4437; font-size: 1.2rem;"></i> Sign in with Google
             </button>
 
             <span class="auth-toggle" id="auth-toggle-btn">Need an account? Register here</span>
@@ -165,9 +133,9 @@
     <div id="pending-screen" class="fullscreen-modal" style="display:none;">
         <div class="auth-card">
             <h1><i class="fas fa-lock" style="color:var(--warning);"></i> Access Denied</h1>
-            <p style="color: #555; margin: 20px 0;">Your account is created, but you have not been assigned to a farm yet.</p>
-            <p style="font-weight: bold; color: var(--primary);">Contact the Super Admin (Abubakar) for access.</p>
-            <button type="button" class="logout-btn" onclick="logoutUser()" style="background:var(--danger); width:100%; margin-top:15px; padding:12px;">Log Out</button>
+            <p style="color: #555; margin: 20px 0;">Your account is created, but you are not assigned to a farm.</p>
+            <p style="font-weight: bold; color: var(--primary);">Contact Super Admin (Abubakar) for access.</p>
+            <button type="button" class="btn-primary" onclick="logoutUser()" style="background:var(--danger);">Log Out</button>
         </div>
     </div>
 
@@ -175,9 +143,7 @@
     <div class="app-container" id="main-app">
         <header>
             <h1>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-leaf"></i> GoatFarm
-                </div>
+                <div style="display: flex; align-items: center; gap: 6px;"><i class="fas fa-leaf"></i> GoatFarm</div>
                 <span id="display-farm-name">Loading...</span>
             </h1>
             <button type="button" class="logout-btn" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i></button>
@@ -185,7 +151,7 @@
         
         <main>
             <!-- 1. DASHBOARD -->
-            <section id="dashboard" class="view active">
+            <section id="dashboard" class="view" style="display:block;">
                 <div class="summary-cards">
                     <div class="card">
                         <h3>Total Goats</h3>
@@ -198,10 +164,10 @@
                 </div>
                 <h2>Expense Breakdown</h2>
                 <div class="breakdown-grid">
-                    <div class="breakdown-item"><span><i class="fas fa-pills" style="color:#777"></i> Medical</span><strong id="stat-medical">₦0</strong></div>
-                    <div class="breakdown-item"><span><i class="fas fa-wheat-awn" style="color:#777"></i> Feed</span><strong id="stat-feed">₦0</strong></div>
-                    <div class="breakdown-item"><span><i class="fas fa-user" style="color:#777"></i> Herdsman</span><strong id="stat-herdsman">₦0</strong></div>
-                    <div class="breakdown-item"><span><i class="fas fa-ellipsis-h" style="color:#777"></i> Other</span><strong id="stat-other">₦0</strong></div>
+                    <div class="breakdown-item"><span><i class="fas fa-pills"></i> Medical</span><strong id="stat-medical">₦0</strong></div>
+                    <div class="breakdown-item"><span><i class="fas fa-wheat-awn"></i> Feed</span><strong id="stat-feed">₦0</strong></div>
+                    <div class="breakdown-item"><span><i class="fas fa-user"></i> Herdsman</span><strong id="stat-herdsman">₦0</strong></div>
+                    <div class="breakdown-item"><span><i class="fas fa-ellipsis-h"></i> Other</span><strong id="stat-other">₦0</strong></div>
                 </div>
             </section>
 
@@ -258,14 +224,13 @@
                         <input type="date" id="date" required>
                     </div>
                     
-                    <div class="form-group" id="goat-images-group">
+                    <div class="form-group">
                         <label>Goat Images (Front, Side, Tag)</label>
                         <input type="file" id="image-upload" accept="image/*" multiple>
-                        <p style="font-size:0.75rem; color:#888; margin-top:2px;">Select up to 3 images.</p>
                         <div id="image-preview-container" class="image-gallery"></div>
                     </div>
 
-                    <div class="form-group" id="receipt-group">
+                    <div class="form-group">
                         <label>Attach Receipt (Optional)</label>
                         <input type="file" id="receipt-upload" accept="image/*">
                         <div id="receipt-preview-container" style="display:none; margin-top:10px;">
@@ -293,7 +258,7 @@
                     <form id="assign-user-form">
                         <input type="email" id="assign-email" placeholder="User's Email" required style="margin-bottom:10px;">
                         <input type="text" id="assign-farmId" placeholder="Farm ID (e.g. BrosGoats)" required style="margin-bottom:10px;">
-                        <button type="submit" class="btn-primary" style="padding:10px; font-size:1rem;">Grant Access</button>
+                        <button type="submit" class="btn-primary">Grant Access</button>
                     </form>
                 </div>
             </section>
@@ -305,49 +270,98 @@
         </div>
 
         <nav class="bottom-nav">
-            <button type="button" class="nav-btn active" onclick="switchView('dashboard', this)">
+            <button type="button" class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard', 'nav-dashboard')">
                 <i class="fas fa-th-large"></i><span>Dashboard</span>
             </button>
-            <button type="button" class="nav-btn" onclick="switchView('history', this)">
+            <button type="button" class="nav-btn" id="nav-history" onclick="switchView('history', 'nav-history')">
                 <i class="fas fa-history"></i><span>History</span>
             </button>
-            <button type="button" class="nav-btn" onclick="switchView('manage', this)">
+            <button type="button" class="nav-btn" id="nav-manage" onclick="switchView('manage', 'nav-manage')">
                 <i class="fas fa-edit"></i><span>Manage</span>
             </button>
-            <button type="button" class="nav-btn" onclick="switchView('add-entry', this)">
+            <button type="button" class="nav-btn" id="nav-add" onclick="switchView('add-entry', 'nav-add')">
                 <i class="fas fa-plus"></i><span>Add</span>
             </button>
-            <button type="button" class="nav-btn" id="nav-admin" style="display:none;" onclick="switchView('admin-panel', this)">
+            <button type="button" class="nav-btn" id="nav-admin" style="display:none;" onclick="switchView('admin-panel', 'nav-admin')">
                 <i class="fas fa-shield-alt"></i><span>Admin</span>
             </button>
         </nav>
     </div>
 
-    <!-- MAIN JAVASCRIPT LOGIC (No wrappers, guaranteed to run) -->
+    <!-- 1. BULLETPROOF UI LOGIC (Runs instantly, independent of Firebase) -->
     <script>
-        // Global Toast Notification System
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('app-toast');
-            toast.innerHTML = isError ? `<i class="fas fa-exclamation-circle"></i> ${msg}` : `<i class="fas fa-check-circle"></i> ${msg}`;
-            toast.className = `toast show ${isError ? 'error' : 'success'}`;
-            setTimeout(() => toast.classList.remove('show'), 4000);
-        }
-
-        // Global Error Catcher
-        window.onerror = function(msg) {
-            showToast("System Error: " + msg, true);
-            return false;
+        // Toggle Login / Register
+        let isLoginMode = true;
+        document.getElementById('auth-toggle-btn').onclick = function() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "Login" : "Register";
+            document.getElementById('auth-submit-btn').innerText = isLoginMode ? "Login via Email" : "Sign Up";
+            this.innerText = isLoginMode ? "Need an account? Register here" : "Already have an account? Login here";
         };
 
-        try {
-            // 1. Initialize Firebase
-            const firebaseConfig = {
+        // Navigation Switcher
+        function switchView(viewId, btnId) {
+            document.querySelectorAll('.view').forEach(function(v) { v.style.display = 'none'; });
+            document.getElementById(viewId).style.display = 'block';
+            
+            document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+            if(btnId) document.getElementById(btnId).classList.add('active');
+
+            if(viewId === 'add-entry' && !document.getElementById('edit-id').value) {
+                resetForm();
+            }
+        }
+
+        // Image Viewer Modal
+        function viewImage(src) {
+            document.getElementById("full-image").src = src;
+            document.getElementById('image-modal').style.display = "flex";
+        }
+    </script>
+
+    <!-- 2. FIREBASE V8 LIBRARIES (The most stable version for mobile browsers) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- 3. FIREBASE DATABASE LOGIC -->
+    <script>
+        // Check if Firebase loaded successfully
+        if (typeof firebase === 'undefined') {
+            alert("Internet Error: Could not connect to Google Servers. Please refresh.");
+        } else {
+            // Initialize App
+            firebase.initializeApp({
                 apiKey: "AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
                 authDomain: "goatledger-132c7.firebaseapp.com",
                 projectId: "goatledger-132c7",
                 storageBucket: "goatledger-132c7.firebasestorage.app",
                 messagingSenderId: "576591882291",
                 appId: "1:576591882291:web:9d540d6c99150a63e81b46"
-            };
+            });
             
-            if (!firebase.ap
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            const googleProvider = new firebase.auth.GoogleAuthProvider();
+            const SUPER_ADMIN = "abdulkadirbukar2006@gmail.com";
+
+            // Global Variables
+            let transactions = [];
+            let currentImagesBase64 = []; 
+            let currentReceiptBase64 = null; 
+            let currentUserEmail = "";
+            let activeFarmId = ""; 
+            let firestoreUnsubscribe = null;
+
+            // Handle Google Login Return
+            auth.getRedirectResult().catch(function(error) {
+                alert("Google Sign-In Failed: " + error.message);
+            });
+
+            // Google Button Click
+            document.getElementById('google-login-btn').onclick = function() {
+                auth.signInWithRedirect(googleProvider);
+            };
+
+            // Email Form Submit
+       
