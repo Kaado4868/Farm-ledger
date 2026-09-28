@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>GoatFarm Ledger - Professional Edition</title>
+<title>Farm Ledger - Professional Edition</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -27,9 +27,9 @@ button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!im
 .main-btn{width:100%;padding:14px;border:0;border-radius:10px;background:#2e7d32;color:#fff;font-weight:bold;margin-bottom:12px;box-shadow:0 4px 10px rgba(46,125,50,.3)}
 .main-btn:active{transform:scale(0.98)}
 .google-btn{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:10px;color:#444}
-.auth-toggle{display:block;margin-top:18px;color:#2e7d32;text-decoration:none;cursor:pointer;font-size:14px;font-weight:600}
+.auth-toggle{display:block;color:#2e7d32;text-decoration:none;cursor:pointer;font-size:13px;font-weight:600}
 
-/* App Container (Fit-to-Screen) */
+/* App Container */
 .app{width:100%;max-width:480px;height:100vh;height:100dvh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 0 25px rgba(0,0,0,.08)}
 .header{background:#1b5e20;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .header h1{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}.header small{opacity:.85;font-size:11px;display:block}
@@ -60,7 +60,7 @@ button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!im
 .breakdown-row span{display:flex;align-items:center;gap:8px;font-weight:500;color:#444}
 .breakdown-row strong{color:#d32f2f;font-size:15px}
 
-/* Sub-tabs inside Manage */
+/* Sub-tabs */
 .manage-tabs{display:flex;background:#eee;border-radius:10px;padding:4px;margin-bottom:16px}
 .manage-tab{flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#666;border-radius:8px;cursor:pointer;transition:all .2s}
 .manage-tab.active{background:#fff;color:#1b5e20;box-shadow:0 2px 5px rgba(0,0,0,.05)}
@@ -72,10 +72,11 @@ select,.form-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:1
 select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 
 /* Records List */
-.record{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(0,0,0,.02)}
+.date-header{background:#e0e0e0;padding:6px 12px;font-weight:bold;font-size:12px;margin:16px 0 8px;border-radius:6px;color:#555;text-transform:uppercase;box-shadow:inset 0 1px 3px rgba(0,0,0,0.05)}
+.record{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(0,0,0,.02);border-left:4px solid #2e7d32}
 .record-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
 .record-title{font-weight:700;font-size:15px;color:#222}
-.goat-tag{background:#ffebee;color:#c62828;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;height:20px}
+.animal-tag{background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;height:20px}
 .record-meta{color:#777;font-size:12px;margin-bottom:10px}
 .images{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;padding-bottom:4px}
 .thumbnail{width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer}
@@ -83,21 +84,23 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .record-actions{display:flex;justify-content:flex-end;gap:16px;border-top:1px solid #f1f3f4;padding-top:10px;margin-top:10px}
 .edit-btn{border:0;background:none;color:#f57c00;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
 .delete-btn{border:0;background:none;color:#d32f2f;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
-
-/* Clear Button */
 .clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
 
-/* Bottom Navigation Bar (3 Clean Tabs) */
+/* Bottom Navigation Bar */
 .nav{position:absolute;bottom:0;left:0;width:100%;display:flex;background:#fff;border-top:1px solid #e0e0e0;box-shadow:0 -2px 10px rgba(0,0,0,.05);z-index:10}
 .nav-item{flex:1;text-align:center;padding:10px 4px 8px;color:#777;font-size:12px;font-weight:600;cursor:pointer;transition:color .2s}
 .nav-item i{display:block;font-size:20px;margin-bottom:3px}
 .nav-item.active{color:#2e7d32}
 
-/* Image Viewer Modal */
+/* Viewer */
 .viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;justify-content:center;align-items:center}
 .viewer img{max-width:92%;max-height:85%;border-radius:10px}
 .viewer-close{position:absolute;right:20px;top:20px;color:#fff;font-size:32px;cursor:pointer}
 .preview{display:flex;gap:8px;overflow-x:auto;margin-top:8px}
+
+/* Admin Panel Additions */
+.admin-section-title{font-size:14px;color:#f57c00;margin:15px 0 5px;border-bottom:2px solid #eee;padding-bottom:5px;}
+.active-users-title{color:#2e7d32;}
 </style>
 </head>
 <body>
@@ -105,30 +108,33 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <div id="error-box"></div>
 <div id="success-box"></div>
 
-<!-- Splash / Loading Screen -->
+<!-- Splash -->
 <div id="splash-view" class="auth-view">
 <div class="auth-box">
 <i class="fas fa-leaf fa-spin" style="font-size: 40px; color: #2e7d32; margin-bottom: 15px;"></i>
-<h2>GoatFarm Ledger</h2>
+<h2>Farm Ledger</h2>
 <p>Loading your session...</p>
 </div>
 </div>
 
-<!-- Authentication View -->
+<!-- Auth -->
 <div id="auth-view" class="auth-view hidden">
 <div class="auth-box">
-<h2><i class="fas fa-leaf" style="color:#2e7d32"></i> GoatFarm</h2>
+<h2><i class="fas fa-leaf" style="color:#2e7d32"></i> Farm Ledger</h2>
 <p id="auth-title">Sign in to your account</p>
 <input id="email" class="input" type="email" placeholder="Email Address">
 <input id="password" class="input" type="password" placeholder="Password">
 <button id="email-btn" class="main-btn">Login</button>
 <div style="color:#aaa;font-size:12px;margin:10px 0">— OR —</div>
 <button id="google-btn" class="google-btn"><i class="fab fa-google" style="color:#db4437"></i> Sign in with Google</button>
-<span id="auth-toggle" class="auth-toggle">Need an account? Register here</span>
+<div style="display:flex;justify-content:space-between;margin-top:20px;">
+<span id="forgot-password" class="auth-toggle">Forgot Password?</span>
+<span id="auth-toggle" class="auth-toggle">Need an account?</span>
+</div>
 </div>
 </div>
 
-<!-- Pending Approval View -->
+<!-- Pending -->
 <div id="pending-view" class="auth-view hidden">
 <div class="auth-box">
 <h2><i class="fas fa-lock" style="color:#f57c00"></i> Access Pending</h2>
@@ -138,11 +144,11 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 </div>
 
-<!-- Main App View -->
+<!-- Main App -->
 <div id="app-view" class="app hidden">
 <div class="header">
 <div>
-<h1 id="app-header-title"><i class="fas fa-leaf"></i> Goat Ledger</h1>
+<h1 id="app-header-title"><i class="fas fa-leaf"></i> Farm Ledger</h1>
 <small id="farm-name">Farm: Loading...</small>
 </div>
 <div class="header-actions">
@@ -153,7 +159,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 
 <div class="content">
 
-<!-- TAB 1: Expanded Dashboard Screen -->
+<!-- TAB 1: Dashboard -->
 <div id="dashboard" class="screen active">
 <div class="dash-banner">
 <div>
@@ -165,10 +171,10 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 
 <div class="stats-grid">
 <div class="stat-card">
-<div class="stat-icon"><i class="fas fa-kiwi-bird"></i></div>
+<div class="stat-icon"><i class="fas fa-paw"></i></div>
 <div class="stat-info">
-<h4>Total Goats</h4>
-<h2 id="total-goats">0</h2>
+<h4>Total Animals</h4>
+<h2 id="total-animals">0</h2>
 </div>
 </div>
 <div class="stat-card">
@@ -184,59 +190,68 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <h3><i class="fas fa-chart-pie" style="color:#2e7d32"></i> Detailed Expense Breakdown</h3>
 <div class="breakdown-row"><span><i class="fas fa-pills" style="color:#e53935"></i> Medical / Drugs</span><strong id="medical-total">₦0</strong></div>
 <div class="breakdown-row"><span><i class="fas fa-wheat-awn" style="color:#fb8c00"></i> Feed / Fodder</span><strong id="feed-total">₦0</strong></div>
-<div class="breakdown-row"><span><i class="fas fa-user-tie" style="color:#1e88e5"></i> Herdsman Payment</span><strong id="herdsman-total">₦0</strong></div>
+<div class="breakdown-row"><span><i class="fas fa-user-tie" style="color:#1e88e5"></i> Staff / Herdsman</span><strong id="herdsman-total">₦0</strong></div>
 <div class="breakdown-row"><span><i class="fas fa-ellipsis-h" style="color:#6d4c41"></i> Other Expenses</span><strong id="other-total">₦0</strong></div>
 </div>
 </div>
 
-<!-- TAB 2: Manage Screen (Contains History / Records list & Add/Edit form via sub-tabs) -->
+<!-- TAB 2: Manage -->
 <div id="manage" class="screen">
 <div class="manage-tabs">
 <div class="manage-tab active" data-sub="sub-history"><i class="fas fa-list"></i> Records History</div>
 <div class="manage-tab" data-sub="sub-form"><i class="fas fa-plus-circle"></i> Add Record</div>
 </div>
 
-<!-- Sub-View: History & Records List -->
 <div id="sub-history" class="sub-screen">
 <div class="form-group">
 <select id="history-filter">
 <option value="all">All Records</option>
-<option value="purchase">Goat Purchases</option>
+<option value="purchase">Animal Purchases</option>
 <option value="medical">Medical</option>
 <option value="feed">Feed</option>
-<option value="herdsman">Herdsman</option>
+<option value="herdsman">Staff / Herdsman</option>
 <option value="other">Other</option>
 </select>
 </div>
 <div id="history-list"></div>
 </div>
 
-<!-- Sub-View: Add / Edit Record Form -->
 <div id="sub-form" class="sub-screen hidden">
 <div class="card" style="margin-bottom:0">
 <h3 id="form-title"><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record</h3>
 <input type="hidden" id="record-id">
 
-<div class="form-group"><label>Category</label>
+<div class="form-group"><label>Expense Category</label>
 <select id="record-type">
-<option value="purchase">Goat Purchase</option>
+<option value="purchase">Animal Purchase</option>
 <option value="medical">Medical / Drugs</option>
 <option value="feed">Feed / Fodder</option>
-<option value="herdsman">Herdsman Payment</option>
+<option value="herdsman">Staff / Herdsman</option>
 <option value="other">Other Expense</option>
 </select></div>
 
 <div class="form-group"><label>Amount (₦)</label><input id="record-amount" class="form-input" type="number" min="0" placeholder="50000"></div>
 
-<div id="goat-count-box" class="form-group"><label>Number of Goats</label><input id="goat-count" class="form-input" type="number" min="1" value="1"></div>
+<div id="animal-details-box">
+<div class="form-group"><label>Animal Type</label>
+<select id="animal-type" class="form-input">
+<option value="Goat">Goats</option>
+<option value="Sheep">Sheep</option>
+<option value="Cattle">Cattle</option>
+<option value="Poultry">Poultry</option>
+<option value="Pig">Pigs</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="form-group"><label>Number of Animals</label><input id="animal-count" class="form-input" type="number" min="1" value="1"></div>
+</div>
 
-<div class="form-group"><label>Description</label><input id="record-description" class="form-input" type="text" placeholder="e.g. 5 goats purchased"></div>
-
+<div class="form-group"><label>Description</label><input id="record-description" class="form-input" type="text" placeholder="e.g. Purchased 5 sheep"></div>
 <div class="form-group"><label>Date</label><input id="record-date" class="form-input" type="date"></div>
 
 <div class="form-group">
-<label>Goat Images (Maximum 3)</label>
-<input id="goat-images" class="form-input" type="file" accept="image/*" multiple>
+<label>Images (Maximum 3)</label>
+<input id="animal-images" class="form-input" type="file" accept="image/*" multiple>
 <div id="image-preview" class="preview"></div>
 </div>
 
@@ -247,14 +262,13 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 
 <button id="clear-images-btn" class="clear-btn hidden" type="button"><i class="fas fa-trash"></i> Clear Existing Images</button>
-
 <p style="font-size:11px;color:#777;margin:12px 0">Images are compressed for instant Firestore storage.</p>
 <button id="save-record" class="main-btn">Save Record</button>
 </div>
 </div>
 </div>
 
-<!-- TAB 3: Admin Screen (Comprehensive Super Admin Hub) -->
+<!-- TAB 3: Admin -->
 <div id="admin" class="screen">
 <div class="card">
 <h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3>
@@ -273,16 +287,9 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 
 <div class="card">
-<h3><i class="fas fa-user-plus" style="color:#2e7d32"></i> Assign User to Farm</h3>
-<div class="form-group"><input id="assign-email" class="form-input" type="email" placeholder="User Email"></div>
-<div class="form-group"><input id="assign-farm" class="form-input" type="text" placeholder="Target Farm ID"></div>
-<button id="assign-user" class="main-btn" style="margin-bottom:0">Grant Access</button>
-</div>
-
-<div class="card">
-<h3><i class="fas fa-users-cog" style="color:#2e7d32"></i> User Directory & Access Management</h3>
-<p style="color:#666;font-size:12px;margin-top:0">Manage registered users, reassign farms, or revoke access.</p>
-<div id="admin-user-list" style="max-height:200px;overflow-y:auto;border-top:1px solid #eee;padding-top:8px;">
+<h3><i class="fas fa-users-cog" style="color:#2e7d32"></i> User Directory & Assignments</h3>
+<p style="color:#666;font-size:12px;margin-top:0">Manage registered users. New users await your approval here.</p>
+<div id="admin-user-list" style="max-height:400px;overflow-y:auto;border-top:1px solid #eee;padding-top:8px;">
 <p style="color:#888;font-size:13px">Loading users...</p>
 </div>
 </div>
@@ -290,7 +297,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 
 </div>
 
-<!-- Bottom Navigation Bar (Exactly 3 Tabs) -->
+<!-- Bottom Navigation -->
 <div class="nav">
 <div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-line"></i>Dashboard</div>
 <div class="nav-item" data-screen="manage"><i class="fas fa-folder-open"></i>Manage</div>
@@ -298,7 +305,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 </div>
 
-<!-- Image Lightbox Viewer -->
+<!-- Lightbox -->
 <div id="image-viewer" class="viewer">
 <span id="viewer-close" class="viewer-close">&times;</span>
 <img id="viewer-image" src="">
@@ -321,73 +328,42 @@ const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
-let selectedGoatImages=[],selectedReceipt=null,imagesCleared=false;
+let selectedImages=[],selectedReceipt=null,imagesCleared=false;
 let isSuperAdminViewingAsAdmin=false;
 
 const $=id=>document.getElementById(id);
 
 function showError(message){
-const box=$("error-box");
-box.textContent=message;
-box.style.display="block";
-setTimeout(()=>box.style.display="none",5000);
+const box=$("error-box"); box.textContent=message; box.style.display="block"; setTimeout(()=>box.style.display="none",5000);
 }
-
 function showSuccess(message){
-const box=$("success-box");
-box.textContent=message;
-box.style.display="block";
-setTimeout(()=>box.style.display="none",4000);
+const box=$("success-box"); box.textContent=message; box.style.display="block"; setTimeout(()=>box.style.display="none",4000);
 }
-
 function getFriendlyErrorMessage(err){
 const msg=(typeof err==="string"?err:(err.message||"")).toLowerCase();
-if(msg.includes("invalid_login_credentials")||msg.includes("invalid-credential")||msg.includes("wrong-password")||msg.includes("user-not-found")){
-return "Invalid email or password.";
-}
-if(msg.includes("email-already-in-use")){
-return "This email address is already registered.";
-}
-if(msg.includes("invalid-email")){
-return "Please enter a valid email address.";
-}
-if(msg.includes("weak-password")){
-return "Password should be at least 6 characters.";
-}
-if(msg.includes("permission-denied")||msg.includes("missing or insufficient permissions")){
-return "Permission denied. Check your Firestore security rules.";
-}
-return err.message||"An unexpected error occurred. Please try again.";
+if(msg.includes("invalid_login_credentials")||msg.includes("wrong-password")||msg.includes("user-not-found")) return "Invalid email or password.";
+if(msg.includes("email-already-in-use")) return "This email address is already registered.";
+if(msg.includes("permission-denied")) return "Permission denied. Check your Firestore security rules.";
+return err.message||"An unexpected error occurred.";
 }
 
 function money(n){return "₦"+Number(n||0).toLocaleString("en-NG");}
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 
-function escapeHtml(value){
-return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-}
-
-// Main Navigation Screens (3 Tabs)
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-const screen=$(id);
-if(screen)screen.classList.add("active");
-const nav=document.querySelector(`.nav-item[data-screen="${id}"]`);
-if(nav)nav.classList.add("active");
+const screen=$(id); if(screen)screen.classList.add("active");
+const nav=document.querySelector(`.nav-item[data-screen="${id}"]`); if(nav)nav.classList.add("active");
 }
 
-document.querySelectorAll(".nav-item").forEach(item=>{
-item.onclick=()=>showScreen(item.dataset.screen);
-});
-
-// Sub-tabs inside Manage (History vs Add Form)
+document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
 document.querySelectorAll(".manage-tab").forEach(tab=>{
 tab.onclick=()=>{
 document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
 document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
 tab.classList.add("active");
-const subId=tab.dataset.sub;
-$(subId).classList.remove("hidden");
+$(tab.dataset.sub).classList.remove("hidden");
 };
 });
 
@@ -398,7 +374,19 @@ $("auth-toggle").onclick=()=>{
 loginMode=!loginMode;
 $("auth-title").textContent=loginMode?"Sign in to your account":"Create a new account";
 $("email-btn").textContent=loginMode?"Login":"Sign Up";
-$("auth-toggle").textContent=loginMode?"Need an account? Register here":"Already have an account? Login here";
+$("auth-toggle").textContent=loginMode?"Need an account? Register":"Already have an account? Login";
+};
+
+// Forgot Password Feature
+$("forgot-password").onclick = async () => {
+    const email = $("email").value.trim();
+    if(!email) return showError("Please enter your email in the field above to reset password.");
+    try {
+        await auth.sendPasswordResetEmail(email);
+        showSuccess("Password reset email sent! Check your inbox.");
+    } catch(e) {
+        showError(getFriendlyErrorMessage(e));
+    }
 };
 
 $("email-btn").onclick=async()=>{
@@ -408,32 +396,13 @@ const btn=$("email-btn");btn.disabled=true;btn.textContent="Processing...";
 try{
 if(loginMode)await auth.signInWithEmailAndPassword(email,password);
 else await auth.createUserWithEmailAndPassword(email,password);
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}finally{
-btn.disabled=false;btn.textContent=loginMode?"Login":"Sign Up";
-}
+}catch(e){ showError(getFriendlyErrorMessage(e)); }
+finally{ btn.disabled=false;btn.textContent=loginMode?"Login":"Sign Up"; }
 };
 
-$("google-btn").onclick=async()=>{
-try{
-await auth.signInWithPopup(googleProvider);
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}
-};
-
-$("logout").onclick=async()=>{
-if(unsubscribeRecords)unsubscribeRecords();
-isSuperAdminViewingAsAdmin=false;
-currentFarmId="";
-await auth.signOut();
-};
-
-$("pending-logout").onclick=async()=>{
-if(unsubscribeRecords)unsubscribeRecords();
-await auth.signOut();
-};
+$("google-btn").onclick=async()=>{ try{await auth.signInWithPopup(googleProvider);}catch(e){showError(getFriendlyErrorMessage(e));} };
+$("logout").onclick=async()=>{ if(unsubscribeRecords)unsubscribeRecords(); isSuperAdminViewingAsAdmin=false; currentFarmId=""; await auth.signOut(); };
+$("pending-logout").onclick=async()=>{ if(unsubscribeRecords)unsubscribeRecords(); await auth.signOut(); };
 
 $("switch-farm-btn").onclick=()=>{
 if(currentUser && currentUser.email.toLowerCase()===SUPER_ADMIN){
@@ -441,27 +410,19 @@ if(unsubscribeRecords)unsubscribeRecords();
 isSuperAdminViewingAsAdmin=true;
 $("switch-farm-btn").classList.add("hidden");
 $("app-view").classList.remove("hidden");
-loadAdminFarms();
-loadAdminUsers();
-showScreen("admin");
+loadAdminFarms(); loadAdminUsers(); showScreen("admin");
 }
 };
 
-// Auth State Observer with Auto User Profile Registration
 auth.onAuthStateChanged(async user=>{
 currentUser=user;
 $("splash-view").classList.add("hidden");
-
 if(!user){
-$("auth-view").classList.remove("hidden");
-$("pending-view").classList.add("hidden");
-$("app-view").classList.add("hidden");
+$("auth-view").classList.remove("hidden"); $("pending-view").classList.add("hidden"); $("app-view").classList.add("hidden");
 return;
 }
-
 $("auth-view").classList.add("hidden");
 
-// Automatically ensure every logged-in user has a Firestore record so they appear in the Admin Directory
 const userEmail = user.email.toLowerCase();
 const userDocRef = db.collection("users").doc(userEmail);
 try {
@@ -472,294 +433,199 @@ try {
 } catch(err) { console.error("Auto-register error:", err); }
 
 if(userEmail===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
-$("admin-nav").classList.remove("hidden");
-$("switch-farm-btn").classList.remove("hidden");
-currentFarmId="";
-$("farm-name").textContent="Super Admin Mode";
-$("app-view").classList.remove("hidden");
-await loadAdminFarms();
-await loadAdminUsers();
-showScreen("admin");
+$("admin-nav").classList.remove("hidden"); $("switch-farm-btn").classList.remove("hidden");
+currentFarmId=""; $("farm-name").textContent="Super Admin Mode"; $("app-view").classList.remove("hidden");
+await loadAdminFarms(); await loadAdminUsers(); showScreen("admin");
 return;
 }
-
 if(userEmail===SUPER_ADMIN){
-$("admin-nav").classList.remove("hidden");
-$("switch-farm-btn").classList.remove("hidden");
-if(currentFarmId){
-$("app-view").classList.remove("hidden");
-loadRecords();
-return;
-}
+$("admin-nav").classList.remove("hidden"); $("switch-farm-btn").classList.remove("hidden");
+if(currentFarmId){ $("app-view").classList.remove("hidden"); loadRecords(); return; }
 }
 
 $("admin-nav").classList.add("hidden");
-
 try{
 const doc=await userDocRef.get();
 if(doc.exists&&doc.data().farmId){
 currentFarmId=doc.data().farmId;
 $("farm-name").textContent="Farm: "+currentFarmId;
-$("pending-view").classList.add("hidden");
-$("app-view").classList.remove("hidden");
+$("pending-view").classList.add("hidden"); $("app-view").classList.remove("hidden");
 loadRecords();
 }else{
-$("app-view").classList.add("hidden");
-$("pending-view").classList.remove("hidden");
+$("app-view").classList.add("hidden"); $("pending-view").classList.remove("hidden");
 }
-}catch(e){
-showError(getFriendlyErrorMessage("Could not read your farm access: "+e.message));
-}
+}catch(e){ showError(getFriendlyErrorMessage("Could not read farm access: "+e.message)); }
 });
 
 function loadRecords(){
 if(!currentFarmId)return;
 if(unsubscribeRecords)unsubscribeRecords();
-
-unsubscribeRecords=db.collection("transactions")
-.where("farmId","==",currentFarmId)
-.onSnapshot(snapshot=>{
-records=[];
-snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
-records.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
-render();
-},e=>showError(getFriendlyErrorMessage("Database sync error: "+e.message)));
+unsubscribeRecords=db.collection("transactions").where("farmId","==",currentFarmId).onSnapshot(snapshot=>{
+records=[]; snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()})); render();
+},e=>showError(getFriendlyErrorMessage("Sync error: "+e.message)));
 }
 
 function render(){
-let goats=0,spent=0,medical=0,feed=0,herdsman=0,other=0;
+let animals=0,spent=0,medical=0,feed=0,herdsman=0,other=0;
 records.forEach(r=>{
-const amount=Number(r.amount)||0;
-spent+=amount;
-if(r.type==="purchase")goats+=Number(r.goatCount)||0;
+const amount=Number(r.amount)||0; spent+=amount;
+if(r.type==="purchase")animals+=Number(r.animalCount)||0;
 if(r.type==="medical")medical+=amount;
 if(r.type==="feed")feed+=amount;
 if(r.type==="herdsman")herdsman+=amount;
 if(r.type==="other")other+=amount;
 });
-$("total-goats").textContent=goats;
-$("total-spent").textContent=money(spent);
+$("total-animals").textContent=animals; $("total-spent").textContent=money(spent);
 $("total-records-count").textContent=records.length;
-$("medical-total").textContent=money(medical);
-$("feed-total").textContent=money(feed);
-$("herdsman-total").textContent=money(herdsman);
-$("other-total").textContent=money(other);
+$("medical-total").textContent=money(medical); $("feed-total").textContent=money(feed);
+$("herdsman-total").textContent=money(herdsman); $("other-total").textContent=money(other);
 
 const filter=$("history-filter").value;
 const filtered=filter==="all"?records:records.filter(r=>r.type===filter);
 renderList($("history-list"),filtered,true);
 }
-
 $("history-filter").onchange=render;
 
 function renderList(container,data,controls){
 container.innerHTML="";
-if(!data.length){
-container.innerHTML="<p style='text-align:center;color:#888;padding:25px;font-size:14px'>No records found.</p>";
-return;
-}
+if(!data.length){ container.innerHTML="<p style='text-align:center;color:#888;padding:25px;font-size:14px'>No records found.</p>"; return; }
+
+// Bank-style Date Sorting
+data.sort((a,b) => {
+    let dateA = new Date(a.date || 0).getTime();
+    let dateB = new Date(b.date || 0).getTime();
+    if(dateB === dateA) return (b.createdAt || 0) - (a.createdAt || 0);
+    return dateB - dateA;
+});
+
+let currentDate = "";
 data.forEach(r=>{
+// Daily Grouping Header
+if(r.date !== currentDate) {
+    currentDate = r.date;
+    const header = document.createElement("div");
+    header.className = "date-header";
+    header.textContent = r.date ? new Date(r.date + "T00:00:00").toLocaleDateString("en-NG", {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'}) : "Unknown Date";
+    container.appendChild(header);
+}
+
 const div=document.createElement("div");div.className="record";
 let imgs="";
-if(Array.isArray(r.images)&&r.images.length){
-imgs="<div class='images'>"+r.images.map((src,i)=>`<img class="thumbnail" src="${src}" alt="Goat image ${i+1}">`).join("")+"</div>";
-}
+if(Array.isArray(r.images)&&r.images.length) imgs="<div class='images'>"+r.images.map((src,i)=>`<img class="thumbnail" src="${src}" alt="Img ${i+1}">`).join("")+"</div>";
 let receipt=r.receipt?`<div class="receipt-btn"><i class="fas fa-file-invoice-dollar"></i> View Receipt</div>`:"";
-let tag=r.type==="purchase"?`<span class="goat-tag">+${Number(r.goatCount)||0} Goat(s)</span>`:"";
+let tag=r.type==="purchase"?`<span class="animal-tag">+${Number(r.animalCount)||0} ${escapeHtml(r.animalType||"Animal")}</span>`:"";
 let actions=controls?`<div class="record-actions"><button class="edit-btn" data-id="${r.id}"><i class="fas fa-edit"></i> Edit</button><button class="delete-btn" data-id="${r.id}"><i class="fas fa-trash"></i> Delete</button></div>`:"";
-let date=r.date?new Date(r.date+"T00:00:00").toLocaleDateString("en-NG"):"";
 let author=escapeHtml((r.author||"").split("@")[0]);
+
 div.innerHTML=`<div class="record-top"><span class="record-title">${escapeHtml(r.description)}</span>${tag}</div>
-<div class="record-meta">${date} | By: ${author} | <strong>${money(r.amount)}</strong></div>${imgs}${receipt}${actions}`;
+<div class="record-meta">By: ${author} | <strong>${money(r.amount)}</strong></div>${imgs}${receipt}${actions}`;
+
 div.querySelectorAll(".thumbnail").forEach((img,i)=>img.onclick=()=>openImage(r.images[i]));
 if(receipt)div.querySelector(".receipt-btn").onclick=()=>openImage(r.receipt);
-if(controls){
-div.querySelector(".edit-btn").onclick=()=>editRecord(r.id);
-div.querySelector(".delete-btn").onclick=()=>deleteRecord(r.id);
-}
+if(controls){ div.querySelector(".edit-btn").onclick=()=>editRecord(r.id); div.querySelector(".delete-btn").onclick=()=>deleteRecord(r.id); }
 container.appendChild(div);
 });
 }
 
-function openImage(src){
-$("viewer-image").src=src;
-$("image-viewer").style.display="flex";
-}
+function openImage(src){ $("viewer-image").src=src; $("image-viewer").style.display="flex"; }
 $("viewer-close").onclick=()=>$("image-viewer").style.display="none";
 $("image-viewer").onclick=e=>{if(e.target===$("image-viewer"))$("image-viewer").style.display="none";};
 
 $("record-type").onchange=()=>{
-$("goat-count-box").style.display=$("record-type").value==="purchase"?"block":"none";
+$("animal-details-box").style.display=$("record-type").value==="purchase"?"block":"none";
 };
 
 function compressImage(file,maxWidth=320,quality=.45){
 return new Promise((resolve,reject)=>{
-const reader=new FileReader();
-reader.onerror=()=>reject(new Error("Could not read image."));
+const reader=new FileReader(); reader.onerror=()=>reject(new Error("Could not read image."));
 reader.onload=e=>{
-const img=new Image();
-img.onerror=()=>reject(new Error("Invalid image."));
+const img=new Image(); img.onerror=()=>reject(new Error("Invalid image."));
 img.onload=()=>{
 let scale=Math.min(1,maxWidth/img.width);
-const canvas=document.createElement("canvas");
-canvas.width=Math.max(1,Math.round(img.width*scale));
-canvas.height=Math.max(1,Math.round(img.height*scale));
-canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
-resolve(canvas.toDataURL("image/jpeg",quality));
-};
-img.src=e.target.result;
-};
-reader.readAsDataURL(file);
+const canvas=document.createElement("canvas"); canvas.width=Math.max(1,Math.round(img.width*scale)); canvas.height=Math.max(1,Math.round(img.height*scale));
+canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height); resolve(canvas.toDataURL("image/jpeg",quality));
+}; img.src=e.target.result;
+}; reader.readAsDataURL(file);
 });
 }
 
-$("goat-images").onchange=async e=>{
-const files=Array.from(e.target.files).slice(0,3);
-selectedGoatImages=[];
-$("image-preview").innerHTML="";
+$("animal-images").onchange=async e=>{
+const files=Array.from(e.target.files).slice(0,3); selectedImages=[]; $("image-preview").innerHTML="";
 for(const file of files){
-try{
-const data=await compressImage(file);
-selectedGoatImages.push(data);
-const img=document.createElement("img");
-img.src=data;img.className="thumbnail";
-$("image-preview").appendChild(img);
+try{ const data=await compressImage(file); selectedImages.push(data);
+const img=document.createElement("img"); img.src=data;img.className="thumbnail"; $("image-preview").appendChild(img);
 }catch(err){showError(getFriendlyErrorMessage(err));}
 }
 };
 
 $("receipt-image").onchange=async e=>{
-const file=e.target.files[0];
-selectedReceipt=null;
-$("receipt-preview").style.display="none";
-if(!file)return;
-try{
-selectedReceipt=await compressImage(file);
-$("receipt-preview").style.display="block";
-}catch(err){showError(getFriendlyErrorMessage(err));}
+const file=e.target.files[0]; selectedReceipt=null; $("receipt-preview").style.display="none"; if(!file)return;
+try{ selectedReceipt=await compressImage(file); $("receipt-preview").style.display="block"; }catch(err){showError(getFriendlyErrorMessage(err));}
 };
 
 $("clear-images-btn").onclick=()=>{
-imagesCleared=true;
-selectedGoatImages=[];
-selectedReceipt=null;
-$("image-preview").innerHTML="";
-$("receipt-preview").style.display="none";
-$("clear-images-btn").classList.add("hidden");
+imagesCleared=true; selectedImages=[]; selectedReceipt=null; $("image-preview").innerHTML=""; $("receipt-preview").style.display="none"; $("clear-images-btn").classList.add("hidden");
 };
 
 function resetForm(){
-$("record-id").value="";
-$("record-type").value="purchase";
-$("record-amount").value="";
-$("goat-count").value="1";
-$("record-description").value="";
-$("record-date").valueAsDate=new Date();
-$("goat-images").value="";
-$("receipt-image").value="";
-$("image-preview").innerHTML="";
-$("receipt-preview").style.display="none";
+$("record-id").value=""; $("record-type").value="purchase"; $("record-amount").value=""; $("animal-count").value="1"; $("animal-type").value="Goat";
+$("record-description").value=""; $("record-date").valueAsDate=new Date(); $("animal-images").value=""; $("receipt-image").value="";
+$("image-preview").innerHTML=""; $("receipt-preview").style.display="none";
 $("form-title").innerHTML='<i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record';
-$("save-record").textContent="Save Record";
-$("clear-images-btn").classList.add("hidden");
-selectedGoatImages=[];
-selectedReceipt=null;
-imagesCleared=false;
-$("goat-count-box").style.display="block";
+$("save-record").textContent="Save Record"; $("clear-images-btn").classList.add("hidden");
+selectedImages=[]; selectedReceipt=null; imagesCleared=false; $("animal-details-box").style.display="block";
 }
 
 $("save-record").onclick=async()=>{
 if(!currentUser||!currentFarmId)return showError("No farm is currently selected.");
-const type=$("record-type").value;
-const amount=Number($("record-amount").value);
-const description=$("record-description").value.trim();
-const date=$("record-date").value;
-const goatCount=type==="purchase"?Math.max(1,Number($("goat-count").value)||1):0;
+const type=$("record-type").value; const amount=Number($("record-amount").value);
+const description=$("record-description").value.trim(); const date=$("record-date").value;
+const animalCount=type==="purchase"?Math.max(1,Number($("animal-count").value)||1):0;
+const animalType=$("animal-type").value;
+
 if(!amount||amount<0)return showError("Please enter a valid amount.");
 if(!description)return showError("Please enter a description.");
 if(!date)return showError("Please select a date.");
 
-const btn=$("save-record");
-btn.disabled=true;btn.textContent="Saving...";
-
+const btn=$("save-record"); btn.disabled=true;btn.textContent="Saving...";
 try{
 const editId=$("record-id").value;
-let data={
-farmId:currentFarmId,
-author:currentUser.email.toLowerCase(),
-type,
-amount,
-goatCount,
-description,
-date,
-images:selectedGoatImages,
-receipt:selectedReceipt
-};
+let data={ farmId:currentFarmId, author:currentUser.email.toLowerCase(), type, amount, animalCount, animalType, description, date, images:selectedImages, receipt:selectedReceipt };
 
 if(editId){
-const existing=records.find(r=>r.id===editId);
-if(!existing)throw new Error("Record not found.");
-
-if(!selectedGoatImages.length && !imagesCleared) data.images=existing.images||[];
-else if(imagesCleared && !selectedGoatImages.length) data.images=[];
-
+const existing=records.find(r=>r.id===editId); if(!existing)throw new Error("Record not found.");
+if(!selectedImages.length && !imagesCleared) data.images=existing.images||[];
+else if(imagesCleared && !selectedImages.length) data.images=[];
 if(!selectedReceipt && !imagesCleared) data.receipt=existing.receipt||null;
 else if(imagesCleared && !selectedReceipt) data.receipt=null;
-
 data.createdAt=existing.createdAt||Date.now();
 await db.collection("transactions").doc(editId).update(data);
 }else{
-data.createdAt=Date.now();
-await db.collection("transactions").add(data);
+data.createdAt=Date.now(); await db.collection("transactions").add(data);
 }
-resetForm();
-showSuccess("Record saved successfully!");
-document.querySelectorAll(".manage-tab")[0].click();
-showScreen("manage");
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}finally{
-btn.disabled=false;
-btn.textContent=$("record-id").value?"Update Record":"Save Record";
-}
+resetForm(); showSuccess("Record saved successfully!"); document.querySelectorAll(".manage-tab")[0].click(); showScreen("manage");
+}catch(e){ showError(getFriendlyErrorMessage(e)); }
+finally{ btn.disabled=false; btn.textContent=$("record-id").value?"Update Record":"Save Record"; }
 };
 
 function editRecord(id){
-const r=records.find(x=>x.id===id);
-if(!r)return;
-$("record-id").value=r.id;
-$("record-type").value=r.type;
-$("record-amount").value=r.amount;
-$("goat-count").value=r.goatCount||1;
-$("record-description").value=r.description||"";
-$("record-date").value=r.date||"";
+const r=records.find(x=>x.id===id); if(!r)return;
+$("record-id").value=r.id; $("record-type").value=r.type; $("record-amount").value=r.amount;
+$("animal-count").value=r.animalCount\vert{}\vert{}1; $("animal-type").value=r.animalType||"Goat";
+$("record-description").value=r.description\vert{}\vert{}""; $("record-date").value=r.date||"";
 $("form-title").innerHTML='<i class="fas fa-edit" style="color:#2e7d32"></i> Edit Record';
-$("save-record").textContent="Update Record";
-$("goat-count-box").style.display=r.type==="purchase"?"block":"none";
-selectedGoatImages=[];
-selectedReceipt=null;
-imagesCleared=false;
-$("image-preview").innerHTML="";
-$("receipt-preview").style.display="none";
+$("save-record").textContent="Update Record"; $("animal-details-box").style.display=r.type==="purchase"?"block":"none";
+selectedImages=[]; selectedReceipt=null; imagesCleared=false; $("image-preview").innerHTML=""; $("receipt-preview").style.display="none";
 
-if((r.images&&r.images.length)||r.receipt){
-$("clear-images-btn").classList.remove("hidden");
-}else{
-$("clear-images-btn").classList.add("hidden");
-}
+if((r.images&&r.images.length)||r.receipt) $("clear-images-btn").classList.remove("hidden");
+else $("clear-images-btn").classList.add("hidden");
 
-document.querySelectorAll(".manage-tab")[1].click();
-showScreen("manage");
+document.querySelectorAll(".manage-tab")[1].click(); showScreen("manage");
 }
 
 async function deleteRecord(id){
 if(!confirm("Permanently delete this record?"))return;
-try{
-await db.collection("transactions").doc(id).delete();
-showSuccess("Record deleted successfully.");
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}
+try{ await db.collection("transactions").doc(id).delete(); showSuccess("Record deleted."); }catch(e){ showError(getFriendlyErrorMessage(e)); }
 }
 
 async function loadAdminFarms(){
@@ -767,127 +633,94 @@ try{
 const doc = await db.collection("metadata").doc("farmList").get();
 const farms = doc.exists ? (doc.data().farms || []) : [];
 $("farm-select").innerHTML='<option value="">Select a farm...</option>'+farms.map(f=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
-}catch(e){
-showError(getFriendlyErrorMessage("Could not load farms: "+e.message));
-}
+}catch(e){ showError(getFriendlyErrorMessage("Could not load farms: "+e.message)); }
 }
 
+// Expanded User Directory View
 async function loadAdminUsers(){
 try{
 const snap = await db.collection("users").get();
 const container = $("admin-user-list");
 if(!container) return;
-container.innerHTML = "";
-if(snap.empty){
-container.innerHTML = "<p style='color:#888;font-size:13px;text-align:center;padding:10px'>No registered users found.</p>";
-return;
-}
+
+container.innerHTML = `
+    <h4 class="admin-section-title"><i class="fas fa-clock"></i> Awaiting Approval</h4>
+    <div id="pending-users-list"></div>
+    <h4 class="admin-section-title active-users-title"><i class="fas fa-check-circle"></i> Active Users</h4>
+    <div id="active-users-list"></div>
+`;
+
+let pendingCount = 0, activeCount = 0;
+
 snap.forEach(doc=>{
-const data = doc.data();
-const email = doc.id;
-const farm = data.farmId || "Unassigned";
+const data = doc.data(); const email = doc.id; const farm = data.farmId || "";
 const div = document.createElement("div");
 div.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f3f4;font-size:13px;";
-div.innerHTML = `
-<div><strong>${escapeHtml(email)}</strong><br><small style="color:#666">Farm: <b>${escapeHtml(farm)}</b></small></div>
-<div style="display:flex;gap:6px;">
-<button onclick="promptChangeUserFarm('${escapeHtml(email)}')" style="background:#ff9800;color:#fff;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Change Farm"><i class="fas fa-pen"></i></button>
-<button onclick="revokeUserAccess('${escapeHtml(email)}')" style="background:#d32f2f;color:#fff;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Revoke Access"><i class="fas fa-trash"></i></button>
-</div>
-`;
-container.appendChild(div);
-});
-}catch(e){
-showError(getFriendlyErrorMessage("Could not load user directory: "+e.message));
+
+if(!farm) {
+    div.innerHTML = `
+    <div><strong>${escapeHtml(email)}</strong><br><small style="color:#f57c00">No Farm Assigned</small></div>
+    <div><button onclick="promptChangeUserFarm('${escapeHtml(email)}')" style="background:#2e7d32;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600">Assign Farm</button></div>`;
+    $("pending-users-list").appendChild(div);
+    pendingCount++;
+} else {
+    div.innerHTML = `
+    <div><strong>${escapeHtml(email)}</strong><br><small style="color:#666">Farm: <b>${escapeHtml(farm)}</b></small></div>
+    <div style="display:flex;gap:6px;">
+    <button onclick="promptChangeUserFarm('${escapeHtml(email)}')" style="background:#ff9800;color:#fff;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px" title="Change Farm"><i class="fas fa-pen"></i></button>
+    <button onclick="revokeUserAccess('${escapeHtml(email)}')" style="background:#d32f2f;color:#fff;border:none;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px" title="Revoke Access"><i class="fas fa-trash"></i></button>
+    </div>`;
+    $("active-users-list").appendChild(div);
+    activeCount++;
 }
+});
+
+if(pendingCount === 0) $("pending-users-list").innerHTML = "<p style='color:#aaa;font-size:12px;margin:8px 0'>No users waiting for approval.</p>";
+if(activeCount === 0) $("active-users-list").innerHTML = "<p style='color:#aaa;font-size:12px;margin:8px 0'>No active users.</p>";
+
+}catch(e){ showError(getFriendlyErrorMessage("Could not load user directory: "+e.message)); }
 }
 
 window.promptChangeUserFarm = async function(email){
-const newFarm = prompt(`Enter new Farm ID for ${email}:`);
+const newFarm = prompt(`Enter Farm ID to assign to ${email}:`);
 if(!newFarm) return;
 try{
 await db.collection("users").doc(email).set({farmId:newFarm.trim()},{merge:true});
-await db.collection("metadata").doc("farmList").set({
-    farms: firebase.firestore.FieldValue.arrayUnion(newFarm.trim())
-},{merge:true});
+await db.collection("metadata").doc("farmList").set({ farms: firebase.firestore.FieldValue.arrayUnion(newFarm.trim()) },{merge:true});
 showSuccess("User farm updated successfully.");
-loadAdminUsers();
-loadAdminFarms();
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}
+loadAdminUsers(); loadAdminFarms();
+}catch(e){ showError(getFriendlyErrorMessage(e)); }
 };
 
 window.revokeUserAccess = async function(email){
-if(!confirm(`Revoke farm access for ${email}? This will set their farm to unassigned.`)) return;
+if(!confirm(`Revoke farm access for ${email}? They will be moved back to 'Awaiting Approval'.`)) return;
 try{
 await db.collection("users").doc(email).set({farmId:""},{merge:true});
 showSuccess("User access revoked.");
 loadAdminUsers();
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}
+}catch(e){ showError(getFriendlyErrorMessage(e)); }
 };
 
 $("enter-farm-btn").onclick=()=>{
-const farm=$("farm-select").value;
-if(!farm)return showError("Please select a farm first.");
-currentFarmId=farm;
-isSuperAdminViewingAsAdmin=false;
-$("farm-name").textContent="Farm: "+farm;
-$("switch-farm-btn").classList.remove("hidden");
-$("app-view").classList.remove("hidden");
-loadRecords();
-showScreen("dashboard");
+const farm=$("farm-select").value; if(!farm)return showError("Please select a farm first.");
+currentFarmId=farm; isSuperAdminViewingAsAdmin=false; $("farm-name").textContent="Farm: "+farm;
+$("switch-farm-btn").classList.remove("hidden"); $("app-view").classList.remove("hidden"); loadRecords(); showScreen("dashboard");
 };
 
 $("create-farm-btn").onclick=async()=>{
-const farm=$("new-farm-id").value.trim();
-if(!farm)return showError("Please enter a Farm ID to create.");
+const farm=$("new-farm-id").value.trim(); if(!farm)return showError("Please enter a Farm ID to create.");
 try{
-await db.collection("metadata").doc("farmList").set({
-    farms: firebase.firestore.FieldValue.arrayUnion(farm)
-},{merge:true});
-$("new-farm-id").value="";
-await loadAdminFarms();
-showSuccess("Farm '"+farm+"' created successfully!");
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}
+await db.collection("metadata").doc("farmList").set({ farms: firebase.firestore.FieldValue.arrayUnion(farm) },{merge:true});
+$("new-farm-id").value=""; await loadAdminFarms(); showSuccess("Farm '"+farm+"' created successfully!");
+}catch(e){ showError(getFriendlyErrorMessage(e)); }
 };
 
-$("assign-user").onclick=async()=>{
-const email=$("assign-email").value.trim().toLowerCase();
-const farm=$("assign-farm").value.trim();
-if(!email||!farm)return showError("Enter both email and farm ID.");
-try{
-await db.collection("users").doc(email).set({farmId:farm},{merge:true});
-await db.collection("metadata").doc("farmList").set({
-    farms: firebase.firestore.FieldValue.arrayUnion(farm)
-},{merge:true});
-
-$("assign-email").value="";
-$("assign-farm").value="";
-await loadAdminFarms();
-await loadAdminUsers();
-showSuccess("User assigned successfully.");
-}catch(e){
-showError(getFriendlyErrorMessage(e));
-}
-};
-
-// CSV Export Feature
 $("export-csv-btn").onclick=()=>{
 if(!records.length)return showError("No records to export.");
-let csv="Date,Type,Description,Goat Count,Amount (NGN),Author\n";
-records.forEach(r=>{
-csv+=`"${r.date}","${r.type}","${(r.description||'').replace(/"/g,'""')}","${r.goatCount||0}","${r.amount}","${r.author}"\n`;
-});
+let csv="Date,Type,Description,Animal Count,Amount (NGN),Author\n";
+records.forEach(r=>{ csv+=`"${r.date}","${r.type}","${(r.description||'').replace(/"/g,'""')}","${r.animalCount||0}","${r.amount}","${r.author}"\n`; });
 const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-const link=document.createElement("a");
-link.href=URL.createObjectURL(blob);
-link.download=`${currentFarmId}_ledger_${new Date().toISOString().slice(0,10)}.csv`;
-link.click();
+const link=document.createElement("a"); link.href=URL.createObjectURL(blob); link.download=`${currentFarmId}_ledger_${new Date().toISOString().slice(0,10)}.csv`; link.click();
 };
 
 </script>
