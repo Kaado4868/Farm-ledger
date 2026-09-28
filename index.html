@@ -4,113 +4,193 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>GoatFarm Ledger</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <style>
-*{box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
-body{margin:0;background:#f1f3f4;color:#333}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html,body{height:100%;margin:0;background:#eef2f3;color:#333;overflow:hidden}
 button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!important}
-.auth-view{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;background:#e8f5e9}
-.auth-box{width:100%;max-width:400px;background:#fff;padding:30px;border-radius:16px;box-shadow:0 8px 25px rgba(0,0,0,.08);text-align:center}
-.auth-box h2{color:#2e7d32;margin-top:0}.input{width:100%;padding:13px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;background:#fafafa}
-.main-btn{width:100%;padding:13px;border:0;border-radius:8px;background:#2e7d32;color:#fff;font-weight:bold;margin-bottom:10px}
-.google-btn{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fff;font-weight:bold}
-.auth-toggle{display:block;margin-top:15px;color:#2e7d32;text-decoration:underline;cursor:pointer;font-size:14px}
-#error-box{display:none;position:fixed;top:0;left:0;width:100%;background:#c62828;color:#fff;padding:12px;text-align:center;z-index:99999}
-.app{width:100%;max-width:500px;height:100vh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative}
-.header{background:#1b5e20;color:#fff;padding:18px;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 18px 18px}
-.header h1{margin:0;font-size:20px}.header small{opacity:.8}.logout{background:transparent;color:#fff;border:1px solid #fff;padding:7px 10px;border-radius:6px}
-.content{flex:1;overflow-y:auto;padding:18px;padding-bottom:80px}.screen{display:none}.screen.active{display:block}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-.stat{background:#f8f9fa;border:1px solid #eee;border-radius:10px;padding:15px;text-align:center}
-.stat h4{margin:0 0 5px;font-size:12px;color:#777}.stat h2{margin:0;color:#1b5e20}
-.breakdown{display:flex;justify-content:space-between;padding:13px 5px;border-bottom:1px solid #eee}.breakdown strong{color:#d32f2f}
-label{display:block;font-size:14px;font-weight:bold;margin-bottom:6px}.form-group{margin-bottom:15px}
-select,.form-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
-.record{border:1px solid #eee;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(0,0,0,.03)}
-.record-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px}.record-title{font-weight:bold}
-.goat-tag{background:#ffebee;color:#c62828;padding:3px 7px;border-radius:5px;font-size:12px;font-weight:bold;white-space:nowrap}
-.record-meta{color:#888;font-size:13px;margin-bottom:10px}
-.images{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px}.thumbnail{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer}
-.receipt-btn{display:inline-block;background:#fff9c4;color:#f57f17;border:1px solid #fbc02d;padding:6px 9px;border-radius:5px;font-size:12px;font-weight:bold;cursor:pointer}
-.record-actions{display:flex;justify-content:flex-end;gap:15px;border-top:1px solid #eee;padding-top:10px;margin-top:10px}
-.edit-btn{border:0;background:none;color:#f57c00;font-weight:bold}.delete-btn{border:0;background:none;color:#d32f2f;font-weight:bold}
-.nav{position:absolute;bottom:0;left:0;width:100%;display:flex;background:#fff;border-top:1px solid #ddd}
-.nav-item{flex:1;text-align:center;padding:10px 2px;color:#999;font-size:10px;font-weight:bold}.nav-item i{display:block;font-size:19px;margin-bottom:3px}.nav-item.active{color:#2e7d32}
-.viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;justify-content:center;align-items:center}.viewer img{max-width:94%;max-height:85%;border-radius:8px}
-.viewer-close{position:absolute;right:20px;top:15px;color:#fff;font-size:35px}.preview{display:flex;gap:8px;overflow-x:auto;margin-top:8px}
-.admin-box{background:#e3f2fd;border:1px solid #90caf9;border-radius:10px;padding:15px;margin-bottom:15px}
-.clear-btn{background:#e53935;color:#fff;border:0;padding:6px 12px;border-radius:5px;margin-top:10px;font-size:12px;cursor:pointer;display:inline-block;}
+
+/* Notifications */
+#error-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#d32f2f;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
+#success-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#2e7d32;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
+
+/* Auth / Splash Screens */
+.auth-view{height:100%;width:100%;display:flex;justify-content:center;align-items:center;padding:20px;background:linear-gradient(135deg,#1b5e20,#2e7d32)}
+.auth-box{width:100%;max-width:400px;background:#fff;padding:32px 24px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.15);text-align:center}
+.auth-box h2{color:#1b5e20;margin-top:0;font-size:26px;margin-bottom:8px}
+.auth-box p{color:#666;font-size:14px;margin-bottom:20px}
+.input{width:100%;padding:14px;border:1px solid #ddd;border-radius:10px;margin-bottom:14px;background:#fafafa;outline:none;transition:border .2s}
+.input:focus{border-color:#2e7d32}
+.main-btn{width:100%;padding:14px;border:0;border-radius:10px;background:#2e7d32;color:#fff;font-weight:bold;margin-bottom:12px;box-shadow:0 4px 10px rgba(46,125,50,.3)}
+.main-btn:active{transform:scale(0.98)}
+.google-btn{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:10px;color:#444}
+.auth-toggle{display:block;margin-top:18px;color:#2e7d32;text-decoration:none;cursor:pointer;font-size:14px;font-weight:600}
+
+/* App Container (Fit-to-Screen) */
+.app{width:100%;max-width:480px;height:100vh;height:100dvh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 0 20px rgba(0,0,0,.1)}
+.header{background:#1b5e20;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.header h1{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}.header small{opacity:.85;font-size:11px;display:block}
+.header-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{background:rgba(255,255,255,0.15);color:#fff;border:none;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* Content Area */
+.content{flex:1;overflow-y:auto;padding:16px;padding-bottom:85px;background:#f8f9fa}
+.screen{display:none}.screen.active{display:block}
+
+/* Dashboard Cards & Stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.stat{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.02)}
+.stat h4{margin:0 0 6px;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.5px}
+.stat h2{margin:0;color:#1b5e20;font-size:22px}
+
+.card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.02)}
+.card h3{margin-top:0;font-size:15px;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+.breakdown-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f3f4;font-size:14px}
+.breakdown-row:last-child{border-bottom:none}
+.breakdown-row strong{color:#d32f2f}
+
+/* Forms & Inputs */
+label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#444}
+.form-group{margin-bottom:14px}
+select,.form-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fafafa;outline:none}
+select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
+
+/* Records List */
+.record{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(0,0,0,.02)}
+.record-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
+.record-title{font-weight:700;font-size:15px;color:#222}
+.goat-tag{background:#ffebee;color:#c62828;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;height:20px}
+.record-meta{color:#777;font-size:12px;margin-bottom:10px}
+.images{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;padding-bottom:4px}
+.thumbnail{width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer}
+.receipt-btn{display:inline-flex;align-items:center;gap:6px;background:#fff9c4;color:#f57f17;border:1px solid #fbc02d;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer}
+.record-actions{display:flex;justify-content:flex-end;gap:16px;border-top:1px solid #f1f3f4;padding-top:10px;margin-top:10px}
+.edit-btn{border:0;background:none;color:#f57c00;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
+.delete-btn{border:0;background:none;color:#d32f2f;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
+
+/* Clear Button */
+.clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
+
+/* Bottom Navigation Bar */
+.nav{position:absolute;bottom:0;left:0;width:100%;display:flex;background:#fff;border-top:1px solid #e0e0e0;box-shadow:0 -2px 10px rgba(0,0,0,.05);z-index:10}
+.nav-item{flex:1;text-align:center;padding:10px 4px 8px;color:#888;font-size:11px;font-weight:600;cursor:pointer;transition:color .2s}
+.nav-item i{display:block;font-size:18px;margin-bottom:3px}
+.nav-item.active{color:#2e7d32}
+
+/* Image Viewer Modal */
+.viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;justify-content:center;align-items:center}
+.viewer img{max-width:92%;max-height:85%;border-radius:10px}
+.viewer-close{position:absolute;right:20px;top:20px;color:#fff;font-size:32px;cursor:pointer}
+.preview{display:flex;gap:8px;overflow-x:auto;margin-top:8px}
 </style>
 </head>
 <body>
 
 <div id="error-box"></div>
+<div id="success-box"></div>
 
-<div id="auth-view" class="auth-view">
+<!-- Splash / Loading Screen (Prevents refresh flash) -->
+<div id="splash-view" class="auth-view">
 <div class="auth-box">
-<h2><i class="fas fa-leaf"></i> GoatFarm</h2>
-<h3 id="auth-title">Login to Account</h3>
+<i class="fas fa-leaf fa-spin" style="font-size: 40px; color: #2e7d32; margin-bottom: 15px;"></i>
+<h2>GoatFarm Ledger</h2>
+<p>Loading your session...</p>
+</div>
+</div>
+
+<!-- Authentication View -->
+<div id="auth-view" class="auth-view hidden">
+<div class="auth-box">
+<h2><i class="fas fa-leaf" style="color:#2e7d32"></i> GoatFarm</h2>
+<p id="auth-title">Sign in to your account</p>
 <input id="email" class="input" type="email" placeholder="Email Address">
 <input id="password" class="input" type="password" placeholder="Password">
 <button id="email-btn" class="main-btn">Login</button>
-<p style="color:#999;font-size:12px">— OR —</p>
+<div style="color:#aaa;font-size:12px;margin:10px 0">— OR —</div>
 <button id="google-btn" class="google-btn"><i class="fab fa-google" style="color:#db4437"></i> Sign in with Google</button>
 <span id="auth-toggle" class="auth-toggle">Need an account? Register here</span>
 </div>
 </div>
 
+<!-- Pending Approval View -->
 <div id="pending-view" class="auth-view hidden">
 <div class="auth-box">
 <h2><i class="fas fa-lock" style="color:#f57c00"></i> Access Pending</h2>
 <p>Your account has been created, but you have not been assigned to a farm yet.</p>
-<p>Contact the farm administrator for access.</p>
+<p>Contact your farm administrator to grant you access.</p>
 <button id="pending-logout" class="main-btn" style="background:#d32f2f">Log Out</button>
 </div>
 </div>
 
+<!-- Main App View -->
 <div id="app-view" class="app hidden">
 <div class="header">
-<div><h1><i class="fas fa-leaf"></i> Goat Ledger</h1><small id="farm-name">Farm: Loading...</small></div>
-<button id="logout" class="logout"><i class="fas fa-sign-out-alt"></i></button>
+<div>
+<h1 id="app-header-title"><i class="fas fa-leaf"></i> Goat Ledger</h1>
+<small id="farm-name">Farm: Loading...</small>
+</div>
+<div class="header-actions">
+<button id="switch-farm-btn" class="icon-btn hidden" title="Switch Farm"><i class="fas fa-exchange-alt"></i></button>
+<button id="logout" class="icon-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+</div>
 </div>
 
 <div class="content">
 
+<!-- Dashboard Screen -->
 <div id="dashboard" class="screen active">
 <div class="stats">
 <div class="stat"><h4>Total Goats</h4><h2 id="total-goats">0</h2></div>
 <div class="stat"><h4>Total Spent</h4><h2 id="total-spent">₦0</h2></div>
 </div>
-<h3>Expense Breakdown</h3>
-<div class="breakdown"><span><i class="fas fa-pills"></i> Medical</span><strong id="medical-total">₦0</strong></div>
-<div class="breakdown"><span><i class="fas fa-wheat-awn"></i> Feed</span><strong id="feed-total">₦0</strong></div>
-<div class="breakdown"><span><i class="fas fa-user"></i> Herdsman</span><strong id="herdsman-total">₦0</strong></div>
-<div class="breakdown"><span><i class="fas fa-ellipsis-h"></i> Other</span><strong id="other-total">₦0</strong></div>
+<div class="card">
+<h3><i class="fas fa-chart-pie" style="color:#2e7d32"></i> Expense Breakdown</h3>
+<div class="breakdown-row"><span><i class="fas fa-pills text-danger"></i> Medical</span><strong id="medical-total">₦0</strong></div>
+<div class="breakdown-row"><span><i class="fas fa-wheat-awn"></i> Feed</span><strong id="feed-total">₦0</strong></div>
+<div class="breakdown-row"><span><i class="fas fa-user-tie"></i> Herdsman</span><strong id="herdsman-total">₦0</strong></div>
+<div class="breakdown-row"><span><i class="fas fa-ellipsis-h"></i> Other</span><strong id="other-total">₦0</strong></div>
+</div>
 </div>
 
+<!-- History Screen -->
 <div id="history" class="screen">
 <div class="form-group">
 <select id="history-filter">
-<option value="all">All Records</option><option value="purchase">Goat Purchases</option><option value="medical">Medical</option><option value="feed">Feed</option><option value="herdsman">Herdsman</option><option value="other">Other</option>
+<option value="all">All Records</option>
+<option value="purchase">Goat Purchases</option>
+<option value="medical">Medical</option>
+<option value="feed">Feed</option>
+<option value="herdsman">Herdsman</option>
+<option value="other">Other</option>
 </select>
 </div>
 <div id="history-list"></div>
 </div>
 
+<!-- Manage Screen -->
 <div id="manage" class="screen">
-<p style="color:#777;font-size:13px">Edit or delete farm records.</p>
+<p style="color:#666;font-size:13px;margin-top:0">Edit or delete farm transactions.</p>
 <div id="manage-list"></div>
 </div>
 
+<!-- Add / Edit Record Screen -->
 <div id="add" class="screen">
-<h2 id="form-title">Create Record</h2>
+<div class="card">
+<h3 id="form-title"><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record</h3>
 <input type="hidden" id="record-id">
 
 <div class="form-group"><label>Category</label>
-<select id="record-type"><option value="purchase">Goat Purchase</option><option value="medical">Medical / Drugs</option><option value="feed">Feed / Fodder</option><option value="herdsman">Herdsman Payment</option><option value="other">Other Expense</option></select></div>
+<select id="record-type">
+<option value="purchase">Goat Purchase</option>
+<option value="medical">Medical / Drugs</option>
+<option value="feed">Feed / Fodder</option>
+<option value="herdsman">Herdsman Payment</option>
+<option value="other">Other Expense</option>
+</select></div>
 
 <div class="form-group"><label>Amount (₦)</label><input id="record-amount" class="form-input" type="number" min="0" placeholder="50000"></div>
 
@@ -129,31 +209,55 @@ select,.form-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8
 <div class="form-group">
 <label>Receipt Image (Optional)</label>
 <input id="receipt-image" class="form-input" type="file" accept="image/*">
-<div id="receipt-preview" style="display:none;color:#2e7d32;margin-top:8px"><i class="fas fa-check"></i> Receipt selected</div>
+<div id="receipt-preview" style="display:none;color:#2e7d32;margin-top:6px;font-size:13px;font-weight:600"><i class="fas fa-check-circle"></i> Receipt selected</div>
 </div>
 
 <button id="clear-images-btn" class="clear-btn hidden" type="button"><i class="fas fa-trash"></i> Clear Existing Images</button>
 
-<p style="font-size:12px;color:#777">Images are compressed and saved directly in Firestore. Keep images small because Firestore documents have a size limit.</p>
+<p style="font-size:11px;color:#777;margin:12px 0">Images are compressed for instant Firestore storage.</p>
 <button id="save-record" class="main-btn">Save Record</button>
 </div>
+</div>
 
+<!-- Admin Screen (Super Admin Hub) -->
 <div id="admin" class="screen">
-<div class="admin-box"><h3>Switch Farm</h3><select id="farm-select" class="form-input"><option value="">Select a farm</option></select></div>
-<div class="admin-box"><h3>Assign User</h3><input id="assign-email" class="form-input" type="email" placeholder="User Email"><br><br><input id="assign-farm" class="form-input" type="text" placeholder="Farm ID"><br><br><button id="assign-user" class="main-btn">Grant Access</button></div>
+<div class="card">
+<h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3>
+<div class="form-group">
+<select id="farm-select" class="form-input"><option value="">Select a farm...</option></select>
+</div>
+<button id="enter-farm-btn" class="main-btn" style="margin-bottom:0">Open Farm Ledger</button>
+</div>
+
+<div class="card">
+<h3><i class="fas fa-plus" style="color:#2e7d32"></i> Create New Farm</h3>
+<div class="form-group">
+<input id="new-farm-id" class="form-input" type="text" placeholder="e.g. farm-kano-02">
+</div>
+<button id="create-farm-btn" class="main-btn" style="background:#1b5e20;margin-bottom:0">Create Farm ID</button>
+</div>
+
+<div class="card">
+<h3><i class="fas fa-user-shield" style="color:#2e7d32"></i> Assign User to Farm</h3>
+<div class="form-group"><input id="assign-email" class="form-input" type="email" placeholder="User Email"></div>
+<div class="form-group"><input id="assign-farm" class="form-input" type="text" placeholder="Target Farm ID"></div>
+<button id="assign-user" class="main-btn" style="margin-bottom:0">Grant Access</button>
+</div>
 </div>
 
 </div>
 
+<!-- Bottom Navigation Bar -->
 <div class="nav">
-<div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-pie"></i>Records</div>
+<div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-pie"></i>Dashboard</div>
 <div class="nav-item" data-screen="history"><i class="fas fa-history"></i>History</div>
 <div class="nav-item" data-screen="manage"><i class="fas fa-edit"></i>Manage</div>
 <div class="nav-item" data-screen="add"><i class="fas fa-plus-circle"></i>Add</div>
-<div id="admin-nav" class="nav-item" data-screen="admin" style="display:none"><i class="fas fa-shield-alt"></i>Admin</div>
+<div id="admin-nav" class="nav-item hidden" data-screen="admin"><i class="fas fa-shield-alt"></i>Super Admin</div>
 </div>
 </div>
 
+<!-- Image Lightbox Viewer -->
 <div id="image-viewer" class="viewer">
 <span id="viewer-close" class="viewer-close">&times;</span>
 <img id="viewer-image" src="">
@@ -176,8 +280,8 @@ const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
-let selectedGoatImages=[],selectedReceipt=null;
-let imagesCleared=false; // Added tracker for when users want to intentionally delete images
+let selectedGoatImages=[],selectedReceipt=null,imagesCleared=false;
+let isSuperAdminViewingAsAdmin=false;
 
 const $=id=>document.getElementById(id);
 
@@ -185,7 +289,34 @@ function showError(message){
 const box=$("error-box");
 box.textContent=message;
 box.style.display="block";
-setTimeout(()=>box.style.display="none",6000);
+setTimeout(()=>box.style.display="none",5000);
+}
+
+function showSuccess(message){
+const box=$("success-box");
+box.textContent=message;
+box.style.display="block";
+setTimeout(()=>box.style.display="none",4000);
+}
+
+function getFriendlyErrorMessage(err){
+const msg=(typeof err==="string"?err:(err.message||"")).toLowerCase();
+if(msg.includes("invalid_login_credentials")||msg.includes("invalid-credential")||msg.includes("wrong-password")||msg.includes("user-not-found")){
+return "Invalid email or password.";
+}
+if(msg.includes("email-already-in-use")){
+return "This email address is already registered.";
+}
+if(msg.includes("invalid-email")){
+return "Please enter a valid email address.";
+}
+if(msg.includes("weak-password")){
+return "Password should be at least 6 characters.";
+}
+if(msg.includes("permission-denied")||msg.includes("missing or insufficient permissions")){
+return "Permission denied. Check your Firestore security rules.";
+}
+return err.message||"An unexpected error occurred. Please try again.";
 }
 
 function money(n){return "₦"+Number(n||0).toLocaleString("en-NG");}
@@ -212,33 +343,61 @@ $("record-date").valueAsDate=new Date();
 let loginMode=true;
 $("auth-toggle").onclick=()=>{
 loginMode=!loginMode;
-$("auth-title").textContent=loginMode?"Login to Account":"Create an Account";
+$("auth-title").textContent=loginMode?"Sign in to your account":"Create a new account";
 $("email-btn").textContent=loginMode?"Login":"Sign Up";
 $("auth-toggle").textContent=loginMode?"Need an account? Register here":"Already have an account? Login here";
 };
 
 $("email-btn").onclick=async()=>{
 const email=$("email").value.trim().toLowerCase(),password=$("password").value;
-if(!email||!password)return showError("Enter your email and password.");
+if(!email||!password)return showError("Please enter your email and password.");
 const btn=$("email-btn");btn.disabled=true;btn.textContent="Processing...";
 try{
 if(loginMode)await auth.signInWithEmailAndPassword(email,password);
 else await auth.createUserWithEmailAndPassword(email,password);
-}catch(e){showError(e.message);}
-finally{btn.disabled=false;btn.textContent=loginMode?"Login":"Sign Up";}
+}catch(e){
+showError(getFriendlyErrorMessage(e));
+}finally{
+btn.disabled=false;btn.textContent=loginMode?"Login":"Sign Up";
+}
 };
 
-// Changed from Redirect to Popup for SPA stability
 $("google-btn").onclick=async()=>{
-try{await auth.signInWithPopup(googleProvider);}
-catch(e){showError(e.message);}
+try{
+await auth.signInWithPopup(googleProvider);
+}catch(e){
+showError(getFriendlyErrorMessage(e));
+}
 };
 
-$("logout").onclick=async()=>{if(unsubscribeRecords)unsubscribeRecords();await auth.signOut();};
-$("pending-logout").onclick=async()=>{if(unsubscribeRecords)unsubscribeRecords();await auth.signOut();};
+$("logout").onclick=async()=>{
+if(unsubscribeRecords)unsubscribeRecords();
+isSuperAdminViewingAsAdmin=false;
+currentFarmId="";
+await auth.signOut();
+};
 
+$("pending-logout").onclick=async()=>{
+if(unsubscribeRecords)unsubscribeRecords();
+await auth.signOut();
+};
+
+$("switch-farm-btn").onclick=()=>{
+if(currentUser && currentUser.email.toLowerCase()===SUPER_ADMIN){
+if(unsubscribeRecords)unsubscribeRecords();
+isSuperAdminViewingAsAdmin=true;
+$("switch-farm-btn").classList.add("hidden");
+$("app-view").classList.remove("hidden");
+loadAdminFarms();
+showScreen("admin");
+}
+};
+
+// Auth State Observer (Prevents refresh flash using splash screen)
 auth.onAuthStateChanged(async user=>{
 currentUser=user;
+$("splash-view").classList.add("hidden");
+
 if(!user){
 $("auth-view").classList.remove("hidden");
 $("pending-view").classList.add("hidden");
@@ -248,8 +407,9 @@ return;
 
 $("auth-view").classList.add("hidden");
 
-if(user.email&&user.email.toLowerCase()===SUPER_ADMIN){
-$("admin-nav").style.display="block";
+if(user.email&&user.email.toLowerCase()===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
+$("admin-nav").classList.remove("hidden");
+$("switch-farm-btn").classList.remove("hidden");
 currentFarmId="";
 $("farm-name").textContent="Super Admin Mode";
 $("app-view").classList.remove("hidden");
@@ -258,7 +418,17 @@ showScreen("admin");
 return;
 }
 
-$("admin-nav").style.display="none";
+if(user.email&&user.email.toLowerCase()===SUPER_ADMIN){
+$("admin-nav").classList.remove("hidden");
+$("switch-farm-btn").classList.remove("hidden");
+if(currentFarmId){
+$("app-view").classList.remove("hidden");
+loadRecords();
+return;
+}
+}
+
+$("admin-nav").classList.add("hidden");
 
 try{
 const doc=await db.collection("users").doc(user.email.toLowerCase()).get();
@@ -272,7 +442,9 @@ loadRecords();
 $("app-view").classList.add("hidden");
 $("pending-view").classList.remove("hidden");
 }
-}catch(e){showError("Could not read your farm access: "+e.message);}
+}catch(e){
+showError(getFriendlyErrorMessage("Could not read your farm access: "+e.message));
+}
 });
 
 function loadRecords(){
@@ -286,7 +458,7 @@ records=[];
 snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
 records.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
 render();
-},e=>showError("Database sync error: "+e.message));
+},e=>showError(getFriendlyErrorMessage("Database sync error: "+e.message)));
 }
 
 function render(){
@@ -318,7 +490,7 @@ $("history-filter").onchange=render;
 function renderList(container,data,controls){
 container.innerHTML="";
 if(!data.length){
-container.innerHTML="<p style='text-align:center;color:#999'>No records.</p>";
+container.innerHTML="<p style='text-align:center;color:#888;padding:20px;font-size:14px'>No records found.</p>";
 return;
 }
 data.forEach(r=>{
@@ -387,7 +559,7 @@ selectedGoatImages.push(data);
 const img=document.createElement("img");
 img.src=data;img.className="thumbnail";
 $("image-preview").appendChild(img);
-}catch(err){showError(err.message);}
+}catch(err){showError(getFriendlyErrorMessage(err));}
 }
 };
 
@@ -399,10 +571,9 @@ if(!file)return;
 try{
 selectedReceipt=await compressImage(file);
 $("receipt-preview").style.display="block";
-}catch(err){showError(err.message);}
+}catch(err){showError(getFriendlyErrorMessage(err));}
 };
 
-// Clear Button Event Listener
 $("clear-images-btn").onclick=()=>{
 imagesCleared=true;
 selectedGoatImages=[];
@@ -423,7 +594,7 @@ $("goat-images").value="";
 $("receipt-image").value="";
 $("image-preview").innerHTML="";
 $("receipt-preview").style.display="none";
-$("form-title").textContent="Create Record";
+$("form-title").innerHTML='<i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record';
 $("save-record").textContent="Save Record";
 $("clear-images-btn").classList.add("hidden");
 selectedGoatImages=[];
@@ -439,9 +610,9 @@ const amount=Number($("record-amount").value);
 const description=$("record-description").value.trim();
 const date=$("record-date").value;
 const goatCount=type==="purchase"?Math.max(1,Number($("goat-count").value)||1):0;
-if(!amount||amount<0)return showError("Enter a valid amount.");
-if(!description)return showError("Enter a description.");
-if(!date)return showError("Select a date.");
+if(!amount||amount<0)return showError("Please enter a valid amount.");
+if(!description)return showError("Please enter a description.");
+if(!date)return showError("Please select a date.");
 
 const btn=$("save-record");
 btn.disabled=true;btn.textContent="Saving...";
@@ -464,7 +635,6 @@ if(editId){
 const existing=records.find(r=>r.id===editId);
 if(!existing)throw new Error("Record not found.");
 
-// Handling intentional image deletion vs keeping old images
 if(!selectedGoatImages.length && !imagesCleared) data.images=existing.images||[];
 else if(imagesCleared && !selectedGoatImages.length) data.images=[];
 
@@ -478,9 +648,10 @@ data.createdAt=Date.now();
 await db.collection("transactions").add(data);
 }
 resetForm();
+showSuccess("Record saved successfully!");
 showScreen("dashboard");
 }catch(e){
-showError(e.message);
+showError(getFriendlyErrorMessage(e));
 }finally{
 btn.disabled=false;
 btn.textContent=$("record-id").value?"Update Record":"Save Record";
@@ -496,7 +667,7 @@ $("record-amount").value=r.amount;
 $("goat-count").value=r.goatCount||1;
 $("record-description").value=r.description||"";
 $("record-date").value=r.date||"";
-$("form-title").textContent="Edit Record";
+$("form-title").innerHTML='<i class="fas fa-edit" style="color:#2e7d32"></i> Edit Record';
 $("save-record").textContent="Update Record";
 $("goat-count-box").style.display=r.type==="purchase"?"block":"none";
 selectedGoatImages=[];
@@ -505,11 +676,10 @@ imagesCleared=false;
 $("image-preview").innerHTML="";
 $("receipt-preview").style.display="none";
 
-// Show the clear button if there are existing images
-if ((r.images && r.images.length) || r.receipt) {
-    $("clear-images-btn").classList.remove("hidden");
-} else {
-    $("clear-images-btn").classList.add("hidden");
+if((r.images&&r.images.length)||r.receipt){
+$("clear-images-btn").classList.remove("hidden");
+}else{
+$("clear-images-btn").classList.add("hidden");
 }
 
 showScreen("add");
@@ -519,29 +689,49 @@ async function deleteRecord(id){
 if(!confirm("Permanently delete this record?"))return;
 try{
 await db.collection("transactions").doc(id).delete();
-}catch(e){showError(e.message);}
+showSuccess("Record deleted successfully.");
+}catch(e){
+showError(getFriendlyErrorMessage(e));
+}
 }
 
-// Updated loadAdminFarms to prevent N+1 document reads
 async function loadAdminFarms(){
 try{
 const doc = await db.collection("metadata").doc("farmList").get();
 const farms = doc.exists ? (doc.data().farms || []) : [];
-$("farm-select").innerHTML='<option value="">Select a farm</option>'+farms.map(f=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
-}catch(e){showError("Could not load farms: "+e.message);}
+$("farm-select").innerHTML='<option value="">Select a farm...</option>'+farms.map(f=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+}catch(e){
+showError(getFriendlyErrorMessage("Could not load farms: "+e.message));
+}
 }
 
-$("farm-select").onchange=()=>{
+$("enter-farm-btn").onclick=()=>{
 const farm=$("farm-select").value;
-if(!farm)return;
+if(!farm)return showError("Please select a farm first.");
 currentFarmId=farm;
-$("farm-name").textContent="Admin Viewing: "+farm;
+isSuperAdminViewingAsAdmin=false;
+$("farm-name").textContent="Farm: "+farm;
+$("switch-farm-btn").classList.remove("hidden");
 $("app-view").classList.remove("hidden");
 loadRecords();
 showScreen("dashboard");
 };
 
-// Updated assign user to track farms in the central array
+$("create-farm-btn").onclick=async()=>{
+const farm=$("new-farm-id").value.trim();
+if(!farm)return showError("Please enter a Farm ID to create.");
+try{
+await db.collection("metadata").doc("farmList").set({
+    farms: firebase.firestore.FieldValue.arrayUnion(farm)
+},{merge:true});
+$("new-farm-id").value="";
+await loadAdminFarms();
+showSuccess("Farm '"+farm+"' created successfully!");
+}catch(e){
+showError(getFriendlyErrorMessage(e));
+}
+};
+
 $("assign-user").onclick=async()=>{
 const email=$("assign-email").value.trim().toLowerCase();
 const farm=$("assign-farm").value.trim();
@@ -550,13 +740,15 @@ try{
 await db.collection("users").doc(email).set({farmId:farm},{merge:true});
 await db.collection("metadata").doc("farmList").set({
     farms: firebase.firestore.FieldValue.arrayUnion(farm)
-}, { merge: true });
+},{merge:true});
 
 $("assign-email").value="";
 $("assign-farm").value="";
 await loadAdminFarms();
-alert("User assigned successfully.");
-}catch(e){showError(e.message);}
+showSuccess("User assigned successfully.");
+}catch(e){
+showError(getFriendlyErrorMessage(e));
+}
 };
 
 </script>
