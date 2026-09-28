@@ -10,14 +10,14 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <style>
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-html,body{height:100%;margin:0;background:#eef2f3;color:#333;overflow:hidden}
+html,body{height:100%;margin:0;background:#f4f7f6;color:#333;overflow:hidden}
 button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!important}
 
 /* Notifications */
 #error-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#d32f2f;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
 #success-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#2e7d32;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
 
-/* Auth / Splash Screens */
+/* Auth & Splash Screens */
 .auth-view{height:100%;width:100%;display:flex;justify-content:center;align-items:center;padding:20px;background:linear-gradient(135deg,#1b5e20,#2e7d32)}
 .auth-box{width:100%;max-width:400px;background:#fff;padding:32px 24px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.15);text-align:center}
 .auth-box h2{color:#1b5e20;margin-top:0;font-size:26px;margin-bottom:8px}
@@ -30,7 +30,7 @@ button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!im
 .auth-toggle{display:block;margin-top:18px;color:#2e7d32;text-decoration:none;cursor:pointer;font-size:14px;font-weight:600}
 
 /* App Container (Fit-to-Screen) */
-.app{width:100%;max-width:480px;height:100vh;height:100dvh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 0 20px rgba(0,0,0,.1)}
+.app{width:100%;max-width:480px;height:100vh;height:100dvh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 0 25px rgba(0,0,0,.08)}
 .header{background:#1b5e20;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .header h1{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}.header small{opacity:.85;font-size:11px;display:block}
 .header-actions{display:flex;gap:8px;align-items:center}
@@ -40,18 +40,28 @@ button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!im
 .content{flex:1;overflow-y:auto;padding:16px;padding-bottom:85px;background:#f8f9fa}
 .screen{display:none}.screen.active{display:block}
 
-/* Dashboard Cards & Stats */
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.stat{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.02)}
-.stat h4{margin:0 0 6px;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.5px}
-.stat h2{margin:0;color:#1b5e20;font-size:22px}
+/* Larger Detailed Dashboard */
+.dash-banner{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(27,94,32,.2)}
+.dash-banner h3{margin:0 0 4px;font-size:13px;opacity:.9;text-transform:uppercase;letter-spacing:.5px}
+.dash-banner h1{margin:0;font-size:28px;font-weight:700}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.stat-card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.02);display:flex;align-items:center;gap:12px}
+.stat-icon{width:45px;height:45px;border-radius:10px;background:#e8f5e9;color:#2e7d32;display:flex;align-items:center;justify-content:center;font-size:20px}
+.stat-info h4{margin:0 0 2px;font-size:11px;color:#777;text-transform:uppercase}
+.stat-info h2{margin:0;color:#1b5e20;font-size:18px}
 
 .card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.02)}
 .card h3{margin-top:0;font-size:15px;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 
-.breakdown-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f3f4;font-size:14px}
+.breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f3f4;font-size:14px}
 .breakdown-row:last-child{border-bottom:none}
-.breakdown-row strong{color:#d32f2f}
+.breakdown-row span{display:flex;align-items:center;gap:8px;font-weight:500;color:#444}
+.breakdown-row strong{color:#d32f2f;font-size:15px}
+
+/* Sub-tabs inside Manage */
+.manage-tabs{display:flex;background:#eee;border-radius:10px;padding:4px;margin-bottom:16px}
+.manage-tab{flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#666;border-radius:8px;cursor:pointer;transition:all .2s}
+.manage-tab.active{background:#fff;color:#1b5e20;box-shadow:0 2px 5px rgba(0,0,0,.05)}
 
 /* Forms & Inputs */
 label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#444}
@@ -75,10 +85,10 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 /* Clear Button */
 .clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
 
-/* Bottom Navigation Bar */
+/* Bottom Navigation Bar (3 Clean Tabs) */
 .nav{position:absolute;bottom:0;left:0;width:100%;display:flex;background:#fff;border-top:1px solid #e0e0e0;box-shadow:0 -2px 10px rgba(0,0,0,.05);z-index:10}
-.nav-item{flex:1;text-align:center;padding:10px 4px 8px;color:#888;font-size:11px;font-weight:600;cursor:pointer;transition:color .2s}
-.nav-item i{display:block;font-size:18px;margin-bottom:3px}
+.nav-item{flex:1;text-align:center;padding:10px 4px 8px;color:#777;font-size:12px;font-weight:600;cursor:pointer;transition:color .2s}
+.nav-item i{display:block;font-size:20px;margin-bottom:3px}
 .nav-item.active{color:#2e7d32}
 
 /* Image Viewer Modal */
@@ -93,7 +103,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <div id="error-box"></div>
 <div id="success-box"></div>
 
-<!-- Splash / Loading Screen (Prevents refresh flash) -->
+<!-- Splash / Loading Screen -->
 <div id="splash-view" class="auth-view">
 <div class="auth-box">
 <i class="fas fa-leaf fa-spin" style="font-size: 40px; color: #2e7d32; margin-bottom: 15px;"></i>
@@ -141,23 +151,48 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 
 <div class="content">
 
-<!-- Dashboard Screen -->
+<!-- TAB 1: Expanded Dashboard Screen -->
 <div id="dashboard" class="screen active">
-<div class="stats">
-<div class="stat"><h4>Total Goats</h4><h2 id="total-goats">0</h2></div>
-<div class="stat"><h4>Total Spent</h4><h2 id="total-spent">₦0</h2></div>
+<div class="dash-banner">
+<h3>Total Farm Expenses</h3>
+<h1 id="total-spent">₦0</h1>
 </div>
-<div class="card">
-<h3><i class="fas fa-chart-pie" style="color:#2e7d32"></i> Expense Breakdown</h3>
-<div class="breakdown-row"><span><i class="fas fa-pills text-danger"></i> Medical</span><strong id="medical-total">₦0</strong></div>
-<div class="breakdown-row"><span><i class="fas fa-wheat-awn"></i> Feed</span><strong id="feed-total">₦0</strong></div>
-<div class="breakdown-row"><span><i class="fas fa-user-tie"></i> Herdsman</span><strong id="herdsman-total">₦0</strong></div>
-<div class="breakdown-row"><span><i class="fas fa-ellipsis-h"></i> Other</span><strong id="other-total">₦0</strong></div>
+
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-icon"><i class="fas fa-kiwi-bird"></i></div>
+<div class="stat-info">
+<h4>Total Goats</h4>
+<h2 id="total-goats">0</h2>
+</div>
+</div>
+<div class="stat-card">
+<div class="stat-icon" style="background:#e3f2fd;color:#1976d2;"><i class="fas fa-receipt"></i></div>
+<div class="stat-info">
+<h4>Records Logged</h4>
+<h2 id="total-records-count">0</h2>
+</div>
 </div>
 </div>
 
-<!-- History Screen -->
-<div id="history" class="screen">
+<div class="card">
+<h3><i class="fas fa-chart-pie" style="color:#2e7d32"></i> Detailed Expense Breakdown</h3>
+<div class="breakdown-row"><span><i class="fas fa-pills" style="color:#e53935"></i> Medical / Drugs</span><strong id="medical-total">₦0</strong></div>
+<div class="breakdown-row"><span><i class="fas fa-wheat-awn" style="color:#fb8c00"></i> Feed / Fodder</span><strong id="feed-total">₦0</strong></div>
+<div class="breakdown-row"><span><i class="fas fa-user-tie" style="color:#1e88e5"></i> Herdsman Payment</span><strong id="herdsman-total">₦0</strong></div>
+<div class="breakdown-row"><span><i class="fas fa-ellipsis-h" style="color:#6d4c41"></i> Other Expenses</span><strong id="other-total">₦0</strong></div>
+</div>
+</div>
+
+<!-- TAB 2: Manage Screen (Contains History / Records list & Add/Edit form via sub-tabs) -->
+<div id="manage" class="screen">
+<div class="manage-tabs">
+<div class="manage-tab active" data-sub="sub-history"><i class="fas fa-list"></i> Records History</div>
+<div class="manage-tab" data-sub="sub-form"><i class="fas fa-plus-circle"></i> Add Record</div>
+</div>
+
+<!-- Sub-View: History & Records List -->
+<div id="sub-history" class="sub-screen">
 <div class="form-group">
 <select id="history-filter">
 <option value="all">All Records</option>
@@ -171,15 +206,9 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <div id="history-list"></div>
 </div>
 
-<!-- Manage Screen -->
-<div id="manage" class="screen">
-<p style="color:#666;font-size:13px;margin-top:0">Edit or delete farm transactions.</p>
-<div id="manage-list"></div>
-</div>
-
-<!-- Add / Edit Record Screen -->
-<div id="add" class="screen">
-<div class="card">
+<!-- Sub-View: Add / Edit Record Form -->
+<div id="sub-form" class="sub-screen hidden">
+<div class="card" style="margin-bottom:0">
 <h3 id="form-title"><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record</h3>
 <input type="hidden" id="record-id">
 
@@ -218,8 +247,9 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <button id="save-record" class="main-btn">Save Record</button>
 </div>
 </div>
+</div>
 
-<!-- Admin Screen (Super Admin Hub) -->
+<!-- TAB 3: Admin Screen (Super Admin Hub) -->
 <div id="admin" class="screen">
 <div class="card">
 <h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3>
@@ -247,13 +277,11 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 
 </div>
 
-<!-- Bottom Navigation Bar -->
+<!-- Bottom Navigation Bar (Exactly 3 Tabs) -->
 <div class="nav">
-<div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-pie"></i>Dashboard</div>
-<div class="nav-item" data-screen="history"><i class="fas fa-history"></i>History</div>
-<div class="nav-item" data-screen="manage"><i class="fas fa-edit"></i>Manage</div>
-<div class="nav-item" data-screen="add"><i class="fas fa-plus-circle"></i>Add</div>
-<div id="admin-nav" class="nav-item hidden" data-screen="admin"><i class="fas fa-shield-alt"></i>Super Admin</div>
+<div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-line"></i>Dashboard</div>
+<div class="nav-item" data-screen="manage"><i class="fas fa-folder-open"></i>Manage</div>
+<div id="admin-nav" class="nav-item hidden" data-screen="admin"><i class="fas fa-shield-alt"></i>Admin</div>
 </div>
 </div>
 
@@ -325,6 +353,7 @@ function escapeHtml(value){
 return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 }
 
+// Main Navigation Screens (3 Tabs)
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
@@ -336,6 +365,17 @@ if(nav)nav.classList.add("active");
 
 document.querySelectorAll(".nav-item").forEach(item=>{
 item.onclick=()=>showScreen(item.dataset.screen);
+});
+
+// Sub-tabs inside Manage (History vs Add Form)
+document.querySelectorAll(".manage-tab").forEach(tab=>{
+tab.onclick=()=>{
+document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
+document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
+tab.classList.add("active");
+const subId=tab.dataset.sub;
+$(subId).classList.remove("hidden");
+};
 });
 
 $("record-date").valueAsDate=new Date();
@@ -393,7 +433,7 @@ showScreen("admin");
 }
 };
 
-// Auth State Observer (Prevents refresh flash using splash screen)
+// Auth State Observer
 auth.onAuthStateChanged(async user=>{
 currentUser=user;
 $("splash-view").classList.add("hidden");
@@ -474,6 +514,7 @@ if(r.type==="other")other+=amount;
 });
 $("total-goats").textContent=goats;
 $("total-spent").textContent=money(spent);
+$("total-records-count").textContent=records.length;
 $("medical-total").textContent=money(medical);
 $("feed-total").textContent=money(feed);
 $("herdsman-total").textContent=money(herdsman);
@@ -481,8 +522,7 @@ $("other-total").textContent=money(other);
 
 const filter=$("history-filter").value;
 const filtered=filter==="all"?records:records.filter(r=>r.type===filter);
-renderList($("history-list"),filtered,false);
-renderList($("manage-list"),records,true);
+renderList($("history-list"),filtered,true);
 }
 
 $("history-filter").onchange=render;
@@ -490,7 +530,7 @@ $("history-filter").onchange=render;
 function renderList(container,data,controls){
 container.innerHTML="";
 if(!data.length){
-container.innerHTML="<p style='text-align:center;color:#888;padding:20px;font-size:14px'>No records found.</p>";
+container.innerHTML="<p style='text-align:center;color:#888;padding:25px;font-size:14px'>No records found.</p>";
 return;
 }
 data.forEach(r=>{
@@ -649,7 +689,9 @@ await db.collection("transactions").add(data);
 }
 resetForm();
 showSuccess("Record saved successfully!");
-showScreen("dashboard");
+// Switch back to History sub-tab
+document.querySelectorAll(".manage-tab")[0].click();
+showScreen("manage");
 }catch(e){
 showError(getFriendlyErrorMessage(e));
 }finally{
@@ -682,7 +724,9 @@ $("clear-images-btn").classList.remove("hidden");
 $("clear-images-btn").classList.add("hidden");
 }
 
-showScreen("add");
+// Switch to Add Form sub-tab
+document.querySelectorAll(".manage-tab")[1].click();
+showScreen("manage");
 }
 
 async function deleteRecord(id){
