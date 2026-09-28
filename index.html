@@ -2,2555 +2,563 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>GoatFarm Cloud Ledger</title>
-
-<link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-<!-- Firebase -->
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>GoatFarm Ledger</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-
 <style>
-* {
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
-body {
-    margin: 0;
-    background: #f0f2f5;
-    color: #333;
-}
-
-button,
-input,
-select {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-.app {
-    width: 100%;
-    max-width: 500px;
-    height: 100vh;
-    margin: auto;
-    background: #fff;
-    position: relative;
-    overflow: hidden;
-}
-
-/* AUTH */
-
-.auth-screen {
-    min-height: 100vh;
-    background: #e8f5e9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.auth-box {
-    width: 100%;
-    max-width: 400px;
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 8px 25px rgba(0,0,0,.08);
-    text-align: center;
-}
-
-.auth-box h2 {
-    color: #2e7d32;
-    margin-top: 0;
-}
-
-.input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fafafa;
-}
-
-.main-btn {
-    width: 100%;
-    padding: 13px;
-    border: 0;
-    border-radius: 8px;
-    background: #2e7d32;
-    color: white;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.main-btn:disabled {
-    opacity: .6;
-}
-
-.google-btn {
-    width: 100%;
-    padding: 12px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-weight: bold;
-}
-
-.toggle {
-    display: block;
-    margin-top: 15px;
-    color: #2e7d32;
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-/* HEADER */
-
-.header {
-    background: #1b5e20;
-    color: white;
-    padding: 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 0 0 18px 18px;
-}
-
-.header h1 {
-    margin: 0;
-    font-size: 21px;
-}
-
-.header p {
-    margin: 4px 0 0;
-    font-size: 12px;
-    opacity: .85;
-}
-
-.logout-btn {
-    background: transparent;
-    color: white;
-    border: 1px solid white;
-    border-radius: 6px;
-    padding: 7px 11px;
-}
-
-/* CONTENT */
-
-.content {
-    height: calc(100vh - 72px);
-    overflow-y: auto;
-    padding: 18px;
-    padding-bottom: 90px;
-}
-
-.screen {
-    display: none;
-}
-
-.screen.active {
-    display: block;
-}
-
-/* DASHBOARD */
-
-.stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.stat {
-    background: #f8f9fa;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-}
-
-.stat small {
-    display: block;
-    color: #777;
-    margin-bottom: 5px;
-}
-
-.stat strong {
-    font-size: 22px;
-    color: #1b5e20;
-}
-
-.breakdown-title {
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 7px;
-}
-
-.breakdown {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 5px;
-    border-bottom: 1px solid #eee;
-}
-
-.breakdown strong {
-    color: #d32f2f;
-}
-
-/* FORMS */
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    font-weight: bold;
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: #555;
-}
-
-.form-control {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fafafa;
-}
-
-/* RECORDS */
-
-.record {
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
-}
-
-.record-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.record-title {
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.goat-tag {
-    background: #ffebee;
-    color: #d32f2f;
-    padding: 3px 7px;
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-.record-meta {
-    color: #888;
-    font-size: 12px;
-    margin: 7px 0 10px;
-}
-
-.images {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-}
-
-.thumbnail {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
-    border-radius: 7px;
-    border: 1px solid #ddd;
-    flex-shrink: 0;
-}
-
-.receipt-btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 6px 9px;
-    border: 1px solid #fbc02d;
-    border-radius: 5px;
-    background: #fff9c4;
-    color: #f57f17;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.record-actions {
-    border-top: 1px solid #eee;
-    margin-top: 10px;
-    padding-top: 9px;
-    text-align: right;
-}
-
-.edit-btn,
-.delete-btn {
-    background: none;
-    border: 0;
-    font-weight: bold;
-    margin-left: 12px;
-}
-
-.edit-btn {
-    color: #f57c00;
-}
-
-.delete-btn {
-    color: #d32f2f;
-}
-
-/* NAVIGATION */
-
-.nav {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: white;
-    border-top: 1px solid #ddd;
-    display: flex;
-    padding-bottom: env(safe-area-inset-bottom);
-}
-
-.nav-item {
-    flex: 1;
-    padding: 10px 2px;
-    text-align: center;
-    color: #999;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.nav-item i {
-    display: block;
-    font-size: 19px;
-    margin-bottom: 3px;
-}
-
-.nav-item.active {
-    color: #2e7d32;
-}
-
-/* ADMIN */
-
-.admin-box {
-    background: #e3f2fd;
-    border: 1px solid #90caf9;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-}
-
-/* UPLOAD */
-
-.upload-status {
-    display: none;
-    margin: 10px 0;
-    padding: 9px;
-    border-radius: 7px;
-    background: #e8f5e9;
-    color: #2e7d32;
-    text-align: center;
-    font-size: 13px;
-}
-
-.progress-wrap {
-    display: none;
-    margin: 10px 0;
-}
-
-.progress-bg {
-    height: 8px;
-    background: #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress {
-    width: 0;
-    height: 100%;
-    background: #2e7d32;
-}
-
-.progress-text {
-    text-align: center;
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-/* IMAGE VIEWER */
-
-.viewer {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.9);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-}
-
-.viewer img {
-    max-width: 95%;
-    max-height: 90%;
-    border-radius: 10px;
-}
-
-.viewer-close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    color: white;
-    font-size: 35px;
-}
-
-/* PENDING */
-
-.pending {
-    min-height: 100vh;
-    background: #e8f5e9;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-/* ERROR */
-
-#error-box {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: #d32f2f;
-    color: white;
-    padding: 10px;
-    z-index: 10000;
-    text-align: center;
-    font-size: 13px;
-}
+*{box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+body{margin:0;background:#f1f3f4;color:#333}
+button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!important}
+.auth-view{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;background:#e8f5e9}
+.auth-box{width:100%;max-width:400px;background:#fff;padding:30px;border-radius:16px;box-shadow:0 8px 25px rgba(0,0,0,.08);text-align:center}
+.auth-box h2{color:#2e7d32;margin-top:0}.input{width:100%;padding:13px;border:1px solid #ddd;border-radius:8px;margin-bottom:12px;background:#fafafa}
+.main-btn{width:100%;padding:13px;border:0;border-radius:8px;background:#2e7d32;color:#fff;font-weight:bold;margin-bottom:10px}
+.google-btn{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fff;font-weight:bold}
+.auth-toggle{display:block;margin-top:15px;color:#2e7d32;text-decoration:underline;cursor:pointer;font-size:14px}
+#error-box{display:none;position:fixed;top:0;left:0;width:100%;background:#c62828;color:#fff;padding:12px;text-align:center;z-index:99999}
+.app{width:100%;max-width:500px;height:100vh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.header{background:#1b5e20;color:#fff;padding:18px;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 18px 18px}
+.header h1{margin:0;font-size:20px}.header small{opacity:.8}.logout{background:transparent;color:#fff;border:1px solid #fff;padding:7px 10px;border-radius:6px}
+.content{flex:1;overflow-y:auto;padding:18px;padding-bottom:80px}.screen{display:none}.screen.active{display:block}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat{background:#f8f9fa;border:1px solid #eee;border-radius:10px;padding:15px;text-align:center}
+.stat h4{margin:0 0 5px;font-size:12px;color:#777}.stat h2{margin:0;color:#1b5e20}
+.breakdown{display:flex;justify-content:space-between;padding:13px 5px;border-bottom:1px solid #eee}.breakdown strong{color:#d32f2f}
+label{display:block;font-size:14px;font-weight:bold;margin-bottom:6px}.form-group{margin-bottom:15px}
+select,.form-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa}
+.record{border:1px solid #eee;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(0,0,0,.03)}
+.record-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px}.record-title{font-weight:bold}
+.goat-tag{background:#ffebee;color:#c62828;padding:3px 7px;border-radius:5px;font-size:12px;font-weight:bold;white-space:nowrap}
+.record-meta{color:#888;font-size:13px;margin-bottom:10px}
+.images{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px}.thumbnail{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer}
+.receipt-btn{display:inline-block;background:#fff9c4;color:#f57f17;border:1px solid #fbc02d;padding:6px 9px;border-radius:5px;font-size:12px;font-weight:bold;cursor:pointer}
+.record-actions{display:flex;justify-content:flex-end;gap:15px;border-top:1px solid #eee;padding-top:10px;margin-top:10px}
+.edit-btn{border:0;background:none;color:#f57c00;font-weight:bold}.delete-btn{border:0;background:none;color:#d32f2f;font-weight:bold}
+.nav{position:absolute;bottom:0;left:0;width:100%;display:flex;background:#fff;border-top:1px solid #ddd}
+.nav-item{flex:1;text-align:center;padding:10px 2px;color:#999;font-size:10px;font-weight:bold}.nav-item i{display:block;font-size:19px;margin-bottom:3px}.nav-item.active{color:#2e7d32}
+.viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;justify-content:center;align-items:center}.viewer img{max-width:94%;max-height:85%;border-radius:8px}
+.viewer-close{position:absolute;right:20px;top:15px;color:#fff;font-size:35px}.preview{display:flex;gap:8px;overflow-x:auto;margin-top:8px}
+.admin-box{background:#e3f2fd;border:1px solid #90caf9;border-radius:10px;padding:15px;margin-bottom:15px}
+.clear-btn{background:#e53935;color:#fff;border:0;padding:6px 12px;border-radius:5px;margin-top:10px;font-size:12px;cursor:pointer;display:inline-block;}
 </style>
 </head>
-
 <body>
 
 <div id="error-box"></div>
 
-<!-- LOGIN -->
-<div id="auth-view" class="auth-screen">
+<div id="auth-view" class="auth-view">
+<div class="auth-box">
+<h2><i class="fas fa-leaf"></i> GoatFarm</h2>
+<h3 id="auth-title">Login to Account</h3>
+<input id="email" class="input" type="email" placeholder="Email Address">
+<input id="password" class="input" type="password" placeholder="Password">
+<button id="email-btn" class="main-btn">Login</button>
+<p style="color:#999;font-size:12px">— OR —</p>
+<button id="google-btn" class="google-btn"><i class="fab fa-google" style="color:#db4437"></i> Sign in with Google</button>
+<span id="auth-toggle" class="auth-toggle">Need an account? Register here</span>
+</div>
+</div>
 
-    <div class="auth-box">
+<div id="pending-view" class="auth-view hidden">
+<div class="auth-box">
+<h2><i class="fas fa-lock" style="color:#f57c00"></i> Access Pending</h2>
+<p>Your account has been created, but you have not been assigned to a farm yet.</p>
+<p>Contact the farm administrator for access.</p>
+<button id="pending-logout" class="main-btn" style="background:#d32f2f">Log Out</button>
+</div>
+</div>
 
-        <h2>
-            <i class="fas fa-leaf"></i>
-            GoatFarm
-        </h2>
+<div id="app-view" class="app hidden">
+<div class="header">
+<div><h1><i class="fas fa-leaf"></i> Goat Ledger</h1><small id="farm-name">Farm: Loading...</small></div>
+<button id="logout" class="logout"><i class="fas fa-sign-out-alt"></i></button>
+</div>
 
-        <h3 id="auth-title">
-            Login to Account
-        </h3>
+<div class="content">
 
-        <input
-            id="email"
-            class="auth-input input"
-            type="email"
-            placeholder="Email Address"
-        >
+<div id="dashboard" class="screen active">
+<div class="stats">
+<div class="stat"><h4>Total Goats</h4><h2 id="total-goats">0</h2></div>
+<div class="stat"><h4>Total Spent</h4><h2 id="total-spent">₦0</h2></div>
+</div>
+<h3>Expense Breakdown</h3>
+<div class="breakdown"><span><i class="fas fa-pills"></i> Medical</span><strong id="medical-total">₦0</strong></div>
+<div class="breakdown"><span><i class="fas fa-wheat-awn"></i> Feed</span><strong id="feed-total">₦0</strong></div>
+<div class="breakdown"><span><i class="fas fa-user"></i> Herdsman</span><strong id="herdsman-total">₦0</strong></div>
+<div class="breakdown"><span><i class="fas fa-ellipsis-h"></i> Other</span><strong id="other-total">₦0</strong></div>
+</div>
 
-        <input
-            id="password"
-            class="auth-input input"
-            type="password"
-            placeholder="Password"
-        >
+<div id="history" class="screen">
+<div class="form-group">
+<select id="history-filter">
+<option value="all">All Records</option><option value="purchase">Goat Purchases</option><option value="medical">Medical</option><option value="feed">Feed</option><option value="herdsman">Herdsman</option><option value="other">Other</option>
+</select>
+</div>
+<div id="history-list"></div>
+</div>
 
-        <button
-            id="email-btn"
-            class="main-btn"
-        >
-            Login
-        </button>
+<div id="manage" class="screen">
+<p style="color:#777;font-size:13px">Edit or delete farm records.</p>
+<div id="manage-list"></div>
+</div>
 
-        <p style="color:#999;font-size:12px;">
-            — OR —
-        </p>
+<div id="add" class="screen">
+<h2 id="form-title">Create Record</h2>
+<input type="hidden" id="record-id">
 
-        <button
-            id="google-btn"
-            class="google-btn"
-        >
-            <i class="fab fa-google"
-               style="color:#db4437"></i>
-            Sign in with Google
-        </button>
+<div class="form-group"><label>Category</label>
+<select id="record-type"><option value="purchase">Goat Purchase</option><option value="medical">Medical / Drugs</option><option value="feed">Feed / Fodder</option><option value="herdsman">Herdsman Payment</option><option value="other">Other Expense</option></select></div>
 
-        <span
-            id="auth-toggle"
-            class="toggle"
-        >
-            Need an account? Register here
-        </span>
+<div class="form-group"><label>Amount (₦)</label><input id="record-amount" class="form-input" type="number" min="0" placeholder="50000"></div>
 
-    </div>
+<div id="goat-count-box" class="form-group"><label>Number of Goats</label><input id="goat-count" class="form-input" type="number" min="1" value="1"></div>
+
+<div class="form-group"><label>Description</label><input id="record-description" class="form-input" type="text" placeholder="e.g. 5 goats purchased"></div>
+
+<div class="form-group"><label>Date</label><input id="record-date" class="form-input" type="date"></div>
+
+<div class="form-group">
+<label>Goat Images (Maximum 3)</label>
+<input id="goat-images" class="form-input" type="file" accept="image/*" multiple>
+<div id="image-preview" class="preview"></div>
+</div>
+
+<div class="form-group">
+<label>Receipt Image (Optional)</label>
+<input id="receipt-image" class="form-input" type="file" accept="image/*">
+<div id="receipt-preview" style="display:none;color:#2e7d32;margin-top:8px"><i class="fas fa-check"></i> Receipt selected</div>
+</div>
+
+<button id="clear-images-btn" class="clear-btn hidden" type="button"><i class="fas fa-trash"></i> Clear Existing Images</button>
+
+<p style="font-size:12px;color:#777">Images are compressed and saved directly in Firestore. Keep images small because Firestore documents have a size limit.</p>
+<button id="save-record" class="main-btn">Save Record</button>
+</div>
+
+<div id="admin" class="screen">
+<div class="admin-box"><h3>Switch Farm</h3><select id="farm-select" class="form-input"><option value="">Select a farm</option></select></div>
+<div class="admin-box"><h3>Assign User</h3><input id="assign-email" class="form-input" type="email" placeholder="User Email"><br><br><input id="assign-farm" class="form-input" type="text" placeholder="Farm ID"><br><br><button id="assign-user" class="main-btn">Grant Access</button></div>
+</div>
 
 </div>
 
-<!-- PENDING -->
-<div id="pending-view" class="pending">
-
-    <div class="auth-box">
-
-        <h2>
-            <i class="fas fa-lock"></i>
-            Access Denied
-        </h2>
-
-        <p>
-            Your account exists, but no farm has been assigned to you.
-        </p>
-
-        <p>
-            Contact the farm administrator for access.
-        </p>
-
-        <button
-            id="pending-logout"
-            class="main-btn"
-            style="background:#d32f2f"
-        >
-            Log Out
-        </button>
-
-    </div>
-
+<div class="nav">
+<div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-pie"></i>Records</div>
+<div class="nav-item" data-screen="history"><i class="fas fa-history"></i>History</div>
+<div class="nav-item" data-screen="manage"><i class="fas fa-edit"></i>Manage</div>
+<div class="nav-item" data-screen="add"><i class="fas fa-plus-circle"></i>Add</div>
+<div id="admin-nav" class="nav-item" data-screen="admin" style="display:none"><i class="fas fa-shield-alt"></i>Admin</div>
+</div>
 </div>
 
-<!-- APP -->
-<div
-    id="app-view"
-    class="app"
-    style="display:none;"
->
-
-    <div class="header">
-
-        <div>
-            <h1>
-                <i class="fas fa-leaf"></i>
-                Goat Ledger
-            </h1>
-
-            <p id="farm-name">
-                Farm: Loading...
-            </p>
-        </div>
-
-        <button
-            id="logout"
-            class="logout-btn"
-        >
-            <i class="fas fa-sign-out-alt"></i>
-        </button>
-
-    </div>
-
-    <div class="content">
-
-        <!-- DASHBOARD -->
-        <section
-            id="dashboard"
-            class="screen active"
-        >
-
-            <div class="stats">
-
-                <div class="stat">
-                    <small>Total Goats</small>
-                    <strong id="total-goats">0</strong>
-                </div>
-
-                <div class="stat">
-                    <small>Total Spent</small>
-                    <strong id="total-spent">₦0</strong>
-                </div>
-
-            </div>
-
-            <h3 class="breakdown-title">
-                Expense Breakdown
-            </h3>
-
-            <div class="breakdown">
-                <span>
-                    <i class="fas fa-pills"></i>
-                    Medical
-                </span>
-                <strong id="medical-total">₦0</strong>
-            </div>
-
-            <div class="breakdown">
-                <span>
-                    <i class="fas fa-wheat-awn"></i>
-                    Feed
-                </span>
-                <strong id="feed-total">₦0</strong>
-            </div>
-
-            <div class="breakdown">
-                <span>
-                    <i class="fas fa-user"></i>
-                    Herdsman
-                </span>
-                <strong id="herdsman-total">₦0</strong>
-            </div>
-
-            <div class="breakdown">
-                <span>
-                    <i class="fas fa-ellipsis-h"></i>
-                    Other
-                </span>
-                <strong id="other-total">₦0</strong>
-            </div>
-
-        </section>
-
-        <!-- HISTORY -->
-        <section
-            id="history"
-            class="screen"
-        >
-
-            <div class="form-group">
-
-                <select
-                    id="history-filter"
-                    class="form-control"
-                >
-                    <option value="all">
-                        All Records
-                    </option>
-
-                    <option value="purchase">
-                        Purchases
-                    </option>
-
-                    <option value="medical">
-                        Medical
-                    </option>
-
-                    <option value="feed">
-                        Feed
-                    </option>
-
-                    <option value="herdsman">
-                        Herdsman
-                    </option>
-
-                    <option value="other">
-                        Other
-                    </option>
-                </select>
-
-            </div>
-
-            <div id="history-list"></div>
-
-        </section>
-
-        <!-- MANAGE -->
-        <section
-            id="manage"
-            class="screen"
-        >
-
-            <p style="font-size:13px;color:#777;">
-                Edit or delete farm records.
-            </p>
-
-            <div id="manage-list"></div>
-
-        </section>
-
-        <!-- ADD -->
-        <section
-            id="add"
-            class="screen"
-        >
-
-            <h2 id="form-title">
-                Create Record
-            </h2>
-
-            <input
-                type="hidden"
-                id="record-id"
-            >
-
-            <div class="form-group">
-
-                <label>Category</label>
-
-                <select
-                    id="record-type"
-                    class="form-control"
-                >
-
-                    <option value="purchase">
-                        Goat Purchase
-                    </option>
-
-                    <option value="medical">
-                        Medical / Drugs
-                    </option>
-
-                    <option value="feed">
-                        Feed / Fodder
-                    </option>
-
-                    <option value="herdsman">
-                        Herdsman Payment
-                    </option>
-
-                    <option value="other">
-                        Other Expense
-                    </option>
-
-                </select>
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Amount (₦)</label>
-
-                <input
-                    id="record-amount"
-                    class="form-control"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="50000"
-                >
-
-            </div>
-
-            <div
-                id="goat-count-box"
-                class="form-group"
-            >
-
-                <label>Number of Goats</label>
-
-                <input
-                    id="goat-count"
-                    class="form-control"
-                    type="number"
-                    min="1"
-                    value="1"
-                >
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Description</label>
-
-                <input
-                    id="record-description"
-                    class="form-control"
-                    type="text"
-                    placeholder="e.g. Dewormer"
-                >
-
-            </div>
-
-            <div class="form-group">
-
-                <label>Date</label>
-
-                <input
-                    id="record-date"
-                    class="form-control"
-                    type="date"
-                >
-
-            </div>
-
-            <div class="form-group">
-
-                <label>
-                    Goat Images
-                    <small>(Maximum 3)</small>
-                </label>
-
-                <input
-                    id="goat-images"
-                    class="form-control"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                >
-
-            </div>
-
-            <div
-                id="image-preview"
-                class="images"
-            ></div>
-
-            <div class="form-group">
-
-                <label>
-                    Receipt
-                    <small>(Optional)</small>
-                </label>
-
-                <input
-                    id="receipt-image"
-                    class="form-control"
-                    type="file"
-                    accept="image/*"
-                >
-
-            </div>
-
-            <div
-                id="receipt-preview"
-                style="display:none;"
-            >
-                <span class="receipt-btn">
-                    <i class="fas fa-check"></i>
-                    Receipt Attached
-                </span>
-            </div>
-
-            <div
-                id="upload-status"
-                class="upload-status"
-            ></div>
-
-            <div
-                id="progress-wrap"
-                class="progress-wrap"
-            >
-
-                <div class="progress-bg">
-                    <div
-                        id="progress"
-                        class="progress"
-                    ></div>
-                </div>
-
-                <div
-                    id="progress-text"
-                    class="progress-text"
-                >
-                    0%
-                </div>
-
-            </div>
-
-            <button
-                id="save-record"
-                class="main-btn"
-            >
-                Save Record
-            </button>
-
-        </section>
-
-        <!-- ADMIN -->
-        <section
-            id="admin"
-            class="screen"
-        >
-
-            <div class="admin-box">
-
-                <h3>Switch Farm</h3>
-
-                <select
-                    id="farm-select"
-                    class="form-control"
-                >
-                    <option value="">
-                        Select a farm
-                    </option>
-                </select>
-
-            </div>
-
-            <div class="admin-box">
-
-                <h3>Assign User</h3>
-
-                <input
-                    id="assign-email"
-                    class="form-control"
-                    type="email"
-                    placeholder="User Email"
-                >
-
-                <br>
-
-                <input
-                    id="assign-farm"
-                    class="form-control"
-                    type="text"
-                    placeholder="Farm ID"
-                >
-
-                <br>
-
-                <button
-                    id="assign-user"
-                    class="main-btn"
-                >
-                    Grant Access
-                </button>
-
-            </div>
-
-        </section>
-
-    </div>
-
-    <!-- NAVIGATION -->
-    <nav class="nav">
-
-        <div
-            class="nav-item active"
-            data-screen="dashboard"
-        >
-            <i class="fas fa-chart-pie"></i>
-            Records
-        </div>
-
-        <div
-            class="nav-item"
-            data-screen="history"
-        >
-            <i class="fas fa-history"></i>
-            History
-        </div>
-
-        <div
-            class="nav-item"
-            data-screen="manage"
-        >
-            <i class="fas fa-edit"></i>
-            Manage
-        </div>
-
-        <div
-            class="nav-item"
-            data-screen="add"
-        >
-            <i class="fas fa-plus-circle"></i>
-            Add
-        </div>
-
-        <div
-            id="admin-nav"
-            class="nav-item"
-            data-screen="admin"
-            style="display:none;"
-        >
-            <i class="fas fa-shield-alt"></i>
-            Admin
-        </div>
-
-    </nav>
-
+<div id="image-viewer" class="viewer">
+<span id="viewer-close" class="viewer-close">&times;</span>
+<img id="viewer-image" src="">
 </div>
 
-<!-- IMAGE VIEWER -->
-<div
-    id="image-viewer"
-    class="viewer"
->
-
-    <span
-        id="viewer-close"
-        class="viewer-close"
-    >
-        &times;
-    </span>
-
-    <img
-        id="viewer-image"
-        src=""
-        alt="Image"
-    >
-
-</div>
-
-<!-- Part 2 continues here -->
-    <script>
-/* =========================================================
-   FIREBASE CONFIGURATION
-   ========================================================= */
-
-const firebaseConfig = {
-    apiKey: "AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
-    authDomain: "goatledger-132c7.firebaseapp.com",
-    projectId: "goatledger-132c7",
-    storageBucket: "goatledger-132c7.firebasestorage.app",
-    messagingSenderId: "576591882291",
-    appId: "1:576591882291:web:9d540d6c99150a63e81b46"
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
+authDomain:"goatledger-132c7.firebaseapp.com",
+projectId:"goatledger-132c7",
+storageBucket:"goatledger-132c7.firebasestorage.app",
+messagingSenderId:"576591882291",
+appId:"1:576591882291:web:9d540d6c99150a63e81b46"
 };
 
 firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+const googleProvider=new firebase.auth.GoogleAuthProvider();
+const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-const storage = firebase.storage();
+let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
+let selectedGoatImages=[],selectedReceipt=null;
+let imagesCleared=false; // Added tracker for when users want to intentionally delete images
 
-const googleProvider =
-    new firebase.auth.GoogleAuthProvider();
+const $=id=>document.getElementById(id);
 
-const SUPER_ADMIN =
-    "abdulkadirbukar2006@gmail.com";
-
-
-/* =========================================================
-   APP STATE
-   ========================================================= */
-
-let currentUser = null;
-let currentFarmId = "";
-let records = [];
-let unsubscribeRecords = null;
-
-let selectedGoatFiles = [];
-let selectedReceiptFile = null;
-
-
-/* =========================================================
-   SHORTCUTS
-   ========================================================= */
-
-const $ = id => document.getElementById(id);
-
-const show = el => {
-    if (el) el.style.display = "flex";
-};
-
-const hide = el => {
-    if (el) el.style.display = "none";
-};
-
-
-/* =========================================================
-   ERROR DISPLAY
-   ========================================================= */
-
-function showError(message) {
-
-    const box = $("error-box");
-
-    box.textContent = message;
-    box.style.display = "block";
-
-    setTimeout(() => {
-        box.style.display = "none";
-    }, 6000);
+function showError(message){
+const box=$("error-box");
+box.textContent=message;
+box.style.display="block";
+setTimeout(()=>box.style.display="none",6000);
 }
 
+function money(n){return "₦"+Number(n||0).toLocaleString("en-NG");}
 
-/* =========================================================
-   DATE
-   ========================================================= */
-
-$("record-date").valueAsDate = new Date();
-
-
-/* =========================================================
-   AUTH MODE
-   ========================================================= */
-
-let loginMode = true;
-
-$("auth-toggle").onclick = () => {
-
-    loginMode = !loginMode;
-
-    $("auth-title").textContent =
-        loginMode
-            ? "Login to Account"
-            : "Create an Account";
-
-    $("email-btn").textContent =
-        loginMode
-            ? "Login"
-            : "Sign Up";
-
-    $("auth-toggle").textContent =
-        loginMode
-            ? "Need an account? Register here"
-            : "Already have an account? Login here";
-};
-
-
-/* =========================================================
-   EMAIL AUTHENTICATION
-   ========================================================= */
-
-$("email-btn").onclick = async () => {
-
-    const email =
-        $("email").value.trim();
-
-    const password =
-        $("password").value;
-
-    if (!email || !password) {
-        showError("Enter your email and password.");
-        return;
-    }
-
-    const button = $("email-btn");
-
-    button.disabled = true;
-    button.textContent = "Processing...";
-
-    try {
-
-        if (loginMode) {
-
-            await auth.signInWithEmailAndPassword(
-                email,
-                password
-            );
-
-        } else {
-
-            await auth.createUserWithEmailAndPassword(
-                email,
-                password
-            );
-
-        }
-
-    } catch (error) {
-
-        showError(error.message);
-
-    } finally {
-
-        button.disabled = false;
-
-        button.textContent =
-            loginMode
-                ? "Login"
-                : "Sign Up";
-    }
-};
-
-
-/* =========================================================
-   GOOGLE AUTHENTICATION
-   ========================================================= */
-
-$("google-btn").onclick = async () => {
-
-    try {
-
-        await auth.signInWithRedirect(
-            googleProvider
-        );
-
-    } catch (error) {
-
-        showError(error.message);
-    }
-};
-
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-
-async function logout() {
-
-    if (unsubscribeRecords) {
-        unsubscribeRecords();
-        unsubscribeRecords = null;
-    }
-
-    records = [];
-    currentFarmId = "";
-    currentUser = null;
-
-    try {
-
-        await auth.signOut();
-
-    } catch (error) {
-
-        showError(error.message);
-    }
+function escapeHtml(value){
+return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 }
 
-$("logout").onclick = logout;
-$("pending-logout").onclick = logout;
+function showScreen(id){
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+const screen=$(id);
+if(screen)screen.classList.add("active");
+const nav=document.querySelector(`.nav-item[data-screen="${id}"]`);
+if(nav)nav.classList.add("active");
+}
 
-
-/* =========================================================
-   AUTH STATE
-   ========================================================= */
-
-auth.onAuthStateChanged(async user => {
-
-    if (!user) {
-
-        currentUser = null;
-        currentFarmId = "";
-
-        hide($("app-view"));
-        hide($("pending-view"));
-
-        show($("auth-view"));
-
-        return;
-    }
-
-    currentUser = user;
-
-    hide($("auth-view"));
-    hide($("pending-view"));
-
-    /*
-       SUPER ADMIN
-    */
-
-    if (
-        user.email &&
-        user.email.toLowerCase() ===
-        SUPER_ADMIN.toLowerCase()
-    ) {
-
-        $("admin-nav").style.display = "block";
-
-        $("farm-name").textContent =
-            "Super Admin";
-
-        show($("app-view"));
-
-        loadAdminFarms();
-
-        openScreen("admin");
-
-        return;
-    }
-
-    $("admin-nav").style.display = "none";
-
-    /*
-       NORMAL USER
-    */
-
-    try {
-
-        const userDoc =
-            await db
-                .collection("users")
-                .doc(user.email.toLowerCase())
-                .get();
-
-        if (
-            !userDoc.exists ||
-            !userDoc.data().farmId
-        ) {
-
-            hide($("app-view"));
-            show($("pending-view"));
-
-            return;
-        }
-
-        currentFarmId =
-            userDoc.data().farmId;
-
-        $("farm-name").textContent =
-            "Farm: " + currentFarmId;
-
-        show($("app-view"));
-
-        openScreen("dashboard");
-
-        listenToRecords();
-
-    } catch (error) {
-
-        showError(
-            "Could not load your farm: " +
-            error.message
-        );
-    }
+document.querySelectorAll(".nav-item").forEach(item=>{
+item.onclick=()=>showScreen(item.dataset.screen);
 });
 
+$("record-date").valueAsDate=new Date();
 
-/* =========================================================
-   SCREEN NAVIGATION
-   ========================================================= */
-
-function openScreen(screenId) {
-
-    document
-        .querySelectorAll(".screen")
-        .forEach(screen => {
-            screen.classList.remove("active");
-        });
-
-    document
-        .querySelectorAll(".nav-item")
-        .forEach(item => {
-            item.classList.remove("active");
-        });
-
-    const screen =
-        $(screenId);
-
-    if (!screen) return;
-
-    screen.classList.add("active");
-
-    const nav =
-        document.querySelector(
-            `.nav-item[data-screen="${screenId}"]`
-        );
-
-    if (nav) {
-        nav.classList.add("active");
-    }
-}
-
-document
-    .querySelectorAll(".nav-item")
-    .forEach(item => {
-
-        item.onclick = () => {
-
-            const screen =
-                item.dataset.screen;
-
-            if (
-                screen === "add" &&
-                currentFarmId === ""
-            ) {
-                showError(
-                    "No farm is currently selected."
-                );
-                return;
-            }
-
-            openScreen(screen);
-        };
-    });
-
-
-/* =========================================================
-   CATEGORY / GOAT COUNT
-   ========================================================= */
-
-$("record-type").onchange = () => {
-
-    const isPurchase =
-        $("record-type").value === "purchase";
-
-    $("goat-count-box").style.display =
-        isPurchase
-            ? "block"
-            : "none";
+let loginMode=true;
+$("auth-toggle").onclick=()=>{
+loginMode=!loginMode;
+$("auth-title").textContent=loginMode?"Login to Account":"Create an Account";
+$("email-btn").textContent=loginMode?"Login":"Sign Up";
+$("auth-toggle").textContent=loginMode?"Need an account? Register here":"Already have an account? Login here";
 };
 
-
-/* =========================================================
-   IMAGE FILE SELECTION
-   ========================================================= */
-
-$("goat-images").onchange = event => {
-
-    selectedGoatFiles =
-        Array.from(event.target.files)
-            .slice(0, 3);
-
-    renderImagePreview();
+$("email-btn").onclick=async()=>{
+const email=$("email").value.trim().toLowerCase(),password=$("password").value;
+if(!email||!password)return showError("Enter your email and password.");
+const btn=$("email-btn");btn.disabled=true;btn.textContent="Processing...";
+try{
+if(loginMode)await auth.signInWithEmailAndPassword(email,password);
+else await auth.createUserWithEmailAndPassword(email,password);
+}catch(e){showError(e.message);}
+finally{btn.disabled=false;btn.textContent=loginMode?"Login":"Sign Up";}
 };
 
-
-function renderImagePreview() {
-
-    const container =
-        $("image-preview");
-
-    container.innerHTML = "";
-
-    selectedGoatFiles.forEach(file => {
-
-        const reader =
-            new FileReader();
-
-        reader.onload = event => {
-
-            const img =
-                document.createElement("img");
-
-            img.src =
-                event.target.result;
-
-            img.className =
-                "thumbnail";
-
-            container.appendChild(img);
-        };
-
-        reader.readAsDataURL(file);
-    });
-}
-
-
-/* =========================================================
-   RECEIPT SELECTION
-   ========================================================= */
-
-$("receipt-image").onchange = event => {
-
-    selectedReceiptFile =
-        event.target.files[0] || null;
-
-    $("receipt-preview").style.display =
-        selectedReceiptFile
-            ? "block"
-            : "none";
+// Changed from Redirect to Popup for SPA stability
+$("google-btn").onclick=async()=>{
+try{await auth.signInWithPopup(googleProvider);}
+catch(e){showError(e.message);}
 };
 
+$("logout").onclick=async()=>{if(unsubscribeRecords)unsubscribeRecords();await auth.signOut();};
+$("pending-logout").onclick=async()=>{if(unsubscribeRecords)unsubscribeRecords();await auth.signOut();};
 
-/* =========================================================
-   FIREBASE STORAGE UPLOAD
-   ========================================================= */
-
-function uploadFile(file, path) {
-
-    return new Promise((resolve, reject) => {
-
-        const reference =
-            storage.ref().child(path);
-
-        const upload =
-            reference.put(file);
-
-        upload.on(
-            "state_changed",
-
-            snapshot => {
-
-                if (!file) return;
-
-                const percent =
-                    Math.round(
-                        (
-                            snapshot.bytesTransferred /
-                            snapshot.totalBytes
-                        ) * 100
-                    );
-
-                $("progress").style.width =
-                    percent + "%";
-
-                $("progress-text").textContent =
-                    percent + "%";
-            },
-
-            error => {
-                reject(error);
-            },
-
-            async () => {
-
-                try {
-
-                    const url =
-                        await upload.snapshot
-                            .ref
-                            .getDownloadURL();
-
-                    resolve(url);
-
-                } catch (error) {
-
-                    reject(error);
-                }
-            }
-        );
-    });
+auth.onAuthStateChanged(async user=>{
+currentUser=user;
+if(!user){
+$("auth-view").classList.remove("hidden");
+$("pending-view").classList.add("hidden");
+$("app-view").classList.add("hidden");
+return;
 }
 
+$("auth-view").classList.add("hidden");
 
-/* =========================================================
-   UPLOAD MULTIPLE GOAT IMAGES
-   ========================================================= */
-
-async function uploadGoatImages(recordId) {
-
-    const urls = [];
-
-    for (
-        let i = 0;
-        i < selectedGoatFiles.length;
-        i++
-    ) {
-
-        const file =
-            selectedGoatFiles[i];
-
-        const extension =
-            file.name
-                .split(".")
-                .pop();
-
-        const path =
-            `farms/${currentFarmId}/records/${recordId}/goat_${Date.now()}_${i}.${extension}`;
-
-        $("upload-status").style.display =
-            "block";
-
-        $("upload-status").textContent =
-            `Uploading goat image ${i + 1} of ${selectedGoatFiles.length}...`;
-
-        const url =
-            await uploadFile(
-                file,
-                path
-            );
-
-        urls.push(url);
-    }
-
-    return urls;
+if(user.email&&user.email.toLowerCase()===SUPER_ADMIN){
+$("admin-nav").style.display="block";
+currentFarmId="";
+$("farm-name").textContent="Super Admin Mode";
+$("app-view").classList.remove("hidden");
+await loadAdminFarms();
+showScreen("admin");
+return;
 }
 
+$("admin-nav").style.display="none";
 
-/* =========================================================
-   UPLOAD RECEIPT
-   ========================================================= */
+try{
+const doc=await db.collection("users").doc(user.email.toLowerCase()).get();
+if(doc.exists&&doc.data().farmId){
+currentFarmId=doc.data().farmId;
+$("farm-name").textContent="Farm: "+currentFarmId;
+$("pending-view").classList.add("hidden");
+$("app-view").classList.remove("hidden");
+loadRecords();
+}else{
+$("app-view").classList.add("hidden");
+$("pending-view").classList.remove("hidden");
+}
+}catch(e){showError("Could not read your farm access: "+e.message);}
+});
 
-async function uploadReceipt(recordId) {
+function loadRecords(){
+if(!currentFarmId)return;
+if(unsubscribeRecords)unsubscribeRecords();
 
-    if (!selectedReceiptFile) {
-        return null;
-    }
-
-    $("upload-status").style.display =
-        "block";
-
-    $("upload-status").textContent =
-        "Uploading receipt...";
-
-    const extension =
-        selectedReceiptFile.name
-            .split(".")
-            .pop();
-
-    const path =
-        `farms/${currentFarmId}/records/${recordId}/receipt_${Date.now()}.${extension}`;
-
-    return await uploadFile(
-        selectedReceiptFile,
-        path
-    );
+unsubscribeRecords=db.collection("transactions")
+.where("farmId","==",currentFarmId)
+.onSnapshot(snapshot=>{
+records=[];
+snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
+records.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+render();
+},e=>showError("Database sync error: "+e.message));
 }
 
+function render(){
+let goats=0,spent=0,medical=0,feed=0,herdsman=0,other=0;
+records.forEach(r=>{
+const amount=Number(r.amount)||0;
+spent+=amount;
+if(r.type==="purchase")goats+=Number(r.goatCount)||0;
+if(r.type==="medical")medical+=amount;
+if(r.type==="feed")feed+=amount;
+if(r.type==="herdsman")herdsman+=amount;
+if(r.type==="other")other+=amount;
+});
+$("total-goats").textContent=goats;
+$("total-spent").textContent=money(spent);
+$("medical-total").textContent=money(medical);
+$("feed-total").textContent=money(feed);
+$("herdsman-total").textContent=money(herdsman);
+$("other-total").textContent=money(other);
 
-/* =========================================================
-   CREATE NEW RECORD ID
-   ========================================================= */
-
-function createRecordId() {
-
-    return db
-        .collection("transactions")
-        .doc()
-        .id;
+const filter=$("history-filter").value;
+const filtered=filter==="all"?records:records.filter(r=>r.type===filter);
+renderList($("history-list"),filtered,false);
+renderList($("manage-list"),records,true);
 }
 
+$("history-filter").onchange=render;
 
-/* =========================================================
-   RESET UPLOAD UI
-   ========================================================= */
-
-function resetUploadUI() {
-
-    $("upload-status").style.display =
-        "none";
-
-    $("progress-wrap").style.display =
-        "none";
-
-    $("progress").style.width =
-        "0%";
-
-    $("progress-text").textContent =
-        "0%";
-
-    $("image-preview").innerHTML = "";
-
-    $("receipt-preview").style.display =
-        "none";
-
-    $("goat-images").value = "";
-
-    $("receipt-image").value = "";
-
-    selectedGoatFiles = [];
-    selectedReceiptFile = [];
+function renderList(container,data,controls){
+container.innerHTML="";
+if(!data.length){
+container.innerHTML="<p style='text-align:center;color:#999'>No records.</p>";
+return;
+}
+data.forEach(r=>{
+const div=document.createElement("div");div.className="record";
+let imgs="";
+if(Array.isArray(r.images)&&r.images.length){
+imgs="<div class='images'>"+r.images.map((src,i)=>`<img class="thumbnail" src="${src}" alt="Goat image ${i+1}">`).join("")+"</div>";
+}
+let receipt=r.receipt?`<div class="receipt-btn"><i class="fas fa-file-invoice-dollar"></i> View Receipt</div>`:"";
+let tag=r.type==="purchase"?`<span class="goat-tag">+${Number(r.goatCount)||0} Goat(s)</span>`:"";
+let actions=controls?`<div class="record-actions"><button class="edit-btn" data-id="${r.id}"><i class="fas fa-edit"></i> Edit</button><button class="delete-btn" data-id="${r.id}"><i class="fas fa-trash"></i> Delete</button></div>`:"";
+let date=r.date?new Date(r.date+"T00:00:00").toLocaleDateString("en-NG"):"";
+let author=escapeHtml((r.author||"").split("@")[0]);
+div.innerHTML=`<div class="record-top"><span class="record-title">${escapeHtml(r.description)}</span>${tag}</div>
+<div class="record-meta">${date} | By: ${author} | <strong>${money(r.amount)}</strong></div>${imgs}${receipt}${actions}`;
+div.querySelectorAll(".thumbnail").forEach((img,i)=>img.onclick=()=>openImage(r.images[i]));
+if(receipt)div.querySelector(".receipt-btn").onclick=()=>openImage(r.receipt);
+if(controls){
+div.querySelector(".edit-btn").onclick=()=>editRecord(r.id);
+div.querySelector(".delete-btn").onclick=()=>deleteRecord(r.id);
+}
+container.appendChild(div);
+});
 }
 
-
-/* =========================================================
-   PART 3 CONTINUES HERE
-
- ========================================================= */
-        <script>
-
-/* =========================================================
-   FIRESTORE RECORD LISTENER
-   ========================================================= */
-
-function listenToRecords() {
-
-    if (!currentFarmId) return;
-
-    if (unsubscribeRecords) {
-        unsubscribeRecords();
-    }
-
-    unsubscribeRecords =
-        db.collection("transactions")
-        .where("farmId", "==", currentFarmId)
-        .onSnapshot(
-
-            snapshot => {
-
-                records = [];
-
-                snapshot.forEach(doc => {
-
-                    records.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-
-                });
-
-                records.sort((a, b) => {
-
-                    const aTime =
-                        a.createdAt || 0;
-
-                    const bTime =
-                        b.createdAt || 0;
-
-                    return bTime - aTime;
-                });
-
-                renderDashboard();
-                renderHistory();
-                renderManage();
-
-            },
-
-            error => {
-
-                showError(
-                    "Database error: " +
-                    error.message
-                );
-
-            }
-        );
+function openImage(src){
+$("viewer-image").src=src;
+$("image-viewer").style.display="flex";
 }
-
-
-/* =========================================================
-   DASHBOARD
-   ========================================================= */
-
-function renderDashboard() {
-
-    let goats = 0;
-    let spent = 0;
-    let medical = 0;
-    let feed = 0;
-    let herdsman = 0;
-    let other = 0;
-
-    records.forEach(record => {
-
-        const amount =
-            Number(record.amount) || 0;
-
-        spent += amount;
-
-        if (record.type === "purchase") {
-
-            goats +=
-                Number(record.goatCount) || 0;
-
-        }
-
-        if (record.type === "medical") {
-            medical += amount;
-        }
-
-        if (record.type === "feed") {
-            feed += amount;
-        }
-
-        if (record.type === "herdsman") {
-            herdsman += amount;
-        }
-
-        if (record.type === "other") {
-            other += amount;
-        }
-
-    });
-
-    $("total-goats").textContent =
-        goats.toLocaleString();
-
-    $("total-spent").textContent =
-        "₦" + spent.toLocaleString();
-
-    $("medical-total").textContent =
-        "₦" + medical.toLocaleString();
-
-    $("feed-total").textContent =
-        "₦" + feed.toLocaleString();
-
-    $("herdsman-total").textContent =
-        "₦" + herdsman.toLocaleString();
-
-    $("other-total").textContent =
-        "₦" + other.toLocaleString();
-}
-
-
-/* =========================================================
-   FORMAT DATE
-   ========================================================= */
-
-function formatDate(date) {
-
-    if (!date) return "";
-
-    const value =
-        new Date(date);
-
-    if (isNaN(value.getTime())) {
-        return date;
-    }
-
-    return value.toLocaleDateString();
-}
-
-
-/* =========================================================
-   ESCAPE HTML
-   ========================================================= */
-
-function escapeHTML(value) {
-
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        value == null ? "" : String(value);
-
-    return div.innerHTML;
-}
-
-
-/* =========================================================
-   RECORD HTML
-   ========================================================= */
-
-function recordHTML(record, controls = false) {
-
-    const description =
-        escapeHTML(record.description);
-
-    const author =
-        escapeHTML(
-            record.author
-                ? record.author.split("@")[0]
-                : "Unknown"
-        );
-
-    const amount =
-        Number(record.amount) || 0;
-
-    const goatCount =
-        Number(record.goatCount) || 0;
-
-    let imagesHTML = "";
-
-    if (
-        Array.isArray(record.images) &&
-        record.images.length
-    ) {
-
-        imagesHTML = `
-            <div class="images">
-                ${record.images.map(url => `
-                    <img
-                        src="${escapeHTML(url)}"
-                        class="thumbnail"
-                        onclick="viewImage('${escapeHTML(url)}')"
-                    >
-                `).join("")}
-            </div>
-        `;
-    }
-
-    let receiptHTML = "";
-
-    if (record.receipt) {
-
-        receiptHTML = `
-            <span
-                class="receipt-btn"
-                onclick="viewImage('${escapeHTML(record.receipt)}')"
-            >
-                <i class="fas fa-file-invoice-dollar"></i>
-                View Receipt
-            </span>
-        `;
-    }
-
-    let goatTag = "";
-
-    if (record.type === "purchase") {
-
-        goatTag = `
-            <span class="goat-tag">
-                +${goatCount} Goat${goatCount === 1 ? "" : "s"}
-            </span>
-        `;
-    }
-
-    let actions = "";
-
-    if (controls) {
-
-        actions = `
-            <div class="record-actions">
-
-                <button
-                    class="edit-btn"
-                    onclick="editRecord('${record.id}')"
-                >
-                    <i class="fas fa-edit"></i>
-                    Edit
-                </button>
-
-                <button
-                    class="delete-btn"
-                    onclick="deleteRecord('${record.id}')"
-                >
-                    <i class="fas fa-trash"></i>
-                    Delete
-                </button>
-
-            </div>
-        `;
-    }
-
-    return `
-        <div class="record">
-
-            <div class="record-top">
-
-                <span class="record-title">
-                    ${description}
-                </span>
-
-                ${goatTag}
-
-            </div>
-
-            <div class="record-meta">
-                ${formatDate(record.date)}
-                |
-                By: ${author}
-                |
-                <strong>
-                    ₦${amount.toLocaleString()}
-                </strong>
-            </div>
-
-            ${imagesHTML}
-
-            ${receiptHTML}
-
-            ${actions}
-
-        </div>
-    `;
-}
-
-
-/* =========================================================
-   HISTORY
-   ========================================================= */
-
-function renderHistory() {
-
-    const container =
-        $("history-list");
-
-    const filter =
-        $("history-filter").value;
-
-    let filtered =
-        records;
-
-    if (filter !== "all") {
-
-        filtered =
-            records.filter(
-                record =>
-                    record.type === filter
-            );
-    }
-
-    if (!filtered.length) {
-
-        container.innerHTML = `
-            <p style="text-align:center;color:#999;">
-                No records found.
-            </p>
-        `;
-
-        return;
-    }
-
-    container.innerHTML =
-        filtered
-            .map(record => recordHTML(record))
-            .join("");
-}
-
-$("history-filter").onchange =
-    renderHistory;
-
-
-/* =========================================================
-   MANAGE
-   ========================================================= */
-
-function renderManage() {
-
-    const container =
-        $("manage-list");
-
-    if (!records.length) {
-
-        container.innerHTML = `
-            <p style="text-align:center;color:#999;">
-                No records found.
-            </p>
-        `;
-
-        return;
-    }
-
-    container.innerHTML =
-        records
-            .map(record =>
-                recordHTML(record, true)
-            )
-            .join("");
-}
-
-
-/* =========================================================
-   IMAGE VIEWER
-   ========================================================= */
-
-window.viewImage = function(url) {
-
-    $("viewer-image").src = url;
-
-    $("image-viewer").style.display =
-        "flex";
+$("viewer-close").onclick=()=>$("image-viewer").style.display="none";
+$("image-viewer").onclick=e=>{if(e.target===$("image-viewer"))$("image-viewer").style.display="none";};
+
+$("record-type").onchange=()=>{
+$("goat-count-box").style.display=$("record-type").value==="purchase"?"block":"none";
 };
 
-
-$("viewer-close").onclick = () => {
-
-    $("image-viewer").style.display =
-        "none";
-
-    $("viewer-image").src = "";
+function compressImage(file,maxWidth=320,quality=.45){
+return new Promise((resolve,reject)=>{
+const reader=new FileReader();
+reader.onerror=()=>reject(new Error("Could not read image."));
+reader.onload=e=>{
+const img=new Image();
+img.onerror=()=>reject(new Error("Invalid image."));
+img.onload=()=>{
+let scale=Math.min(1,maxWidth/img.width);
+const canvas=document.createElement("canvas");
+canvas.width=Math.max(1,Math.round(img.width*scale));
+canvas.height=Math.max(1,Math.round(img.height*scale));
+canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+resolve(canvas.toDataURL("image/jpeg",quality));
 };
-
-
-$("image-viewer").onclick = event => {
-
-    if (event.target === $("image-viewer")) {
-        return;
-    }
-
-    if (event.target === $("image-viewer").parentElement) {
-
-        $("image-viewer").style.display =
-            "none";
-
-        $("viewer-image").src = "";
-    }
+img.src=e.target.result;
 };
-
-
-/* =========================================================
-   SAVE RECORD
-   ========================================================= */
-
-$("save-record").onclick = async () => {
-
-    if (!currentUser) {
-        showError("You are not logged in.");
-        return;
-    }
-
-    if (
-        !currentFarmId ||
-        currentFarmId === "AdminView"
-    ) {
-        showError("Select a valid farm first.");
-        return;
-    }
-
-    const type =
-        $("record-type").value;
-
-    const amount =
-        Number($("record-amount").value);
-
-    const description =
-        $("record-description")
-            .value
-            .trim();
-
-    const date =
-        $("record-date").value;
-
-    const goatCount =
-        type === "purchase"
-            ? Number($("goat-count").value)
-            : 0;
-
-    if (!amount || amount < 0) {
-
-        showError(
-            "Enter a valid amount."
-        );
-
-        return;
-    }
-
-    if (!description) {
-
-        showError(
-            "Enter a description."
-        );
-
-        return;
-    }
-
-    if (!date) {
-
-        showError(
-            "Select a date."
-        );
-
-        return;
-    }
-
-    if (
-        type === "purchase" &&
-        (!goatCount || goatCount < 1)
-    ) {
-
-        showError(
-            "Enter the number of goats."
-        );
-
-        return;
-    }
-
-    const button =
-        $("save-record");
-
-    button.disabled = true;
-    button.textContent = "Saving...";
-
-    $("progress-wrap").style.display =
-        "block";
-
-    try {
-
-        const existingId =
-            $("record-id").value;
-
-        let recordId =
-            existingId || createRecordId();
-
-        let existing =
-            records.find(
-                record =>
-                    record.id === recordId
-            );
-
-        let imageUrls =
-            existing &&
-            Array.isArray(existing.images)
-                ? existing.images
-                : [];
-
-        let receiptUrl =
-            existing
-                ? existing.receipt || null
-                : null;
-
-
-        /* -----------------------------------------
-           UPLOAD NEW GOAT IMAGES
-           ----------------------------------------- */
-
-        if (selectedGoatFiles.length) {
-
-            imageUrls =
-                await uploadGoatImages(
-                    recordId
-                );
-        }
-
-
-        /* -----------------------------------------
-           UPLOAD RECEIPT
-           ----------------------------------------- */
-
-        if (selectedReceiptFile) {
-
-            receiptUrl =
-                await uploadReceipt(
-                    recordId
-                );
-        }
-
-
-        /* -----------------------------------------
-           FIRESTORE DATA
-           ----------------------------------------- */
-
-        const data = {
-
-            farmId: currentFarmId,
-
-            author:
-                currentUser.email || "",
-
-            type: type,
-
-            amount: amount,
-
-            goatCount: goatCount,
-
-            description: description,
-
-            date: date,
-
-            images: imageUrls,
-
-            receipt: receiptUrl,
-
-            updatedAt:
-                firebase.firestore.FieldValue
-                    .serverTimestamp()
-        };
-
-
-        if (!existingId) {
-
-            data.createdAt =
-                firebase.firestore.FieldValue
-                    .serverTimestamp();
-
-            await db
-                .collection("transactions")
-                .doc(recordId)
-                .set(data);
-
-        } else {
-
-            await db
-                .collection("transactions")
-                .doc(recordId)
-                .update(data);
-        }
-
-
-        /* -----------------------------------------
-           SUCCESS
-           ----------------------------------------- */
-
-        resetForm();
-
-        openScreen("dashboard");
-
-    } catch (error) {
-
-        console.error(error);
-
-        showError(
-            "Could not save record: " +
-            error.message
-        );
-
-    } finally {
-
-        button.disabled = false;
-
-        button.textContent =
-            "Save Record";
-
-        $("progress-wrap").style.display =
-            "none";
-
-    }
-};
-
-
-/* =========================================================
-   EDIT RECORD
-   ========================================================= */
-
-window.editRecord = function(id) {
-
-    const record =
-        records.find(
-            item => item.id === id
-        );
-
-    if (!record) {
-
-        showError(
-            "Record not found."
-        );
-
-        return;
-    }
-
-    $("record-id").value =
-        record.id;
-
-    $("record-type").value =
-        record.type;
-
-    $("record-amount").value =
-        record.amount;
-
-    $("record-description").value =
-        record.description;
-
-    $("record-date").value =
-        record.date;
-
-    $("goat-count").value =
-        record.goatCount || 1;
-
-    $("goat-count-box").style.display =
-        record.type === "purchase"
-            ? "block"
-            : "none";
-
-    $("form-title").textContent =
-        "Edit Record";
-
-    $("save-record").textContent =
-        "Update Record";
-
-    selectedGoatFiles = [];
-    selectedReceiptFile = null;
-
-    $("goat-images").value = "";
-    $("receipt-image").value = "";
-
-    $("image-preview").innerHTML = "";
-
-    $("receipt-preview").style.display =
-        "none";
-
-    openScreen("add");
-};
-
-
-/* =========================================================
-   DELETE RECORD
-   ========================================================= */
-
-window.deleteRecord = async function(id) {
-
-    const record =
-        records.find(
-            item => item.id === id
-        );
-
-    if (!record) return;
-
-    const confirmed =
-        confirm(
-            "Permanently delete this record?"
-        );
-
-    if (!confirmed) return;
-
-    try {
-
-        await db
-            .collection("transactions")
-            .doc(id)
-            .delete();
-
-    } catch (error) {
-
-        showError(
-            "Delete failed: " +
-            error.message
-        );
-    }
-};
-
-
-/* =========================================================
-   RESET FORM
-   ========================================================= */
-
-function resetForm() {
-
-    $("record-id").value = "";
-
-    $("record-type").value =
-        "purchase";
-
-    $("record-amount").value = "";
-
-    $("record-description").value =
-        "";
-
-    $("record-date").valueAsDate =
-        new Date();
-
-    $("goat-count").value = 1;
-
-    $("goat-count-box").style.display =
-        "block";
-
-    $("form-title").textContent =
-        "Create Record";
-
-    $("save-record").textContent =
-        "Save Record";
-
-    resetUploadUI();
+reader.readAsDataURL(file);
+});
 }
 
+$("goat-images").onchange=async e=>{
+const files=Array.from(e.target.files).slice(0,3);
+selectedGoatImages=[];
+$("image-preview").innerHTML="";
+for(const file of files){
+try{
+const data=await compressImage(file);
+selectedGoatImages.push(data);
+const img=document.createElement("img");
+img.src=data;img.className="thumbnail";
+$("image-preview").appendChild(img);
+}catch(err){showError(err.message);}
+}
+};
 
-/* =========================================================
-   ADMIN: LOAD FARMS
-   ========================================================= */
+$("receipt-image").onchange=async e=>{
+const file=e.target.files[0];
+selectedReceipt=null;
+$("receipt-preview").style.display="none";
+if(!file)return;
+try{
+selectedReceipt=await compressImage(file);
+$("receipt-preview").style.display="block";
+}catch(err){showError(err.message);}
+};
 
-async function loadAdminFarms() {
+// Clear Button Event Listener
+$("clear-images-btn").onclick=()=>{
+imagesCleared=true;
+selectedGoatImages=[];
+selectedReceipt=null;
+$("image-preview").innerHTML="";
+$("receipt-preview").style.display="none";
+$("clear-images-btn").classList.add("hidden");
+};
 
-    const select =
-        $("farm-select");
-
-    select.innerHTML = `
-        <option value="">
-            Select a farm
-        </option>
-    `;
-
-    try {
-
-        const snapshot =
-            await db
-                .collection("users")
-                .get();
-
-        const farms =
-            new Set();
-
-        snapshot.forEach(doc => {
-
-            const data =
-                doc.data();
-
-            if (data.farmId) {
-                farms.add(data.farmId);
-            }
-        });
-
-        [...farms]
-            .sort()
-            .forEach(farm => {
-
-                const option =
-                    document.createElement("option");
-
-                option.value = farm;
-                option.textContent = farm;
-
-                select.appendChild(option);
-            });
-
-    } catch (error) {
-
-        showError(
-            "Could not load farms: " +
-            error.message
-        );
-    }
+function resetForm(){
+$("record-id").value="";
+$("record-type").value="purchase";
+$("record-amount").value="";
+$("goat-count").value="1";
+$("record-description").value="";
+$("record-date").valueAsDate=new Date();
+$("goat-images").value="";
+$("receipt-image").value="";
+$("image-preview").innerHTML="";
+$("receipt-preview").style.display="none";
+$("form-title").textContent="Create Record";
+$("save-record").textContent="Save Record";
+$("clear-images-btn").classList.add("hidden");
+selectedGoatImages=[];
+selectedReceipt=null;
+imagesCleared=false;
+$("goat-count-box").style.display="block";
 }
 
+$("save-record").onclick=async()=>{
+if(!currentUser||!currentFarmId)return showError("No farm is currently selected.");
+const type=$("record-type").value;
+const amount=Number($("record-amount").value);
+const description=$("record-description").value.trim();
+const date=$("record-date").value;
+const goatCount=type==="purchase"?Math.max(1,Number($("goat-count").value)||1):0;
+if(!amount||amount<0)return showError("Enter a valid amount.");
+if(!description)return showError("Enter a description.");
+if(!date)return showError("Select a date.");
 
-/* =========================================================
-   ADMIN: SWITCH FARM
-   ========================================================= */
+const btn=$("save-record");
+btn.disabled=true;btn.textContent="Saving...";
 
-$("farm-select").onchange = event => {
-
-    const farm =
-        event.target.value;
-
-    if (!farm) return;
-
-    currentFarmId =
-        farm;
-
-    $("farm-name").textContent =
-        "Admin Viewing: " + farm;
-
-    listenToRecords();
-
-    openScreen("dashboard");
+try{
+const editId=$("record-id").value;
+let data={
+farmId:currentFarmId,
+author:currentUser.email.toLowerCase(),
+type,
+amount,
+goatCount,
+description,
+date,
+images:selectedGoatImages,
+receipt:selectedReceipt
 };
 
+if(editId){
+const existing=records.find(r=>r.id===editId);
+if(!existing)throw new Error("Record not found.");
 
-/* =========================================================
-   ADMIN: ASSIGN USER
-   ========================================================= */
+// Handling intentional image deletion vs keeping old images
+if(!selectedGoatImages.length && !imagesCleared) data.images=existing.images||[];
+else if(imagesCleared && !selectedGoatImages.length) data.images=[];
 
-$("assign-user").onclick = async () => {
+if(!selectedReceipt && !imagesCleared) data.receipt=existing.receipt||null;
+else if(imagesCleared && !selectedReceipt) data.receipt=null;
 
-    const email =
-        $("assign-email")
-            .value
-            .trim()
-            .toLowerCase();
-
-    const farm =
-        $("assign-farm")
-            .value
-            .trim();
-
-    if (!email || !farm) {
-
-        showError(
-            "Enter both the user email and farm ID."
-        );
-
-        return;
-    }
-
-    const button =
-        $("assign-user");
-
-    button.disabled = true;
-    button.textContent = "Saving...";
-
-    try {
-
-        await db
-            .collection("users")
-            .doc(email)
-            .set({
-                farmId: farm
-            }, {
-                merge: true
-            });
-
-        $("assign-email").value = "";
-        $("assign-farm").value = "";
-
-        await loadAdminFarms();
-
-        alert(
-            "User assigned successfully."
-        );
-
-    } catch (error) {
-
-        showError(
-            "Could not assign user: " +
-            error.message
-        );
-
-    } finally {
-
-        button.disabled = false;
-        button.textContent =
-            "Grant Access";
-    }
+data.createdAt=existing.createdAt||Date.now();
+await db.collection("transactions").doc(editId).update(data);
+}else{
+data.createdAt=Date.now();
+await db.collection("transactions").add(data);
+}
+resetForm();
+showScreen("dashboard");
+}catch(e){
+showError(e.message);
+}finally{
+btn.disabled=false;
+btn.textContent=$("record-id").value?"Update Record":"Save Record";
+}
 };
 
+function editRecord(id){
+const r=records.find(x=>x.id===id);
+if(!r)return;
+$("record-id").value=r.id;
+$("record-type").value=r.type;
+$("record-amount").value=r.amount;
+$("goat-count").value=r.goatCount||1;
+$("record-description").value=r.description||"";
+$("record-date").value=r.date||"";
+$("form-title").textContent="Edit Record";
+$("save-record").textContent="Update Record";
+$("goat-count-box").style.display=r.type==="purchase"?"block":"none";
+selectedGoatImages=[];
+selectedReceipt=null;
+imagesCleared=false;
+$("image-preview").innerHTML="";
+$("receipt-preview").style.display="none";
 
-/* =========================================================
-   CLEANUP
-   ========================================================= */
+// Show the clear button if there are existing images
+if ((r.images && r.images.length) || r.receipt) {
+    $("clear-images-btn").classList.remove("hidden");
+} else {
+    $("clear-images-btn").classList.add("hidden");
+}
 
-window.addEventListener(
-    "beforeunload",
-    () => {
+showScreen("add");
+}
 
-        if (unsubscribeRecords) {
-            unsubscribeRecords();
-        }
+async function deleteRecord(id){
+if(!confirm("Permanently delete this record?"))return;
+try{
+await db.collection("transactions").doc(id).delete();
+}catch(e){showError(e.message);}
+}
 
-    }
-);
+// Updated loadAdminFarms to prevent N+1 document reads
+async function loadAdminFarms(){
+try{
+const doc = await db.collection("metadata").doc("farmList").get();
+const farms = doc.exists ? (doc.data().farms || []) : [];
+$("farm-select").innerHTML='<option value="">Select a farm</option>'+farms.map(f=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+}catch(e){showError("Could not load farms: "+e.message);}
+}
+
+$("farm-select").onchange=()=>{
+const farm=$("farm-select").value;
+if(!farm)return;
+currentFarmId=farm;
+$("farm-name").textContent="Admin Viewing: "+farm;
+$("app-view").classList.remove("hidden");
+loadRecords();
+showScreen("dashboard");
+};
+
+// Updated assign user to track farms in the central array
+$("assign-user").onclick=async()=>{
+const email=$("assign-email").value.trim().toLowerCase();
+const farm=$("assign-farm").value.trim();
+if(!email||!farm)return showError("Enter both email and farm ID.");
+try{
+await db.collection("users").doc(email).set({farmId:farm},{merge:true});
+await db.collection("metadata").doc("farmList").set({
+    farms: firebase.firestore.FieldValue.arrayUnion(farm)
+}, { merge: true });
+
+$("assign-email").value="";
+$("assign-farm").value="";
+await loadAdminFarms();
+alert("User assigned successfully.");
+}catch(e){showError(e.message);}
+};
 
 </script>
-
 </body>
 </html>
