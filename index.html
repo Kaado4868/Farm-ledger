@@ -7,14 +7,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary: #2e7d32;
-            --primary-dark: #1b5e20;
-            --bg: #f4f7f6;
-            --text: #333;
-            --card-bg: #fff;
-            --danger: #d32f2f;
-            --warning: #f57c00;
-            --info: #0288d1;
+            --primary: #2e7d32; --primary-dark: #1b5e20; --bg: #f4f7f6;
+            --text: #333; --card-bg: #fff; --danger: #d32f2f;
+            --warning: #f57c00; --info: #0288d1;
         }
 
         body { margin: 0; background: #ccc; font-family: 'Segoe UI', sans-serif; color: var(--text); -webkit-tap-highlight-color: transparent;}
@@ -36,7 +31,6 @@
             font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 15px;
             display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .btn-google img { width: 20px; }
 
         /* App Container */
         .app-container { 
@@ -114,6 +108,22 @@
 </head>
 <body>
 
+    <!-- VISUAL DEBUGGER FOR MOBILE (Will show errors if the code crashes) -->
+    <div id="debug-log" style="position:fixed; top:0; left:0; width:100%; background:rgba(0,0,0,0.9); color:#ff5555; z-index:100000; font-size:12px; padding:15px; display:none; max-height:300px; overflow-y:auto; word-wrap: break-word;">
+        <strong>System Error Occurred:</strong><br>
+    </div>
+    <script>
+        window.onerror = function(msg, url, line) {
+            document.getElementById('debug-log').style.display = 'block';
+            document.getElementById('debug-log').innerHTML += 'JS Error: ' + msg + ' (Line: ' + line + ')<br><br>';
+            return false;
+        };
+        window.onunhandledrejection = function(e) {
+            document.getElementById('debug-log').style.display = 'block';
+            document.getElementById('debug-log').innerHTML += 'Promise Error: ' + e.reason + '<br><br>';
+        };
+    </script>
+
     <!-- AUTHENTICATION SCREEN -->
     <div id="auth-screen" class="fullscreen-modal">
         <div class="auth-card">
@@ -137,7 +147,7 @@
             </div>
 
             <button id="google-login-btn" class="btn-google">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
+                <i class="fab fa-google" style="color: #DB4437; font-size: 1.2rem;"></i>
                 Sign in with Google
             </button>
 
@@ -146,7 +156,7 @@
         </div>
     </div>
 
-    <!-- PENDING APPROVAL SCREEN (For new, unassigned users) -->
+    <!-- PENDING APPROVAL SCREEN -->
     <div id="pending-screen" class="fullscreen-modal" style="display:none;">
         <div class="auth-card">
             <h1><i class="fas fa-lock" style="color:var(--warning);"></i> Access Denied</h1>
@@ -243,7 +253,6 @@
                         <input type="date" id="date" required>
                     </div>
                     
-                    <!-- Multiple Images for Goats -->
                     <div class="form-group" id="goat-images-group">
                         <label>Goat Images (Front, Side, Tag)</label>
                         <input type="file" id="image-upload" accept="image/*" multiple>
@@ -251,7 +260,6 @@
                         <div id="image-preview-container" class="image-gallery"></div>
                     </div>
 
-                    <!-- Single Hidden Receipt -->
                     <div class="form-group" id="receipt-group">
                         <label>Attach Receipt (Optional)</label>
                         <input type="file" id="receipt-upload" accept="image/*">
@@ -264,7 +272,7 @@
                 </form>
             </section>
 
-            <!-- 5. SUPER ADMIN PANEL (Only visible to you) -->
+            <!-- 5. SUPER ADMIN PANEL -->
             <section id="admin-panel" class="view">
                 <h2><i class="fas fa-shield-alt"></i> Super Admin Panel</h2>
                 
@@ -272,7 +280,6 @@
                     <h3>Switch Farm View</h3>
                     <select id="admin-farm-select" class="filter-select">
                         <option value="">Select a farm...</option>
-                        <!-- Injected by JS -->
                     </select>
                 </div>
 
@@ -287,13 +294,11 @@
             </section>
         </main>
 
-        <!-- FULLSCREEN IMAGE VIEWER -->
         <div id="image-modal" class="image-modal">
             <span class="close-modal" onclick="document.getElementById('image-modal').style.display='none'">&times;</span>
             <img id="full-image" src="">
         </div>
 
-        <!-- NAVIGATION -->
         <nav class="bottom-nav">
             <button class="nav-btn active" onclick="window.switchView('dashboard', this)">
                 <i class="fas fa-th-large"></i><span>Dashboard</span>
@@ -307,7 +312,6 @@
             <button class="nav-btn" onclick="window.switchView('add-entry', this)">
                 <i class="fas fa-plus"></i><span>Add</span>
             </button>
-            <!-- Hidden Admin Button -->
             <button class="nav-btn" id="nav-admin" style="display:none;" onclick="window.switchView('admin-panel', this)">
                 <i class="fas fa-shield-alt"></i><span>Admin</span>
             </button>
@@ -317,12 +321,9 @@
     <!-- FIREBASE MODULAR SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, onSnapshot, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // ==========================================
-        // 🔑 FIREBASE CONFIGURATION
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
             authDomain: "goatledger-132c7.firebaseapp.com",
@@ -339,19 +340,12 @@
 
         const SUPER_ADMIN_EMAIL = "abdulkadirbukar2006@gmail.com";
 
-        // Global State
         let transactions = [];
-        let currentImagesBase64 = []; // Array for multiple goat images
-        let currentReceiptBase64 = null; // Separate receipt
+        let currentImagesBase64 = []; 
+        let currentReceiptBase64 = null; 
         let isLoginMode = true;
         let currentUserEmail = "";
         let activeFarmId = ""; 
         let firestoreUnsubscribe = null; 
 
-        // UI Elements
-        const authScreen = document.getElementById('auth-screen');
-        const pendingScreen = document.getElementById('pending-screen');
-        const mainApp = document.getElementById('main-app');
-        const authError = document.getElementById('auth-error');
-
-        // ======================
+        const authScreen = document.g
