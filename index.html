@@ -918,6 +918,8 @@ function render(){
  const icons={goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",other:"fa-paw"};
  const order=["goat","sheep","cattle","chicken","other"];
  const active=order.filter(a=>metrics.animalTotals[a]!==undefined || records.some(r=>(r.animalType||"goat")===a));
+ const otherAnimalNames=[...new Set(records.filter(r=>(r.animalType||"goat")==="other").map(r=>String(r.animalName||"").trim()).filter(Boolean))];
+ if(otherAnimalNames.length===1)labels.other=otherAnimalNames[0];
  $("animal-stats-grid").innerHTML=active.map(a=>`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`).join("");
 
  const periodMetrics=calculateExpenseBreakdown(records,getPeriodRange(expensePeriod));
