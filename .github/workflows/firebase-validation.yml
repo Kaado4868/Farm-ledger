@@ -45,6 +45,24 @@ jobs:
         run: |
           node -e "JSON.parse(require('fs').readFileSync('firebase.json','utf8')); JSON.parse(require('fs').readFileSync('firestore.indexes.json','utf8')); JSON.parse(require('fs').readFileSync('functions/package.json','utf8')); JSON.parse(require('fs').readFileSync('scripts/package.json','utf8')); console.log('JSON validation passed')"
 
+      - name: Check migration safety guards
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const s = fs.readFileSync('scripts/migrate-to-secure-schema.js', 'utf8');
+          const required = [
+            'const DRY_RUN = process.env.DRY_RUN !== "false";',
+            'if (!DRY_RUN && CONFIRM_MIGRATION !== "YES")',
+            'if (!DRY_RUN) await userRef.set',
+            'if (!DRY_RUN) await ref.set(data, { merge: true });',
+            'if (!DRY_RUN) await auth.setCustomUserClaims'
+          ];
+          for (const marker of required) {
+            if (!s.includes(marker)) throw new Error('Missing migration safety guard: ' + marker);
+          }
+          console.log('Migration safety guards present; no production migration executed.');
+          NODE
+
       - name: Validate Firestore rules with emulator
         run: |
           npx --yes firebase-tools@latest emulators:exec --project goatledger-132c7 --only firestore "node -e \"console.log('Firestore rules loaded successfully')\""
