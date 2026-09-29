@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1b5e20">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Farm Ledger">
 <title>Farm Ledger - Professional Edition</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -248,7 +253,9 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 }
 </style>
 
-<link rel="manifest" href="./manifest.webmanifest">
+<link rel="manifest" href="/Farm-ledger/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="/Farm-ledger/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/Farm-ledger/icons/apple-touch-icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1434,7 +1441,7 @@ $("record-type").dispatchEvent(new Event("change"));
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function(){
-      navigator.serviceWorker.register('./service-worker.js', {scope:'./'})
+      navigator.serviceWorker.register('/Farm-ledger/service-worker.js', {scope:'/Farm-ledger/'})
         .then(function(reg){
           if (reg.waiting) showUpdate(reg);
           reg.addEventListener('updatefound', function(){

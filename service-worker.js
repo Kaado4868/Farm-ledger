@@ -1,12 +1,13 @@
-const CACHE_NAME = "farm-ledger-v11";
+const CACHE_NAME = "farm-ledger-v12";
+const BASE = "/Farm-ledger/";
 const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-512-maskable.png",
-  "./icons/apple-touch-icon-180.png"
+  BASE,
+  BASE + "index.html",
+  BASE + "manifest.webmanifest",
+  BASE + "icons/icon-192.png",
+  BASE + "icons/icon-512.png",
+  BASE + "icons/icon-512-maskable.png",
+  BASE + "icons/apple-touch-icon-180.png"
 ];
 
 self.addEventListener("install", event => {
@@ -22,7 +23,7 @@ self.addEventListener("activate", event => {
     caches.keys()
       .then(keys => Promise.all(
         keys.filter(key => key.startsWith("farm-ledger-") && key !== CACHE_NAME)
-            .map(key => caches.delete(key))
+          .map(key => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );
@@ -37,31 +38,32 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (!url.pathname.startsWith(BASE)) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request, {cache:"no-cache"})
         .then(response => {
           if (response && response.ok) {
-            const copy=response.clone();
-            caches.open(CACHE_NAME).then(cache=>cache.put("./index.html",copy));
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(BASE + "index.html", copy));
           }
           return response;
         })
-        .catch(()=>caches.match("./index.html"))
+        .catch(() => caches.match(BASE + "index.html"))
     );
     return;
   }
 
   event.respondWith(
     caches.match(request).then(cached => {
-      const network=fetch(request).then(response=>{
-        if(response && response.ok){
-          const copy=response.clone();
-          caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));
+      const network = fetch(request).then(response => {
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
         }
         return response;
-      }).catch(()=>cached);
+      }).catch(() => cached);
       return cached || network;
     })
   );
