@@ -26,6 +26,12 @@ jobs:
           cache: npm
           cache-dependency-path: functions/package.json
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Install function dependencies
         working-directory: functions
         run: npm install --no-audit --no-fund
