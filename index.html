@@ -13,6 +13,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
 <style>
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 html,body{height:100%;margin:0;background:#f4f7f6;color:#333;overflow:hidden}
@@ -617,7 +618,7 @@ const firebaseConfig={
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(),db=firebase.firestore();
+const auth=firebase.auth(),db=firebase.firestore(),functions=firebase.functions();
 
 // Firestore offline persistence: records are cached locally in IndexedDB and
 // writes are queued by Firebase and synchronized automatically when the
@@ -627,9 +628,9 @@ let firestoreReady=db.enablePersistence({synchronizeTabs:true}).catch(err=>{
   return null;
 });
 const googleProvider=new firebase.auth.GoogleAuthProvider();
-const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
+let currentUserProfile=null,isAdminClaim=false;
 let selectedGoatImages=[],selectedReceipt=null,imagesCleared=false;
 let isSuperAdminViewingAsAdmin=false;
 let expensePeriod="all";
@@ -658,7 +659,7 @@ function money(n){return "₦"+Number(n||0).toLocaleString("en-NG");}
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
 function animalLabel(type){return ({goat:"Goat",sheep:"Sheep",cattle:"Cattle",chicken:"Chicken",pig:"Pig",other:"Animal"}[type]||"Animal");}
 function animalIcon(type){return ({goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",pig:"fa-paw",other:"fa-paw"}[type]||"fa-paw");}
-function isSuperAdmin(){return !!currentUser && (currentUser.email||"").toLowerCase()===SUPER_ADMIN;}
+function isSuperAdmin(){return !!currentUser && isAdminClaim===true;}
 function today(){return new Date().toISOString().slice(0,10);}
 
 function showScreen(id){
@@ -795,27 +796,30 @@ window.addEventListener("online",refreshConnectionStatus);
 window.addEventListener("offline",refreshConnectionStatus);
 
 async function ensureUserProfile(user){
- const email=(user.email||"").toLowerCase();
- if(!email)return null;
- const ref=db.collection("users").doc(email);
- const snap=await ref.get();
- if(!snap.exists && email!==SUPER_ADMIN){
+ if(!user||!user.uid)return null;
+ const ref=db.collection("users").doc(user.uid);
+ let snap=await ref.get();
+ if(!snap.exists){
   await ref.set({
-   email,
+   uid:user.uid,
+   email:(user.email||"").toLowerCase(),
+   displayName:user.displayName||"",
    farmId:"",
+   role:"member",
    status:"pending",
-   createdAt:firebase.firestore.FieldValue.serverTimestamp()
+   createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+   updatedAt:firebase.firestore.FieldValue.serverTimestamp()
   });
+  snap=await ref.get();
  }
- return (await ref.get()).data()||null;
+ return snap.data()||null;
 }
 
 auth.onAuthStateChanged(async user=>{
- currentUser=user;
+ currentUser=user;currentUserProfile=null;isAdminClaim=false;
  $("splash-view").classList.add("hidden");
  ["auth-view","pending-view","verify-view","app-view"].forEach(id=>$(id).classList.add("hidden"));
  if(!user){$("auth-view").classList.remove("hidden");return;}
-
  $("auth-view").classList.add("hidden");
  try{
   await firestoreReady;
@@ -824,45 +828,40 @@ auth.onAuthStateChanged(async user=>{
    $("verify-message").textContent=`Please verify ${user.email||"your email"} before accessing the farm ledger.`;
    return;
   }
-
-  const email=(user.email||"").toLowerCase();
-  if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
+  const tokenResult=await user.getIdTokenResult(true);
+  isAdminClaim=tokenResult.claims.admin===true;
+  if(isAdminClaim){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
-   $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
-   await loadAdminFarms();await loadAdminUsers();showScreen("admin");return;
-  }
-
-  if(email===SUPER_ADMIN){
-   $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
-   if(currentFarmId){$("app-view").classList.remove("hidden");loadRecords();return;}
+   if(!isSuperAdminViewingAsAdmin){
+    $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
+    await loadAdminFarms();await loadAdminUsers();showScreen("admin");return;
+   }
+   if(currentFarmId){$("farm-name").textContent="Farm: "+currentFarmId;$("app-view").classList.remove("hidden");loadRecords();return;}
   }else $("admin-nav").classList.add("hidden");
-
-  const profile=await ensureUserProfile(user);
-  if(profile?.farmId && profile.status!=="revoked"){
-   currentFarmId=profile.farmId;
-   $("farm-name").textContent="Farm: "+currentFarmId;
-   $("app-view").classList.remove("hidden");loadRecords();
-  }else{
-   $("pending-view").classList.remove("hidden");
-  }
+  const profile=await ensureUserProfile(user);currentUserProfile=profile;
+  if(profile?.farmId&&profile.status!=="revoked"){
+   currentFarmId=profile.farmId;$("farm-name").textContent="Farm: "+currentFarmId;$("app-view").classList.remove("hidden");loadRecords();
+  }else $("pending-view").classList.remove("hidden");
  }catch(e){showError("Could not load your account: "+getFriendlyErrorMessage(e));}
 });
 
+function getFarmTransactionsRef(){
+ if(!currentFarmId)throw new Error("No farm selected.");
+ return db.collection("farms").doc(currentFarmId).collection("transactions");
+}
 function loadRecords(){
  if(!currentFarmId)return;
  if(unsubscribeRecords)unsubscribeRecords();
- unsubscribeRecords=db.collection("transactions")
-  .where("farmId","==",currentFarmId)
-  .onSnapshot({includeMetadataChanges:true},snapshot=>{
-   records=[];
-   snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
-   records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||Number(b.createdAt?.toMillis?.()||b.createdAt||0)-Number(a.createdAt?.toMillis?.()||a.createdAt||0));
-   updateSyncStatus(snapshot.metadata.hasPendingWrites,snapshot.metadata.fromCache);
-   render();
-  },e=>{
-   refreshConnectionStatus();
-   showError(getFriendlyErrorMessage(e));
-  });
+ unsubscribeRecords=getFarmTransactionsRef().onSnapshot({includeMetadataChanges:true},snapshot=>{
+  records=[];
+  snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
+  records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||Number(b.createdAt?.toMillis?.()||b.createdAt||0)-Number(a.createdAt?.toMillis?.()||a.createdAt||0));
+  updateSyncStatus(snapshot.metadata.hasPendingWrites,snapshot.metadata.fromCache);
+  render();
+ },e=>{
+  refreshConnectionStatus();
+  showError(getFriendlyErrorMessage(e));
+ });
 }
 
 function getDateKey(r){return r.date||today();}
@@ -1093,7 +1092,7 @@ $("save-record").onclick=async()=>{
  try{
   await firestoreReady;
   const now=firebase.firestore.FieldValue.serverTimestamp();
-  let data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type,animalType,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,updatedAt:now};
+  let data={farmId:currentFarmId,authorUid:currentUser.uid,author:(currentUser.email||"").toLowerCase(),type,animalType,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,updatedAt:now};
   if(editId){
    const existing=records.find(r=>r.id===editId);if(!existing)throw new Error("Record not found.");
    if(!selectedGoatImages.length&&!imagesCleared)data.images=existing.images||[];
@@ -1101,9 +1100,10 @@ $("save-record").onclick=async()=>{
    if(!selectedReceipt&&!imagesCleared)data.receipt=existing.receipt||null;
    else if(imagesCleared&&!selectedReceipt)data.receipt=null;
    data.createdAt=existing.createdAt||now;
-   await db.collection("transactions").doc(editId).update(data);
+   await getFarmTransactionsRef().doc(editId).update(data);
   }else{
-   data.createdAt=now;await db.collection("transactions").add(data);
+   data.createdAt=now;
+   await getFarmTransactionsRef().add(data);
   }
   resetForm();showSuccess("Record saved successfully.");document.querySelectorAll(".manage-tab")[0].click();showScreen("manage");
  }catch(e){showError(getFriendlyErrorMessage(e));}
@@ -1132,9 +1132,99 @@ function editRecord(id){
 async function deleteRecord(id){
  if(!isSuperAdmin())return showError("Only the super administrator can delete an existing record.");
  if(!confirm("Permanently delete this record? This action cannot be undone."))return;
- try{await firestoreReady;await db.collection("transactions").doc(id).delete();showSuccess("Record deleted successfully.");}
+ try{await firestoreReady;await getFarmTransactionsRef().doc(id).delete();showSuccess("Record deleted successfully.");}
  catch(e){showError(getFriendlyErrorMessage(e));}
 }
+
+async function loadAdminFarms(){
+ if(!isSuperAdmin())return;
+ try{
+  const snap=await db.collection("farms").get(),farms=snap.docs.map(doc=>doc.id).sort();
+  const options='<option value="">Select a farm...</option>'+farms.map(f=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+  const existingOptions='<option value="">Select an existing farm...</option>'+farms.map(f=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+  const deleteOptions='<option value="">Select farm to delete...</option>'+farms.map(f=>`<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`).join("");
+  $("farm-select").innerHTML=options;
+  $("assign-farm").innerHTML=existingOptions;
+  $("import-farm-select").innerHTML=existingOptions;
+  $("data-tools-farm").innerHTML=existingOptions;
+  $("delete-farm-select").innerHTML=deleteOptions;
+  if(currentFarmId&&farms.includes(currentFarmId)){
+   $("data-tools-farm").value=currentFarmId;
+   $("import-farm-select").value=currentFarmId;
+  }
+ }catch(e){showError("Could not load farms: "+getFriendlyErrorMessage(e));}
+}
+function userStatus(data){return data?.status==="revoked"?"Revoked":data?.farmId?"Approved":"Pending";}
+async function loadAdminUsers(){
+ if(!isSuperAdmin())return;
+ try{
+  const snap=await db.collection("users").get(),container=$("admin-user-list"),pending=$("pending-user-list");
+  container.innerHTML="";pending.innerHTML="";
+  if(snap.empty){container.innerHTML="<p style='color:#888;font-size:13px;text-align:center;padding:10px'>No registered users found.</p>";pending.innerHTML="<p style='color:#888;font-size:13px'>No pending approvals.</p>";return;}
+  let pendingCount=0;
+  snap.forEach(doc=>{
+   const data=doc.data(),email=data.email||"Unknown email",farm=data.farmId||"Unassigned",status=userStatus(data);
+   const div=document.createElement("div");
+   div.style.cssText="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f3f4;font-size:13px;";
+   div.innerHTML=`<div><strong>${escapeHtml(email)}</strong> ${status==="Pending"?'<span class="pending-badge">PENDING</span>':status==="Approved"?'<span class="approved-badge">APPROVED</span>':'<span style="color:#c62828;font-size:10px;font-weight:800">REVOKED</span>'}<br><small style="color:#666">Farm: <b>${escapeHtml(farm)}</b></small></div>
+    <div style="display:flex;gap:6px;"><button class="change-user-farm" style="background:#ff9800;color:#fff;border:none;padding:5px 8px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-pen"></i></button>
+    <button class="revoke-user" style="background:#d32f2f;color:#fff;border:none;padding:5px 8px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-user-slash"></i></button></div>`;
+   div.querySelector(".change-user-farm").onclick=()=>promptChangeUserFarm(email);
+   div.querySelector(".revoke-user").onclick=()=>revokeUserAccess(email);
+   container.appendChild(div);
+   if(status==="Pending"){pendingCount++;const p=div.cloneNode(true);p.querySelector(".change-user-farm").onclick=()=>promptChangeUserFarm(email);p.querySelector(".revoke-user").onclick=()=>revokeUserAccess(email);pending.appendChild(p);}
+  });
+  if(!pendingCount)pending.innerHTML="<p style='color:#888;font-size:13px'>No pending approvals.</p>";
+ }catch(e){showError("Could not load user directory: "+getFriendlyErrorMessage(e));}
+}
+function promptChangeUserFarm(email){
+ if(!isSuperAdmin())return showError("Only the super administrator can assign farm access.");
+ $("assign-email").value=email;$("assign-farm").focus();$("assign-farm").scrollIntoView({behavior:"smooth",block:"center"});
+ showSuccess("Select an existing farm from the dropdown, then tap Grant Access.");
+}
+async function revokeUserAccess(email){
+ if(!isSuperAdmin())return showError("Only the super administrator can revoke access.");
+ if(!confirm(`Revoke farm access for ${email}?`))return;
+ try{
+  await functions.httpsCallable("revokeUserAccess")({email});
+  showSuccess("User access revoked.");await loadAdminUsers();
+ }catch(e){showError(getFriendlyErrorMessage(e));}
+}
+$("enter-farm-btn").onclick=()=>{
+ const farm=$("farm-select").value;if(!farm)return showError("Please select a farm first.");
+ currentFarmId=farm;isSuperAdminViewingAsAdmin=true;$("farm-name").textContent="Farm: "+farm;$("switch-farm-btn").classList.remove("hidden");
+ $("app-view").classList.remove("hidden");loadRecords();showScreen("dashboard");
+};
+$("create-farm-btn").onclick=async()=>{
+ const farm=$("new-farm-id").value.trim();
+ if(!/^[a-zA-Z0-9_-]{2,60}$/.test(farm))return showError("Invalid Farm ID. Use 2-60 letters, numbers, hyphens or underscores.");
+ try{
+  await functions.httpsCallable("createFarm")({farmId:farm});
+  $("new-farm-id").value="";await loadAdminFarms();showSuccess("Farm '"+farm+"' created successfully!");
+ }catch(e){showError(getFriendlyErrorMessage(e));}
+};
+$("delete-farm-btn").onclick=async()=>{
+ if(!isSuperAdmin())return showError("Only the super administrator can delete a farm.");
+ const farm=$("delete-farm-select").value;
+ if(!farm)return showError("Select a farm to delete.");
+ if(!confirm(`Delete farm "${farm}"? This is allowed only when the farm has no users and no transaction records.`))return;
+ try{
+  await functions.httpsCallable("deleteFarm")({farmId:farm});
+  if(currentFarmId===farm){currentFarmId="";if(unsubscribeRecords)unsubscribeRecords();unsubscribeRecords=null;$("app-view").classList.add("hidden");}
+  await loadAdminFarms();showSuccess(`Farm "${farm}" deleted successfully.`);
+ }catch(e){showError("Could not delete farm: "+getFriendlyErrorMessage(e));}
+};
+
+$("assign-user").onclick=async()=>{
+ if(!isSuperAdmin())return showError("Only the super administrator can assign farm access.");
+ const email=$("assign-email").value.trim().toLowerCase(),farm=$("assign-farm").value;
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return showError("Enter a valid user email.");
+ if(!farm)return showError("Select an existing farm from the dropdown.");
+ try{
+  await functions.httpsCallable("assignUserToFarm")({email,farmId:farm});
+  $("assign-email").value="";$("assign-farm").value="";await loadAdminFarms();await loadAdminUsers();showSuccess("User approved and assigned successfully.");
+ }catch(e){showError(getFriendlyErrorMessage(e));}
+};
 
 async function loadAdminFarms(){
  try{
@@ -1297,16 +1387,15 @@ async function importRecordsFromFile(){
   if(!sourceRecords.length)return showError("No records found in the selected file.");
   if(sourceRecords.length>400)return showError("Import is limited to 400 records at a time for safety. Split the backup and import it in parts.");
   const clean=sourceRecords.map(validateImportedRecord);
-  const farmSnap=await db.collection("metadata").doc("farmList").get();
-  const farms=farmSnap.exists?(farmSnap.data().farms||[]):[];
-  if(!farms.includes(farm))throw new Error("The selected farm no longer exists.");
+  const farmSnap=await db.collection("farms").doc(farm).get();
+  if(!farmSnap.exists)throw new Error("The selected farm no longer exists.");
   btn.textContent="Importing...";
   let imported=0;
   for(let offset=0;offset<clean.length;offset+=400){
    const batch=db.batch();
    clean.slice(offset,offset+400).forEach(r=>{
-    const ref=db.collection("transactions").doc();
-    const data={farmId:farm,author:currentUser.email.toLowerCase(),type:r.type,animalType:r.animalType,animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    const ref=db.collection("farms").doc(farm).collection("transactions").doc();
+    const data={farmId:farm,authorUid:currentUser.uid,author:(currentUser.email||"").toLowerCase(),type:r.type,animalType:r.animalType,animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
     batch.set(ref,data);imported++;
    });
    await batch.commit();
@@ -1324,7 +1413,7 @@ async function getAdminFarmRecords(){
  if(!isSuperAdmin())throw new Error("Only the super administrator can access export data.");
  const farm=$("data-tools-farm").value;
  if(!farm)throw new Error("Select a farm first.");
- const snap=await db.collection("transactions").where("farmId","==",farm).get();
+ const snap=await db.collection("farms").doc(farm).collection("transactions").get();
  const data=[];snap.forEach(doc=>data.push({id:doc.id,...doc.data()}));
  data.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
  return {farm,data};
