@@ -1,0 +1,109 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function memberPath(farmId, uid) {
+      return /databases/$(database)/documents/farms/$(farmId)/members/$(uid);
+    }
+
+    function isFarmMember(farmId) {
+      return signedIn()
+        && exists(memberPath(farmId, request.auth.uid))
+        && get(memberPath(farmId, request.auth.uid)).data.status == "active";
+    }
+
+    function isFarmManager(farmId) {
+      return isSuperAdmin()
+        || (
+          isFarmMember(farmId)
+          && get(memberPath(farmId, request.auth.uid)).data.role in ["manager", "admin"]
+        );
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow read: if isSuperAdmin();
+
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          "uid","email","displayName","farmId","role","status","createdAt","updatedAt"
+        ])
+        && request.resource.data.uid == uid
+        && request.resource.data.status == "pending"
+        && request.resource.data.role == "member"
+        && request.resource.data.farmId == "";
+
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.farmId == resource.data.farmId
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.status == resource.data.status;
+
+      allow delete: if isSuperAdmin();
+    }
+
+    match /farms/{farmId} {
+      allow get: if isSuperAdmin() || isFarmMember(farmId);
+      allow list: if isSuperAdmin();
+      allow create, delete: if false;
+      allow update: if isSuperAdmin() || isFarmManager(farmId);
+
+      match /members/{uid} {
+        allow get: if isSuperAdmin()
+          || (signedIn() && request.auth.uid == uid && isFarmMember(farmId));
+        allow list: if isSuperAdmin() || isFarmManager(farmId);
+        allow create, update, delete: if false;
+      }
+
+      match /transactions/{transactionId} {
+        allow get, list: if isSuperAdmin() || isFarmMember(farmId);
+
+        allow create: if isFarmMember(farmId)
+          && request.resource.data.farmId == farmId
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.type in ["purchase","medical","feed","herdsman","death","other"]
+          && request.resource.data.animalType in ["goat","sheep","cattle","chicken","pig","other"]
+          && request.resource.data.amount is number
+          && request.resource.data.amount >= 0
+          && request.resource.data.amount <= 1000000000
+          && request.resource.data.description is string
+          && request.resource.data.description.size() > 0
+          && request.resource.data.description.size() <= 300
+          && request.resource.data.date is string;
+
+        allow create: if isSuperAdmin() && request.resource.data.farmId == farmId;
+
+        allow update: if isSuperAdmin()
+          && request.resource.data.farmId == resource.data.farmId
+          && request.resource.data.authorUid == resource.data.authorUid
+          && request.resource.data.createdAt == resource.data.createdAt;
+
+        allow delete: if isSuperAdmin();
+      }
+
+      match /auditLogs/{logId} {
+        allow get, list: if isSuperAdmin() || isFarmManager(farmId);
+        allow create, update, delete: if false;
+      }
+    }
+
+    match /transactions/{transactionId} {
+      allow read, write: if false;
+    }
+
+    match /metadata/{documentId} {
+      allow read, write: if false;
+    }
+  }
+}
