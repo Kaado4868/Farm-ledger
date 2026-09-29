@@ -914,8 +914,13 @@ function calculateFarmMetrics(data){
    // Only livestock purchase records can increase an animal count.
    animalTotals[animal]=(animalTotals[animal]||0)+count;
    animalValue[animal]=(animalValue[animal]||0)+amount;
+  }else if(r.type==="herdsman"){
+   // Livestock handed to a herdsman leave the farm live-animal balance.
+   spent+=amount;
+   const livestock=Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock:[];
+   livestock.forEach(item=>{const handedAnimal=item.animalType||"goat";animalTotals[handedAnimal]=(animalTotals[handedAnimal]||0)-1;});
   }else{
-   // Medical, feed, herdsman and other expenses never affect livestock counts/value.
+   // Medical, feed and other expenses never affect livestock counts/value.
    spent+=amount;
   }
  });
@@ -1021,13 +1026,15 @@ function renderList(container,data,controls){
    const images=Array.isArray(r.images)?r.images.filter(Boolean):[];
    const hasReceipt=!!r.receipt;
    const div=document.createElement("div");div.className=`txn-row ${isDeath?"death-row":""}`;
+   const herdsmanDetails=r.type==="herdsman"&&Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.map((item,i)=>`<div style="font-size:11px;color:#555;border-top:1px solid #e5ebe7;padding:7px 0"><b>#${i+1} ${escapeHtml(animalLabel(item.animalType,item.animalName))}</b>${item.tagId?` • ID: ${escapeHtml(item.tagId)}`:""}${item.sex?` • ${escapeHtml(item.sex)}`:""}${item.age?` • Age: ${escapeHtml(item.age)}`:""}${item.details?`<br>${escapeHtml(item.details)}`:""}</div>`).join(""):"";
    div.innerHTML=`<div class="txn-icon"><i class="fas ${icon}"></i></div>
     <div class="txn-main"><div class="txn-title">${escapeHtml(r.description||"Untitled record")}</div>
-    <div class="txn-sub">${escapeHtml(animalLabel(animal,r.animalName))}${count?` • ${Math.abs(count)} animal(s)`:``} • By ${escapeHtml((r.author||"").split("@")[0])} • Tap for details</div>
+    <div class="txn-sub">${r.type==="herdsman"?`Herdsman: ${escapeHtml(r.herdsmanName||"Not recorded")} • ${Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.length:Math.abs(count)} livestock`:`${escapeHtml(animalLabel(animal,r.animalName))}${count?` • ${Math.abs(count)} animal(s)`:``}`} • By ${escapeHtml((r.author||"").split("@")[0])} • Tap for details</div>
     <div class="txn-details">
       <div class="txn-detail-label">Record details</div>
       <div style="font-size:12px;color:#555">${isDeath?"Animal loss / death":"Transaction"} • ${escapeHtml(formatDateHeader(r.date||""))}</div>
       ${isDeath?`<div class="record-death-note"><i class="fas fa-skull-crossbones"></i> This record reduces the live ${escapeHtml(animalLabel(animal,r.animalName))} balance by ${Math.abs(count)}.</div>`:""}
+      ${r.type==="herdsman"?`<div style="margin-top:9px;background:#f7faf8;border-radius:8px;padding:9px"><div class="txn-detail-label">Herdsman</div><div style="font-size:12px;color:#555"><b>${escapeHtml(r.herdsmanName||"Not recorded")}</b>${r.herdsmanPhone?` • ${escapeHtml(r.herdsmanPhone)}`:""}</div><div class="txn-detail-label" style="margin-top:8px">Livestock Given (${Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.length:Math.abs(count)})</div>${herdsmanDetails||`<div class="txn-empty-detail">No individual livestock details recorded.</div>`}</div>`:""}
       ${images.length?`<div style="margin-top:9px"><div class="txn-detail-label">Photos</div><div class="txn-images">${images.map((src,i)=>`<img src="${escapeHtml(src)}" alt="Animal photo ${i+1}" data-photo="${i}">`).join("")}</div></div>`:""}
       ${hasReceipt?`<div style="margin-top:9px"><div class="txn-detail-label">Receipt</div><button class="txn-receipt" type="button"><i class="fas fa-receipt"></i> View receipt</button></div>`:""}
       ${!images.length&&!hasReceipt?`<div class="txn-empty-detail" style="margin-top:8px">No photos or receipt attached to this record.</div>`:""}
