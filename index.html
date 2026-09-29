@@ -880,20 +880,25 @@ function calculateFarmMetrics(data){
  let spent=0,lossValue=0;
  const animalTotals={},animalValue={};
  data.forEach(r=>{
-  const animal=r.animalType||"goat",count=Math.abs(Number(r.animalCount??r.goatCount??0)||0),amount=Math.max(0,Number(r.amount)||0);
+  const isAnimalTransaction=r.type==="purchase"||r.type==="death";
+  const animal=r.animalType||"goat";
+  const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
+  const amount=Math.max(0,Number(r.amount)||0);
   if(r.type==="death"){
    animalTotals[animal]=(animalTotals[animal]||0)-count;
    lossValue+=amount;
    animalValue[animal]=(animalValue[animal]||0)-amount;
   }else if(r.type==="purchase"){
-   // Livestock purchases increase the farm's recorded livestock value.
-   // They are NOT operating expenses.
+   // Only livestock purchase records can increase an animal count.
    animalTotals[animal]=(animalTotals[animal]||0)+count;
    animalValue[animal]=(animalValue[animal]||0)+amount;
   }else{
-   // Only operating expense categories contribute to farm expenses.
+   // Medical, feed, herdsman and other expenses never affect livestock counts/value.
    spent+=amount;
   }
+  // Keep the explicit transaction classification visible in the logic:
+  // expense records must never be treated as animal transactions.
+  if(!isAnimalTransaction)delete animalTotals[animal];
  });
  Object.keys(animalTotals).forEach(a=>{animalTotals[a]=Math.max(0,animalTotals[a]);});
  const totalValue=Math.max(0,Object.values(animalValue).reduce((a,b)=>a+b,0));
@@ -909,7 +914,10 @@ function render(){
  const lossCount=records.filter(r=>r.type==="death").reduce((sum,r)=>sum+Math.abs(Number(r.animalCount??r.goatCount??0)||0),0);
  const purchaseCount=records.filter(r=>r.type==="purchase").length;
  const lastDate=records.map(r=>r.date).filter(Boolean).sort().pop();
- $("snapshot-live-animals").textContent=Object.values(metrics.animalTotals).reduce((a,b)=>a+b,0);
+ $("snapshot-live-animals").textContent=records.filter(r=>r.type==="purchase"||r.type==="death").reduce((sum,r)=>{
+  const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
+  return sum+(r.type==="death"?-count:r.type==="purchase"?count:0);
+},0);
  $("snapshot-loss-count").textContent=lossCount;
  $("snapshot-purchases").textContent=purchaseCount;
  $("snapshot-last-date").textContent=lastDate?new Date(lastDate+"T00:00:00").toLocaleDateString("en-NG",{day:"2-digit",month:"short",year:"numeric"}):"—";
@@ -919,7 +927,7 @@ function render(){
  const order=["goat","sheep","cattle","chicken"];
  const active=order.filter(a=>metrics.animalTotals[a]!==undefined || records.some(r=>(r.animalType||"goat")===a));
  const cards=active.map(a=>`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`);
- const otherNames=[...new Set(records.filter(r=>(r.animalType||"goat")==="other").map(r=>String(r.animalName||"").trim()).filter(Boolean))];
+ const otherNames=[...new Set(records.filter(r=>(r.type==="purchase"||r.type==="death")&&(r.animalType||"goat")==="other").map(r=>String(r.animalName||"").trim()).filter(Boolean))];
  otherNames.forEach(name=>{
    const total=records.filter(r=>(r.animalType||"goat")==="other"&&String(r.animalName||"").trim()===name).reduce((sum,r)=>{
      const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
