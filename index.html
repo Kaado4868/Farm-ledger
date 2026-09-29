@@ -237,7 +237,13 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 }
 </style>
 
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Farm Ledger">
 <meta name="theme-color" content="#1b5e20">
 <meta name="description" content="Farm Ledger — secure livestock, expenses, losses and farm records.">
 <meta name="application-name" content="Farm Ledger">
@@ -349,7 +355,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 
 <div class="stat-card expense-value-card">
 <div class="stat-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fas fa-money-bill-wave"></i></div>
-<div class="stat-info"><h4>Expense Value</h4><h2 id="expense-value-home">₦0</h2><small>Recorded farm expenses</small></div>
+<div class="stat-info"><h4>Expense Value</h4><h2 id="expense-value-home">₦0</h2><small>Operating expenses only</small></div>
 </div>
 
 <div class="card period-card">
@@ -372,7 +378,6 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="breakdown-row"><span><i class="fas fa-pills" style="color:#e53935"></i> Medical / Drugs</span><strong id="period-medical">₦0</strong></div>
 <div class="breakdown-row"><span><i class="fas fa-wheat-awn" style="color:#fb8c00"></i> Feed / Fodder</span><strong id="period-feed">₦0</strong></div>
 <div class="breakdown-row"><span><i class="fas fa-user-tie" style="color:#1e88e5"></i> Herdsman</span><strong id="period-herdsman">₦0</strong></div>
-<div class="breakdown-row"><span><i class="fas fa-shopping-cart" style="color:#6a1b9a"></i> Purchases</span><strong id="period-purchases">₦0</strong></div>
 <div class="breakdown-row"><span><i class="fas fa-ellipsis-h" style="color:#6d4c41"></i> Other</span><strong id="period-other">₦0</strong></div>
 </div>
 
@@ -815,10 +820,12 @@ function calculateFarmMetrics(data){
    lossValue+=amount;
    animalValue[animal]=(animalValue[animal]||0)-amount;
   }else if(r.type==="purchase"){
-   spent+=amount;
+   // Livestock purchases increase the farm's recorded livestock value.
+   // They are NOT operating expenses.
    animalTotals[animal]=(animalTotals[animal]||0)+count;
    animalValue[animal]=(animalValue[animal]||0)+amount;
   }else{
+   // Only operating expense categories contribute to farm expenses.
    spent+=amount;
   }
  });
@@ -852,7 +859,6 @@ function render(){
  $("period-medical").textContent=money(periodMetrics.medical);
  $("period-feed").textContent=money(periodMetrics.feed);
  $("period-herdsman").textContent=money(periodMetrics.herdsman);
- $("period-purchases").textContent=money(periodMetrics.purchases);
  $("period-other").textContent=money(periodMetrics.other);
  $("expense-period-label").textContent=periodMetrics.label;
 
@@ -870,17 +876,16 @@ function render(){
  renderList($("history-list"),filtered,true);
 }
 function calculateExpenseBreakdown(data,range){
- const {start,end,label}=range;let total=0,medical=0,feed=0,herdsman=0,purchases=0,other=0;
+ const {start,end,label}=range;let total=0,medical=0,feed=0,herdsman=0,other=0;
  data.forEach(r=>{
-  if((r.date||"")<start||(r.date||"")>end||r.type==="death")return;
-  const amount=Math.max(0,Number(r.amount)||0);total+=amount;
-  if(r.type==="medical")medical+=amount;
-  else if(r.type==="feed")feed+=amount;
-  else if(r.type==="herdsman")herdsman+=amount;
-  else if(r.type==="purchase")purchases+=amount;
-  else if(r.type==="other")other+=amount;
+  if((r.date||"")<start||(r.date||"")>end||r.type==="death"||r.type==="purchase")return;
+  const amount=Math.max(0,Number(r.amount)||0);
+  if(r.type==="medical"){medical+=amount;total+=amount;}
+  else if(r.type==="feed"){feed+=amount;total+=amount;}
+  else if(r.type==="herdsman"){herdsman+=amount;total+=amount;}
+  else if(r.type==="other"){other+=amount;total+=amount;}
  });
- return {total,medical,feed,herdsman,purchases,other,label};
+ return {total,medical,feed,herdsman,other,label};
 }
 
 document.querySelectorAll("#expense-period-tabs button").forEach(btn=>{
@@ -1369,5 +1374,16 @@ $("record-type").dispatchEvent(new Event("change"));
   }
 })();
 </script>
+
+<div id="pwa-install-help" class="hidden" style="position:fixed;left:12px;right:12px;bottom:76px;z-index:99998;background:#fff;border:1px solid #ddd;border-radius:16px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);max-width:480px;margin:auto">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <div>
+      <strong style="color:#1b5e20">Install Farm Ledger</strong>
+      <div id="pwa-install-help-text" style="font-size:13px;color:#666;margin-top:4px">Install Farm Ledger as an app on this device.</div>
+    </div>
+    <button id="pwa-install-close" aria-label="Close" style="border:0;background:#f1f3f2;border-radius:50%;width:32px;height:32px">×</button>
+  </div>
+  <button id="pwa-install-action" class="main-btn" style="margin-top:10px;margin-bottom:0">Install Farm Ledger</button>
+</div>
 </body>
 </html>
