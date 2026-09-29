@@ -56,6 +56,11 @@ button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!im
 .stat-icon{width:45px;height:45px;border-radius:10px;background:#e8f5e9;color:#2e7d32;display:flex;align-items:center;justify-content:center;font-size:20px}
 .stat-info h4{margin:0 0 2px;font-size:11px;color:#777;text-transform:uppercase}
 .stat-info h2{margin:0;color:#1b5e20;font-size:18px}
+.animal-stats-header{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+.animal-stats-header label{margin:0;font-size:11px;color:#666;white-space:nowrap}
+.animal-stats-header label i{color:#2e7d32}
+.animal-card-select{flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:9px;background:#fff;font-size:12px;color:#444}
+
 
 .card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.02)}
 .card h3{margin-top:0;font-size:15px;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px}
@@ -375,6 +380,12 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 
 </div>
 
+<div class="animal-stats-header">
+<label for="animal-card-select"><i class="fas fa-layer-group"></i> Animal Totals</label>
+<select id="animal-card-select" class="animal-card-select">
+<option value="">Showing first 4 animal types</option>
+</select>
+</div>
 <div id="animal-stats-grid" class="animal-stats-grid"></div>
 
 <div class="farm-value-grid">
@@ -723,6 +734,7 @@ $("open-handover-tab").onclick=()=>{
  if(tab)tab.click();
 };
 
+$("animal-card-select").onchange=()=>render();
 document.querySelectorAll(".manage-tab").forEach(tab=>{
  tab.onclick=()=>{
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
@@ -997,17 +1009,26 @@ function render(){
  const icons={goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",other:"fa-paw"};
  const order=["goat","sheep","cattle","chicken"];
  const active=order.filter(a=>metrics.animalTotals[a]!==undefined || records.some(r=>(r.animalType||"goat")===a));
- const cards=active.map(a=>`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`);
+ const makeAnimalCard=a=>`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]||animalLabel(a)}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`;
+ let visibleAnimals=active.slice(0,4);
+ const animalSelect=$("animal-card-select");
+ if(animalSelect){
+   const previous=animalSelect.value;
+   const extra=active.slice(4);
+   animalSelect.innerHTML='<option value="">Showing first 4 animal types</option>'+extra.map(a=>`<option value="${a}">Show ${escapeHtml(labels[a]||animalLabel(a))}</option>`).join("");
+   if(extra.includes(previous)){animalSelect.value=previous;visibleAnimals=active.slice(0,3).concat(previous);}
+ }
+ const cards=visibleAnimals.map(makeAnimalCard);
  const otherNames=[...new Set(records.filter(r=>(r.type==="purchase"||r.type==="death")&&(r.animalType||"goat")==="other").map(r=>String(r.animalName||"").trim()).filter(Boolean))];
  otherNames.forEach(name=>{
    const total=records.filter(r=>(r.animalType||"goat")==="other"&&String(r.animalName||"").trim()===name).reduce((sum,r)=>{
      const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
      return sum+(r.type==="death"?-count:r.type==="purchase"?count:0);
    },0);
-   cards.push(`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons.other}"></i></div><div class="stat-info"><h4>Total ${escapeHtml(name)}</h4><h2>${Math.max(0,total)}</h2></div></div>`);
+   /* Custom "Other" cards are handled below so the dashboard remains capped at four cards. */
  });
  if(!otherNames.length&&records.some(r=>(r.animalType||"goat")==="other"))cards.push(`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons.other}"></i></div><div class="stat-info"><h4>Total Other</h4><h2>${metrics.animalTotals.other||0}</h2></div></div>`);
- $("animal-stats-grid").innerHTML=cards.join("");
+ $("animal-stats-grid").innerHTML=cards.slice(0,4).join("");
 
  const periodMetrics=calculateExpenseBreakdown(records,getPeriodRange(expensePeriod));
  $("period-expense-total").textContent=money(periodMetrics.total);
