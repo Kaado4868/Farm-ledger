@@ -371,18 +371,14 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 
 <div class="farm-value-grid">
 <div class="stat-card farm-value-card">
-<div class="stat-icon" style="background:#fff3e0;color:#ef6c00;"><i class="fas fa-landmark"></i></div>
-<div class="stat-info"><h4>Total Farm Value</h4><h2 id="total-farm-value">₦0</h2><small id="farm-value-note">Recorded livestock value</small></div>
-</div>
-<div class="stat-card farm-value-card">
 <div class="stat-icon" style="background:#ffebee;color:#c62828;"><i class="fas fa-skull-crossbones"></i></div>
 <div class="stat-info"><h4>Loss Value</h4><h2 id="total-loss-value">₦0</h2><small>Recorded animal losses</small></div>
 </div>
 </div>
 
 <div class="stat-card expense-value-card">
-<div class="stat-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fas fa-money-bill-wave"></i></div>
-<div class="stat-info"><h4>Expense Value</h4><h2 id="expense-value-home">₦0</h2><small>Operating expenses only</small></div>
+<div class="stat-icon" style="background:#fff3e0;color:#ef6c00;"><i class="fas fa-landmark"></i></div>
+<div class="stat-info"><h4>Total Farm Value</h4><h2 id="total-farm-value">₦0</h2><small id="farm-value-note">Recorded livestock value</small></div>
 </div>
 
 <div class="card period-card">
@@ -434,6 +430,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="manage-tabs">
 <div class="manage-tab active" data-sub="sub-history"><i class="fas fa-list"></i> Records History</div>
 <div class="manage-tab" data-sub="sub-form"><i class="fas fa-plus-circle"></i> Add Record</div>
+<div class="manage-tab" data-sub="sub-form" data-mode="handover"><i class="fas fa-hand-holding-heart"></i> Handover</div>
 </div>
 
 
@@ -690,6 +687,13 @@ document.querySelectorAll(".manage-tab").forEach(tab=>{
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
   tab.classList.add("active"); $(tab.dataset.sub).classList.remove("hidden");
+  if(tab.dataset.mode==="handover"){
+   resetForm();
+   $("record-type").value="herdsman";
+   $("record-type").dispatchEvent(new Event("change"));
+   $("form-title").innerHTML='<i class="fas fa-hand-holding-heart" style="color:#2e7d32"></i> Livestock Handover';
+   $("record-description").placeholder="e.g. Livestock handed to herdsman for care";
+  }
  };
 });
 
