@@ -1335,8 +1335,8 @@ $("export-csv-btn").onclick=async()=>{
  try{
   const {farm,data}=await getAdminFarmRecords();
   if(!data.length)return showError("No records found for this farm.");
-  let csv="Date,Animal,Animal Name,Type,Description,Animal Count,Amount (NGN),Author\\n";
-  data.forEach(r=>{csv+=`"${r.date||""}","${animalLabel(r.animalType||"goat",r.animalName)}","${(r.animalName||"").replace(/"/g,'""')}","${r.type||""}","${(r.description||"").replace(/"/g,'""')}","${r.animalCount??r.goatCount??0}","${r.amount||0}","${(r.author||"").replace(/"/g,'""')}"\\n`;});
+  let csv="Date,Animal,Animal Name,Type,Description,Animal Count,Amount (NGN),Author\n";
+  data.forEach(r=>{csv+=`"${r.date||""}","${animalLabel(r.animalType||"goat",r.animalName)}","${(r.animalName||"").replace(/"/g,'""')}","${r.type||""}","${(r.description||"").replace(/"/g,'""')}","${r.animalCount??r.goatCount??0}","${r.amount||0}","${(r.author||"").replace(/"/g,'""')}"\n`;});
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),link=document.createElement("a");
   link.href=URL.createObjectURL(blob);link.download=`${farm}_ledger_${today()}.csv`;link.click();URL.revokeObjectURL(link.href);
   showSuccess("CSV export created successfully.");
