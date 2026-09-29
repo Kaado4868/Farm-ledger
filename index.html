@@ -338,22 +338,36 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 
 <script>
-// 1. VISUAL ERROR CATCHER (Prints hidden errors to your phone screen)
-window.onerror = function(msg, url, lineNo) {
+// 1. ADVANCED ERROR CATCHERS (Catches both standard syntax and silent Promise/Network errors)
+const catchError = function(msg, lineNo) {
     const splash = document.getElementById("splash-view");
     if(splash) {
         splash.style.background = "#ffebee";
-        splash.innerHTML = `<div style="background:#fff; padding:30px; border-radius:15px; text-align:center; color:#d32f2f; box-shadow:0 10px 30px rgba(0,0,0,0.15); width:90%; max-width:400px;">
+        splash.innerHTML = `<div style="background:#fff; padding:30px; border-radius:15px; text-align:center; color:#d32f2f; box-shadow:0 10px 30px rgba(0,0,0,0.15); width:90%; max-width:400px; margin:auto;">
         <i class="fas fa-exclamation-triangle" style="font-size:40px; margin-bottom:15px;"></i>
-        <h3 style="margin-top:0">System Crash</h3>
-        <p style="font-size:14px; font-weight:bold; margin-bottom:5px;">${msg}</p>
-        <p style="font-size:12px; color:#666;">Line: ${lineNo}</p>
-        <p style="font-size:11px; color:#888; margin-top:15px;">Take a screenshot of this error.</p>
+        <h3 style="margin-top:0">System Error Caught</h3>
+        <p style="font-size:14px; font-weight:bold; margin-bottom:5px; word-wrap:break-word;">${msg}</p>
+        <p style="font-size:12px; color:#666;">Line: ${lineNo || 'N/A'}</p>
         </div>`;
     }
 };
+window.onerror = function(msg, url, lineNo) { catchError(msg, lineNo); };
+window.addEventListener("unhandledrejection", function(e) { catchError(e.reason, "Network/Promise"); });
 
-// 2. FIREBASE CONFIGURATION
+// 2. THE KILL SWITCH (If Firebase hangs for 4 seconds, force the login screen to appear)
+setTimeout(() => {
+    const splash = document.getElementById("splash-view");
+    if(splash && !splash.classList.contains("hidden")) {
+        splash.classList.add("hidden");
+        document.getElementById("auth-view").classList.remove("hidden");
+        const box = document.getElementById("error-box");
+        box.textContent = "Firebase connection timeout. Please check your internet connection.";
+        box.style.display = "block";
+        setTimeout(() => box.style.display = "none", 6000);
+    }
+}, 4000);
+
+// 3. FIREBASE CONFIGURATION
 const firebaseConfig={
 apiKey:"AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
 authDomain:"goatledger-132c7.firebaseapp.com",
