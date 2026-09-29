@@ -90,19 +90,6 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .delete-btn{border:0;background:none;color:#d32f2f;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
 
 
-.herdsman-provision{border:1px solid #dfe8e1;background:#f7faf8;border-radius:10px;padding:12px;margin:12px 0}
-.herdsman-provision h4{margin:0 0 6px;color:#1b5e20;font-size:13px}
-.herdsman-provision-note{font-size:11px;color:#777;margin:0 0 10px}
-.livestock-row{background:#fff;border:1px solid #e2e7e4;border-radius:9px;padding:10px;margin-bottom:8px}
-.livestock-row-title{font-size:11px;font-weight:800;color:#555;margin-bottom:8px}
-.livestock-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.livestock-grid .form-group{margin-bottom:0}
-.livestock-grid label{font-size:10px;margin-bottom:4px}
-.livestock-grid .form-input{padding:9px;font-size:13px}
-.herdsman-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.herdsman-contact-grid .form-group{margin-bottom:0}
-.handover-note{font-size:11px;color:#666;line-height:1.45;background:#f1f8f2;border-radius:9px;padding:9px;margin:0 0 12px}.handover-photo-preview{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.handover-photo-preview img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #dfe8e1}.livestock-photo-box{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.livestock-photo-preview img{width:58px;height:58px;object-fit:cover;border-radius:7px;border:1px solid #dfe8e1}
-@media(max-width:380px){.livestock-grid,.herdsman-contact-grid{grid-template-columns:1fr}}
 .clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
 
 
@@ -372,13 +359,18 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 
 <div class="farm-value-grid">
 <div class="stat-card farm-value-card">
-<div class="stat-icon" style="background:#ffebee;color:#c62828;"><i class="fas fa-skull-crossbones"></i></div>
-<div class="stat-info"><h4>Loss Value</h4><h2 id="total-loss-value">₦0</h2><small>Recorded animal losses</small></div>
-</div>
-<div class="stat-card farm-value-card expense-value-card">
 <div class="stat-icon" style="background:#fff3e0;color:#ef6c00;"><i class="fas fa-landmark"></i></div>
 <div class="stat-info"><h4>Total Farm Value</h4><h2 id="total-farm-value">₦0</h2><small id="farm-value-note">Recorded livestock value</small></div>
 </div>
+<div class="stat-card farm-value-card">
+<div class="stat-icon" style="background:#ffebee;color:#c62828;"><i class="fas fa-skull-crossbones"></i></div>
+<div class="stat-info"><h4>Loss Value</h4><h2 id="total-loss-value">₦0</h2><small>Recorded animal losses</small></div>
+</div>
+</div>
+
+<div class="stat-card expense-value-card">
+<div class="stat-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fas fa-money-bill-wave"></i></div>
+<div class="stat-info"><h4>Expense Value</h4><h2 id="expense-value-home">₦0</h2><small>Operating expenses only</small></div>
 </div>
 
 <div class="card period-card">
@@ -430,7 +422,6 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="manage-tabs">
 <div class="manage-tab active" data-sub="sub-history"><i class="fas fa-list"></i> Records History</div>
 <div class="manage-tab" data-sub="sub-form"><i class="fas fa-plus-circle"></i> Add Record</div>
-<div class="manage-tab" data-sub="sub-handover"><i class="fas fa-hand-holding-heart"></i> Handover</div>
 </div>
 
 
@@ -441,8 +432,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <option value="purchase">Purchases</option>
 <option value="medical">Medical</option>
 <option value="feed">Feed</option>
-<option value="herdsman">Herdsman Payments</option>
-<option value="handover">Livestock Handovers</option>
+<option value="herdsman">Herdsman</option>
 <option value="death">Deaths / Losses</option>
 <option value="other">Other</option>
 </select>
@@ -500,17 +490,6 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div id="animal-count-box" class="form-group"><label id="animal-count-label">Number of Goats</label><input id="animal-count" class="form-input" type="number" min="1" value="1"></div>
 <div id="death-count-box" class="form-group hidden"><label>Number of Animals Lost</label><input id="death-count" class="form-input" type="number" min="1" value="1"></div>
 
-<div id="herdsman-provision-box" class="herdsman-provision hidden">
-<h4><i class="fas fa-user-tie"></i> Livestock Given to Herdsman</h4>
-<p class="herdsman-provision-note">Record who received the livestock and the specific animals handed over.</p>
-<div class="herdsman-contact-grid">
-<div class="form-group"><label>Herdsman Name</label><input id="herdsman-name" class="form-input" type="text" maxlength="100" placeholder="Full name"></div>
-<div class="form-group"><label>Phone Number</label><input id="herdsman-phone" class="form-input" type="tel" maxlength="30" placeholder="080..."></div>
-</div>
-<div class="form-group" style="margin-top:10px"><label>Number of Livestock Given</label><input id="herdsman-livestock-count" class="form-input" type="number" min="1" max="100" value="1"></div>
-<div id="herdsman-livestock-list"></div>
-</div>
-
 <div class="form-group"><label>Description</label><input id="record-description" class="form-input" type="text" placeholder="e.g. 5 goats purchased"></div>
 
 <div class="form-group"><label>Date</label><input id="record-date" class="form-input" type="date"></div>
@@ -535,22 +514,6 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 </div>
 </div>
 
-
-<div id="sub-handover" class="sub-screen hidden">
-<div class="card" style="margin-bottom:0">
-<h3><i class="fas fa-hand-holding-heart" style="color:#2e7d32"></i> Livestock Handover</h3>
-<p class="handover-note">Use this for livestock given to a herdsman or caretaker for care while the animals remain yours. It is a custody/movement record, separate from a herdsman payment.</p>
-<input type="hidden" id="handover-id">
-<div class="form-group"><label>Date of Handover</label><input id="handover-date" class="form-input" type="date"></div>
-<div class="herdsman-contact-grid">
-<div class="form-group"><label>Herdsman / Caretaker Name</label><input id="handover-name" class="form-input" type="text" maxlength="100" placeholder="Full name"></div>
-<div class="form-group"><label>Phone Number</label><input id="handover-phone" class="form-input" type="tel" maxlength="30" placeholder="080..."></div>
-</div>
-<div class="form-group" style="margin-top:14px"><label>Destination / Where Livestock Will Stay</label><input id="handover-location" class="form-input" type="text" maxlength="150" placeholder="e.g. grazing field, village or ranch"></div><div class="herdsman-contact-grid"><div class="form-group"><label>Purpose of Handover</label><select id="handover-purpose" class="form-input"><option value="grazing">Grazing / Daily Care</option><option value="breeding">Breeding</option><option value="treatment">Treatment / Recovery</option><option value="security">Security / Safekeeping</option><option value="other">Other</option></select></div><div class="form-group"><label>Expected Return Date <span style="font-weight:400;color:#888">(optional)</span></label><input id="handover-return-date" class="form-input" type="date"></div></div><div class="form-group"><label>Number of Livestock</label><input id="handover-livestock-count" class="form-input" type="number" min="1" max="100" value="1"></div>
-<div id="handover-livestock-list"></div>
-<div class="form-group"><label>Handover Photo Evidence <span style="font-weight:400;color:#888">(up to 3 photos)</span></label><input id="handover-photos" class="form-input" type="file" accept="image/*" capture="environment" multiple><div id="handover-photo-preview" class="handover-photo-preview"></div></div><div class="form-group"><label>Notes</label><input id="handover-notes" class="form-input" type="text" maxlength="300" placeholder="Purpose, instructions or other notes"></div><button id="save-handover" class="main-btn" type="button"><i class="fas fa-save"></i> Save Handover</button>
-</div>
-</div>
 
 <div id="admin" class="screen">
 <div class="card">
@@ -660,7 +623,7 @@ const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
-let selectedGoatImages=[],selectedReceipt=null,selectedHandoverPhotos=[],imagesCleared=false;
+let selectedGoatImages=[],selectedReceipt=null,imagesCleared=false;
 let isSuperAdminViewingAsAdmin=false;
 let expensePeriod="all";
 const $=id=>document.getElementById(id);
@@ -696,20 +659,6 @@ function showScreen(id){
  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
  const screen=$(id); if(screen)screen.classList.add("active");
  const nav=document.querySelector(`.nav-item[data-screen="${id}"]`); if(nav)nav.classList.add("active");
-
- // A Manage sub-tab must never remain visible when the user leaves Manage.
- if(id!=="manage"){
-  document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
- }else{
-  const activeSub=document.querySelector(".manage-tab.active")?.dataset.sub;
-  if(activeSub) $(activeSub)?.classList.remove("hidden");
-  else{
-   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
-   const historyTab=document.querySelector('.manage-tab[data-sub="sub-history"]');
-   if(historyTab) historyTab.classList.add("active");
-   $("sub-history")?.classList.remove("hidden");
-  }
- }
 }
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
 
@@ -718,7 +667,6 @@ document.querySelectorAll(".manage-tab").forEach(tab=>{
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
   tab.classList.add("active"); $(tab.dataset.sub).classList.remove("hidden");
-  if(tab.dataset.sub==="sub-handover"){resetHandoverForm();}
  };
 });
 
@@ -943,8 +891,8 @@ function calculateFarmMetrics(data){
    // Only livestock purchase records can increase an animal count.
    animalTotals[animal]=(animalTotals[animal]||0)+count;
    animalValue[animal]=(animalValue[animal]||0)+amount;
-  }else if(r.type!=="handover"){
-   // Financial records only. A handover is a custody record and has no expense amount.
+  }else{
+   // Medical, feed, herdsman and other expenses never affect livestock counts/value.
    spent+=amount;
   }
  });
@@ -1010,7 +958,7 @@ function render(){
 function calculateExpenseBreakdown(data,range){
  const {start,end,label}=range;let total=0,medical=0,feed=0,herdsman=0,other=0;
  data.forEach(r=>{
-  if((r.date||"")<start||(r.date||"")>end||r.type==="death"||r.type==="purchase"||r.type==="handover")return;
+  if((r.date||"")<start||(r.date||"")>end||r.type==="death"||r.type==="purchase")return;
   const amount=Math.max(0,Number(r.amount)||0);
   if(r.type==="medical"){medical+=amount;total+=amount;}
   else if(r.type==="feed"){feed+=amount;total+=amount;}
@@ -1045,21 +993,18 @@ function renderList(container,data,controls){
   groups[date].forEach(r=>{
    const animal=r.animalType||"goat",count=Number(r.animalCount??r.goatCount??0)||0;
    const isDeath=r.type==="death";
-   const icon=isDeath?"fa-skull-crossbones":r.type==="purchase"?"fa-shopping-cart":r.type==="medical"?"fa-pills":r.type==="feed"?"fa-wheat-awn":r.type==="herdsman"?"fa-user-tie":r.type==="handover"?"fa-hand-holding-heart":"fa-receipt";
+   const icon=isDeath?"fa-skull-crossbones":r.type==="purchase"?"fa-shopping-cart":r.type==="medical"?"fa-pills":r.type==="feed"?"fa-wheat-awn":r.type==="herdsman"?"fa-user-tie":"fa-receipt";
    const amountText=isDeath?(count?`-${count} ${animalLabel(animal,r.animalName)}${Math.abs(count)!==1?"s":""}`:`Loss ${money(r.amount)}`):`−${money(r.amount)}`;
    const images=Array.isArray(r.images)?r.images.filter(Boolean):[];
    const hasReceipt=!!r.receipt;
    const div=document.createElement("div");div.className=`txn-row ${isDeath?"death-row":""}`;
-   const handoverDetails=r.type==="handover"&&Array.isArray(r.handoverLivestock)?r.handoverLivestock.map((item,i)=>"<div style=\"font-size:11px;color:#555;border-top:1px solid #e5ebe7;padding:7px 0\"><b>#"+(i+1)+" "+escapeHtml(animalLabel(item.animalType,item.animalName))+"</b>"+(item.tagId?" • ID: "+escapeHtml(item.tagId):"")+(item.sex?" • "+escapeHtml(item.sex):"")+(item.age?" • "+escapeHtml(item.age):"")+(item.details?" • "+escapeHtml(item.details):"")+(item.photo?"<br><img src=\""+item.photo+"\" style=\"width:64px;height:64px;object-fit:cover;border-radius:7px;margin-top:5px\">":"")+"</div>").join(""):"";
- const herdsmanDetails=r.type==="herdsman"&&Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.map((item,i)=>`<div style="font-size:11px;color:#555;border-top:1px solid #e5ebe7;padding:7px 0"><b>#${i+1} ${escapeHtml(animalLabel(item.animalType,item.animalName))}</b>${item.tagId?` • ID: ${escapeHtml(item.tagId)}`:""}${item.sex?` • ${escapeHtml(item.sex)}`:""}${item.age?` • Age: ${escapeHtml(item.age)}`:""}${item.details?`<br>${escapeHtml(item.details)}`:""}</div>`).join(""):"";
    div.innerHTML=`<div class="txn-icon"><i class="fas ${icon}"></i></div>
     <div class="txn-main"><div class="txn-title">${escapeHtml(r.description||"Untitled record")}</div>
-    <div class="txn-sub">${r.type==="handover"?`Handover to: ${escapeHtml(r.handoverName||"Not recorded")} • ${Array.isArray(r.handoverLivestock)?r.handoverLivestock.length:Math.abs(count)} livestock`:r.type==="herdsman"?`Herdsman: ${escapeHtml(r.herdsmanName||"Not recorded")} • ${Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.length:Math.abs(count)} livestock`:`${escapeHtml(animalLabel(animal,r.animalName))}${count?` • ${Math.abs(count)} animal(s)`:``}`} • By ${escapeHtml((r.author||"").split("@")[0])} • Tap for details</div>
+    <div class="txn-sub">${escapeHtml(animalLabel(animal,r.animalName))}${count?` • ${Math.abs(count)} animal(s)`:``} • By ${escapeHtml((r.author||"").split("@")[0])} • Tap for details</div>
     <div class="txn-details">
       <div class="txn-detail-label">Record details</div>
       <div style="font-size:12px;color:#555">${isDeath?"Animal loss / death":"Transaction"} • ${escapeHtml(formatDateHeader(r.date||""))}</div>
       ${isDeath?`<div class="record-death-note"><i class="fas fa-skull-crossbones"></i> This record reduces the live ${escapeHtml(animalLabel(animal,r.animalName))} balance by ${Math.abs(count)}.</div>`:""}
-      ${r.type==="handover"?`<div style="margin-top:9px;background:#f1f8f2;border-radius:8px;padding:9px"><div class="txn-detail-label">Handover Recipient</div><div style="font-size:12px;color:#555"><b>${escapeHtml(r.handoverName||"Not recorded")}</b>${r.handoverPhone?` • ${escapeHtml(r.handoverPhone)}`:""}</div>${r.handoverLocation?`<div style="font-size:11px;color:#666;margin-top:4px">Destination: ${escapeHtml(r.handoverLocation)}</div>`:""}${r.handoverPurpose?`<div style="font-size:11px;color:#666;margin-top:3px">Purpose: ${escapeHtml(r.handoverPurpose)}${r.handoverReturnDate?" • Return: "+escapeHtml(r.handoverReturnDate):""}</div>`:""}${Array.isArray(r.images)&&r.images.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px">${r.images.map(p=>`<img src="${p}" style="width:64px;height:64px;object-fit:cover;border-radius:7px">`).join("")}</div>`:""}<div class="txn-detail-label" style="margin-top:8px">Livestock (${Array.isArray(r.handoverLivestock)?r.handoverLivestock.length:Math.abs(count)})</div>${handoverDetails||`<div class="txn-empty-detail">No individual livestock details recorded.</div>`}${r.handoverNotes?`<div style="font-size:11px;color:#666;margin-top:8px">Notes: ${escapeHtml(r.handoverNotes)}</div>`:""}</div>`:r.type==="herdsman"?`<div style="margin-top:9px;background:#f7faf8;border-radius:8px;padding:9px"><div class="txn-detail-label">Herdsman</div><div style="font-size:12px;color:#555"><b>${escapeHtml(r.herdsmanName||"Not recorded")}</b>${r.herdsmanPhone?` • ${escapeHtml(r.herdsmanPhone)}`:""}</div><div class="txn-detail-label" style="margin-top:8px">Livestock Given (${Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.length:Math.abs(count)})</div>${herdsmanDetails||`<div class="txn-empty-detail">No individual livestock details recorded.</div>`}</div>`:""}
       ${images.length?`<div style="margin-top:9px"><div class="txn-detail-label">Photos</div><div class="txn-images">${images.map((src,i)=>`<img src="${escapeHtml(src)}" alt="Animal photo ${i+1}" data-photo="${i}">`).join("")}</div></div>`:""}
       ${hasReceipt?`<div style="margin-top:9px"><div class="txn-detail-label">Receipt</div><button class="txn-receipt" type="button"><i class="fas fa-receipt"></i> View receipt</button></div>`:""}
       ${!images.length&&!hasReceipt?`<div class="txn-empty-detail" style="margin-top:8px">No photos or receipt attached to this record.</div>`:""}
@@ -1094,92 +1039,109 @@ $("animal-type").onchange=()=>{
  if(type!=="other")otherName.value="";
  $("animal-count-label").textContent=`Number of ${animalLabel(type,otherName.value)}s`;
 };
-function renderHerdsmanLivestockRows(count,existing=[]){
- const list=$("herdsman-livestock-list");
- const safeCount=Math.min(100,Math.max(1,Number(count)||1));
- list.innerHTML="";
- for(let i=0;i<safeCount;i++){
-  const item=existing[i]||{};
-  const row=document.createElement("div");row.className="livestock-row";
-  row.innerHTML=`<div class="livestock-row-title">Livestock #${i+1}</div>
-   <div class="livestock-grid">
-    <div class="form-group"><label>Animal Type</label><select class="form-input livestock-type"><option value="goat">Goat</option><option value="sheep">Sheep</option><option value="cattle">Cattle</option><option value="chicken">Chicken</option><option value="other">Other</option></select></div>
-    <div class="form-group"><label>Tag / ID</label><input class="form-input livestock-id" type="text" maxlength="50" placeholder="e.g. G-014"></div>
-    <div class="form-group"><label>Sex</label><select class="form-input livestock-sex"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div>
-    <div class="form-group"><label>Age</label><input class="form-input livestock-age" type="text" maxlength="30" placeholder="e.g. 2 years"></div>
-    <div class="form-group" style="grid-column:1/-1"><label>Identifying Details</label><input class="form-input livestock-details" type="text" maxlength="150" placeholder="Colour, markings, breed, etc."></div>
-   </div>`;
-  row.querySelector(".livestock-type").value=item.animalType||"goat";
-  row.querySelector(".livestock-id").value=item.tagId||"";
-  row.querySelector(".livestock-sex").value=item.sex||"";
-  row.querySelector(".livestock-age").value=item.age||"";
-  row.querySelector(".livestock-details").value=item.details||"";
-  list.appendChild(row);
- }
+$("record-type").onchange=()=>{
+ const type=$("record-type").value;
+ const isDeath=type==="death";
+ $("animal-count-box").style.display=type==="purchase"?"block":"none";
+ $("death-count-box").classList.toggle("hidden",!isDeath);
+ $("amount-label").textContent=isDeath?"Loss Value (₦) — optional":"Amount (₦)";
+ $("record-amount").placeholder=isDeath?"Optional estimated value of lost animal":"50000";
+ $("record-amount").min="0";
+};
+
+function compressImage(file,maxWidth=320,quality=.45){
+ return new Promise((resolve,reject)=>{
+  if(!file.type.startsWith("image/"))return reject(new Error("Only image files are allowed."));
+  if(file.size>8*1024*1024)return reject(new Error("Image is too large. Maximum 8 MB per image."));
+  const reader=new FileReader();reader.onerror=()=>reject(new Error("Could not read image."));
+  reader.onload=e=>{
+   const img=new Image();img.onerror=()=>reject(new Error("Invalid image."));
+   img.onload=()=>{
+    const scale=Math.min(1,maxWidth/img.width),canvas=document.createElement("canvas");
+    canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
+    canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+    resolve(canvas.toDataURL("image/jpeg",quality));
+   };img.src=e.target.result;
+  };reader.readAsDataURL(file);
+ });
 }
-function getHerdsmanLivestock(){
- return Array.from(document.querySelectorAll("#herdsman-livestock-list .livestock-row")).map(row=>({
-  animalType:row.querySelector(".livestock-type").value,
-  tagId:row.querySelector(".livestock-id").value.trim(),
-  sex:row.querySelector(".livestock-sex").value,
-  age:row.querySelector(".livestock-age").value.trim(),
-  details:row.querySelector(".livestock-details").value.trim()
- }));
+$("goat-images").onchange=async e=>{
+ const files=Array.from(e.target.files).slice(0,3);selectedGoatImages=[];$("image-preview").innerHTML="";
+ for(const file of files)try{const data=await compressImage(file);selectedGoatImages.push(data);const img=document.createElement("img");img.src=data;img.className="thumbnail";$("image-preview").appendChild(img);}catch(err){showError(getFriendlyErrorMessage(err));}
+};
+$("receipt-image").onchange=async e=>{
+ const file=e.target.files[0];selectedReceipt=null;$("receipt-preview").style.display="none";if(!file)return;
+ try{selectedReceipt=await compressImage(file);$("receipt-preview").style.display="block";}catch(err){showError(getFriendlyErrorMessage(err));}
+};
+$("clear-images-btn").onclick=()=>{
+ imagesCleared=true;selectedGoatImages=[];selectedReceipt=null;$("image-preview").innerHTML="";$("receipt-preview").style.display="none";$("clear-images-btn").classList.add("hidden");
+};
+
+function resetForm(){
+ $("record-id").value="";$("animal-type").value="goat";$("record-type").value="purchase";$("record-amount").value="";$("other-animal-name").value="";$("other-animal-name").classList.add("hidden");
+ $("animal-count").value="1";$("death-count").value="1";$("record-description").value="";$("record-date").valueAsDate=new Date();
+ $("death-count-box").classList.add("hidden");$("amount-label").textContent="Amount (₦)";$("record-amount").placeholder="50000";
+ $("goat-images").value="";$("receipt-image").value="";$("image-preview").innerHTML="";$("receipt-preview").style.display="none";
+ $("form-title").innerHTML='<i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record';
+ $("save-record").textContent="Save Record";$("clear-images-btn").classList.add("hidden");
+ selectedGoatImages=[];selectedReceipt=null;imagesCleared=false;$("animal-count-box").style.display="block";
 }
-function renderHandoverLivestockRows(count,existing=[]){
- const list=$("handover-livestock-list"),safeCount=Math.min(20,Math.max(1,Number(count)||1));list.innerHTML="";
- for(let i=0;i<safeCount;i++){
-  const item=existing[i]||{},row=document.createElement("div");row.className="livestock-row";
-  row.innerHTML='<div class="livestock-row-title">Animal #'+(i+1)+'</div><div class="livestock-grid">'+
-   '<div class="form-group"><label>Animal Type</label><select class="form-input handover-livestock-type"><option value="goat">Goat</option><option value="sheep">Sheep</option><option value="cattle">Cattle</option><option value="chicken">Chicken</option><option value="other">Other</option></select></div>'+
-   '<div class="form-group"><label>Tag / ID</label><input class="form-input handover-livestock-id" type="text" maxlength="50" placeholder="e.g. G-014"></div>'+
-   '<div class="form-group"><label>Sex</label><select class="form-input handover-livestock-sex"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div>'+
-   '<div class="form-group"><label>Age</label><input class="form-input handover-livestock-age" type="text" maxlength="30" placeholder="e.g. 2 years"></div>'+
-   '<div class="form-group" style="grid-column:1/-1"><label>Breed / Identifying Details</label><input class="form-input handover-livestock-details" type="text" maxlength="150" placeholder="Breed, colour, markings, etc."></div>'+
-   '<div class="form-group" style="grid-column:1/-1"><label>Animal Photo</label><div class="livestock-photo-box"><input class="form-input handover-livestock-photo" type="file" accept="image/*" capture="environment"><div class="livestock-photo-preview"></div></div></div></div>';
-  row.querySelector(".handover-livestock-type").value=item.animalType||"goat";row.querySelector(".handover-livestock-id").value=item.tagId||"";row.querySelector(".handover-livestock-sex").value=item.sex||"";row.querySelector(".handover-livestock-age").value=item.age||"";row.querySelector(".handover-livestock-details").value=item.details||"";
-  if(item.photo){row.dataset.photo=item.photo;const img=document.createElement("img");img.src=item.photo;row.querySelector(".livestock-photo-preview").appendChild(img);}
-  row.querySelector(".handover-livestock-photo").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const photo=await compressImage(file,300,.42);row.dataset.photo=photo;const preview=row.querySelector(".livestock-photo-preview");preview.innerHTML="";const img=document.createElement("img");img.src=photo;preview.appendChild(img);}catch(err){showError(getFriendlyErrorMessage(err));}};
-  list.appendChild(row);
- }
-}
-function getHandoverLivestock(){
- return Array.from(document.querySelectorAll("#handover-livestock-list .livestock-row")).map(row=>({animalType:row.querySelector(".handover-livestock-type").value,animalName:"",tagId:row.querySelector(".handover-livestock-id").value.trim(),sex:row.querySelector(".handover-livestock-sex").value,age:row.querySelector(".handover-livestock-age").value.trim(),details:row.querySelector(".handover-livestock-details").value.trim(),photo:row.dataset.photo||""}));
-}
-$("handover-livestock-count").onchange=()=>renderHandoverLivestockRows($("handover-livestock-count").value);
-$("handover-photos").onchange=async e=>{const files=Array.from(e.target.files).slice(0,3);selectedHandoverPhotos=[];$("handover-photo-preview").innerHTML="";for(const file of files)try{const data=await compressImage(file,420,.45);selectedHandoverPhotos.push(data);const img=document.createElement("img");img.src=data;$("handover-photo-preview").appendChild(img);}catch(err){showError(getFriendlyErrorMessage(err));}};
-function resetHandoverForm(){
- $("handover-id").value="";$("handover-date").valueAsDate=new Date();$("handover-name").value="";$("handover-phone").value="";$("handover-location").value="";$("handover-purpose").value="grazing";$("handover-return-date").value="";$("handover-livestock-count").value="1";$("handover-livestock-list").innerHTML="";$("handover-notes").value="";$("handover-photos").value="";$("handover-photo-preview").innerHTML="";selectedHandoverPhotos=[];
- renderHandoverLivestockRows(1);$("save-handover").innerHTML='<i class="fas fa-save"></i> Save Handover';
-}
-$("save-handover").onclick=async()=>{
+
+$("save-record").onclick=async()=>{
  if(!currentUser||!currentFarmId)return showError("No farm is currently selected.");
- const date=$("handover-date").value,name=$("handover-name").value.trim(),phone=$("handover-phone").value.trim(),location=$("handover-location").value.trim(),purpose=$("handover-purpose").value,returnDate=$("handover-return-date").value,notes=$("handover-notes").value.trim(),livestock=getHandoverLivestock();
- if(!date)return showError("Please select a handover date.");
- if(date>today())return showError("Handover date cannot be in the future.");
- if(returnDate&&returnDate<date)return showError("Expected return date cannot be before the handover date.");
- if(!name||name.length>100)return showError("Please enter the herdsman / caretaker's name.");
- if(!phone||phone.length>30)return showError("Please enter the phone number.");
- if(!livestock.length||livestock.length>20)return showError("Please specify between 1 and 20 livestock items per handover.");
- const btn=$("save-handover");btn.disabled=true;btn.textContent="Saving...";
+ const type=$("record-type").value,animalType=$("animal-type").value;
+ const otherAnimalName=animalType==="other"?$("other-animal-name").value.trim():"";
+ const amountInput=$("record-amount").value.trim(),amount=amountInput===""?0:Number(amountInput);
+ const description=$("record-description").value.trim(),date=$("record-date").value;
+ const animalCount=type==="purchase"?Math.max(1,Number($("animal-count").value)||1):type==="death"?Math.max(1,Number($("death-count").value)||1):0;
+ if(!Number.isFinite(amount)||amount<0)return showError("Please enter a valid amount.");
+ if(amount>1000000000)return showError("Amount is too large.");
+ if(!description||description.length>300)return showError("Description is required and must be 300 characters or less.");
+ if(animalType==="other"&&(!otherAnimalName||otherAnimalName.length>50))return showError("Please specify the animal name (1-50 characters).");
+ if(!date)return showError("Please select a date.");
+ if(date>today())return showError("Record date cannot be in the future.");
+ const editId=$("record-id").value;
+ if(editId&&!isSuperAdmin())return showError("Only the super administrator can update an existing record.");
+ const btn=$("save-record");btn.disabled=true;btn.textContent="Saving...";
  try{
   await firestoreReady;
-  const data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type:"handover",animalType:"other",animalName:"",animalCount:livestock.length,goatCount:0,amount:0,description:"Livestock handed to "+name+" for care",date,handoverName:name,handoverPhone:phone,handoverLocation:location,handoverPurpose:purpose,handoverReturnDate:returnDate,handoverNotes:notes,handoverLivestock:livestock,images:selectedHandoverPhotos.slice(0,3),receipt:null,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-  const editId=$("handover-id").value;
-  if(editId){if(!isSuperAdmin())return showError("Only the super administrator can update an existing handover.");await db.collection("transactions").doc(editId).update(data);}
-  else{data.createdAt=firebase.firestore.FieldValue.serverTimestamp();await db.collection("transactions").add(data);}
-  resetHandoverForm();showSuccess("Livestock handover saved.");document.querySelectorAll(".manage-tab")[0].click();showScreen("manage");
+  const now=firebase.firestore.FieldValue.serverTimestamp();
+  let data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type,animalType,animalName:otherAnimalName,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,updatedAt:now};
+  if(editId){
+   const existing=records.find(r=>r.id===editId);if(!existing)throw new Error("Record not found.");
+   if(!selectedGoatImages.length&&!imagesCleared)data.images=existing.images||[];
+   else if(imagesCleared&&!selectedGoatImages.length)data.images=[];
+   if(!selectedReceipt&&!imagesCleared)data.receipt=existing.receipt||null;
+   else if(imagesCleared&&!selectedReceipt)data.receipt=null;
+   data.createdAt=existing.createdAt||now;
+   await db.collection("transactions").doc(editId).update(data);
+  }else{
+   data.createdAt=now;await db.collection("transactions").add(data);
+  }
+  resetForm();showSuccess("Record saved successfully.");document.querySelectorAll(".manage-tab")[0].click();showScreen("manage");
  }catch(e){showError(getFriendlyErrorMessage(e));}
- finally{btn.disabled=false;btn.innerHTML=$("handover-id").value?'<i class="fas fa-save"></i> Update Handover':'<i class="fas fa-save"></i> Save Handover';}
+ finally{btn.disabled=false;btn.textContent=$("record-id").value?"Update Record":"Save Record";}
 };
-function editHandoverRecord(id){
- if(!isSuperAdmin())return showError("Only the super administrator can update existing handovers.");
- const r=records.find(x=>x.id===id);if(!r||r.type!=="handover")return;
- $("handover-id").value=r.id;$("handover-date").value=r.date||"";$("handover-name").value=r.handoverName||"";$("handover-phone").value=r.handoverPhone||"";$("handover-location").value=r.handoverLocation||"";$("handover-purpose").value=r.handoverPurpose||"grazing";$("handover-return-date").value=r.handoverReturnDate||"";$("handover-notes").value=r.handoverNotes||"";$("handover-photos").value="";selectedHandoverPhotos=Array.isArray(r.images)?r.images.slice(0,3):[];$("handover-photo-preview").innerHTML="";selectedHandoverPhotos.forEach(p=>{const img=document.createElement("img");img.src=p;$("handover-photo-preview").appendChild(img);});
- const list=Array.isArray(r.handoverLivestock)?r.handoverLivestock:[];$("handover-livestock-count").value=Math.min(20,Math.max(1,list.length||1));renderHandoverLivestockRows($("handover-livestock-count").value,list);
- $("save-handover").innerHTML='<i class="fas fa-save"></i> Update Handover';
- document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
- const tab=document.querySelector('.manage-tab[data-sub="sub-handover"]');tab.classList.add("active");$("sub-handover").classList.remove("hidden");showScreen("manage");
+
+function editRecord(id){
+ if(!isSuperAdmin())return showError("Only the super administrator can update existing records.");
+ const r=records.find(x=>x.id===id);if(!r)return;
+ $("record-id").value=r.id;$("animal-type").value=r.animalType||"goat";$("record-type").value=r.type;
+ $("other-animal-name").value=r.animalType==="other"?(r.animalName||""):"";
+ $("other-animal-name").classList.toggle("hidden",r.animalType!=="other");
+ $("record-amount").value=r.amount??0;$("animal-count").value=r.type==="purchase"?(r.animalCount??r.goatCount??1):1;
+ $("death-count").value=r.type==="death"?Math.abs(Number(r.animalCount??1)):1;
+ $("record-description").value=r.description||"";$("record-date").value=r.date||"";
+ $("animal-count-label").textContent=`Number of ${animalLabel($("animal-type").value,$("other-animal-name").value)}s`;
+ $("form-title").innerHTML='<i class="fas fa-edit" style="color:#2e7d32"></i> Edit Record';$("save-record").textContent="Update Record";
+ $("animal-count-box").style.display=r.type==="purchase"?"block":"none";
+ $("death-count-box").classList.toggle("hidden",r.type!=="death");
+ $("amount-label").textContent=r.type==="death"?"Loss Value (₦) — optional":"Amount (₦)";
+ $("record-amount").placeholder=r.type==="death"?"Optional estimated value of lost animal":"50000";
+ selectedGoatImages=[];selectedReceipt=null;imagesCleared=false;
+ $("image-preview").innerHTML="";$("receipt-preview").style.display="none";
+ if((r.images&&r.images.length)||r.receipt)$("clear-images-btn").classList.remove("hidden");else $("clear-images-btn").classList.add("hidden");
+ document.querySelectorAll(".manage-tab")[1].click();showScreen("manage");
 }
 
 async function deleteRecord(id){
@@ -1309,7 +1271,6 @@ function normalizeType(value){
  if(v.includes("purchase"))return "purchase";
  if(v.includes("medical")||v.includes("drug"))return "medical";
  if(v.includes("feed")||v.includes("fodder"))return "feed";
- if(v.includes("handover")||v.includes("caretaker")||v.includes("custody"))return "handover";
  if(v.includes("herdsman")||v.includes("worker")||v.includes("salary"))return "herdsman";
  return "other";
 }
@@ -1325,20 +1286,7 @@ function validateImportedRecord(r){
  if(type==="death"&&count<1)throw new Error("Death records must contain at least 1 lost animal.");
  const images=Array.isArray(r.images)?r.images.slice(0,3).filter(x=>typeof x==="string"&&x.length<=500000):[];
  const receipt=typeof r.receipt==="string"&&r.receipt.length<=500000?r.receipt:null;
- const handoverName=type==="handover"?String(r.handoverName||"").trim():"";
- const handoverPurpose=type==="handover"?String(r.handoverPurpose||"").trim():"";
- const handoverReturnDate=type==="handover"?String(r.handoverReturnDate||"").trim():"";
- const handoverPhone=type==="handover"?String(r.handoverPhone||"").trim():"";
- const handoverLocation=type==="handover"?String(r.handoverLocation||"").trim():"";
- const handoverNotes=type==="handover"?String(r.handoverNotes||"").trim():"";
- const handoverLivestock=type==="handover"&&Array.isArray(r.handoverLivestock)?r.handoverLivestock.slice(0,20).map(x=>({animalType:normalizeAnimal(x.animalType||x.animal),animalName:String(x.animalName||"").trim(),tagId:String(x.tagId||"").trim(),sex:String(x.sex||"").trim(),age:String(x.age||"").trim(),details:String(x.details||"").trim(),photo:String(x.photo||"")})):[];
- if(type==="handover"&&(!handoverName||handoverName.length>100||!handoverPhone||handoverPhone.length>30||!handoverLivestock.length))throw new Error("Handover records must include recipient name, phone number and livestock details.");
- if(type==="handover"&&handoverReturnDate&&handoverReturnDate<date)throw new Error("Handover return date cannot be before the handover date.");
- const herdsmanName=type==="herdsman"?String(r.herdsmanName||"").trim():"";
- const herdsmanPhone=type==="herdsman"?String(r.herdsmanPhone||"").trim():"";
- const herdsmanLivestock=type==="herdsman"&&Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.slice(0,100).map(x=>({animalType:normalizeAnimal(x.animalType||x.animal),tagId:String(x.tagId||"").trim(),sex:String(x.sex||"").trim(),age:String(x.age||"").trim(),details:String(x.details||"").trim()})):[];
- if(type==="herdsman"&&(!herdsmanName||herdsmanName.length>100||!herdsmanPhone||herdsmanPhone.length>30||!herdsmanLivestock.length))throw new Error("Herdsman records must include name, phone number and livestock details.");
- return {type,animalType,animalName,date,description,amount,animalCount:type==="herdsman"?herdsmanLivestock.length:type==="handover"?handoverLivestock.length:count,images,receipt,herdsmanName,herdsmanPhone,herdsmanLivestock,handoverName,handoverPhone,handoverLocation,handoverPurpose,handoverReturnDate,handoverNotes,handoverLivestock};
+ return {type,animalType,animalName,date,description,amount,animalCount:count,images,receipt};
 }
 async function importRecordsFromFile(){
  if(!isSuperAdmin())return showError("Only the super administrator can import records.");
@@ -1374,7 +1322,7 @@ async function importRecordsFromFile(){
    const batch=db.batch();
    clean.slice(offset,offset+400).forEach(r=>{
     const ref=db.collection("transactions").doc();
-    const data={farmId:farm,author:currentUser.email.toLowerCase(),type:r.type,animalType:r.animalType,animalName:r.animalName||"",animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,herdsmanName:r.herdsmanName||"",herdsmanPhone:r.herdsmanPhone||"",herdsmanLivestock:r.herdsmanLivestock||[],handoverName:r.handoverName||"",handoverPhone:r.handoverPhone||"",handoverLocation:r.handoverLocation||"",handoverPurpose:r.handoverPurpose||"",handoverReturnDate:r.handoverReturnDate||"",handoverNotes:r.handoverNotes||"",handoverLivestock:r.handoverLivestock||[],images:r.images||[],imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    const data={farmId:farm,author:currentUser.email.toLowerCase(),type:r.type,animalType:r.animalType,animalName:r.animalName||"",animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
     batch.set(ref,data);imported++;
    });
    await batch.commit();
