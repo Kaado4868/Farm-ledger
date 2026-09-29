@@ -1,0 +1,91 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return signedIn()
+        && request.auth.token.email == "abdulkadirbukar2006@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
+
+    function myUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.token.email));
+    }
+
+    function hasFarmAccess(farmId) {
+      return signedIn()
+        && (
+          isSuperAdmin()
+          || (
+            myUserDoc().data.farmId == farmId
+            && myUserDoc().data.status == "approved"
+          )
+        );
+    }
+
+    function validTransactionCreate() {
+      return request.resource.data.farmId is string
+        && request.resource.data.author == request.auth.token.email
+        && request.resource.data.type is string
+        && request.resource.data.animalType is string
+        && request.resource.data.amount is number
+        && request.resource.data.amount >= 0
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 300
+        && request.resource.data.date is string
+        && request.resource.data.animalCount is number
+        && request.resource.data.animalCount >= 0
+        && (
+          request.resource.data.type != "death"
+          || request.resource.data.animalCount > 0
+        );
+    }
+
+    match /users/{email} {
+      allow read: if isSuperAdmin() || (signedIn() && request.auth.token.email == email);
+
+      // Registration can only create a pending, unassigned profile for the
+      // currently authenticated email.
+      allow create: if signedIn()
+        && request.auth.token.email == email
+        && request.resource.data.farmId == ""
+        && request.resource.data.status == "pending";
+
+      // Only the super administrator can approve, assign, revoke or modify users.
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /metadata/{docId} {
+      allow read: if signedIn() && (isSuperAdmin() || docId == "farmList");
+      allow write: if isSuperAdmin();
+
+      // Farm deletion is performed only by the Super Admin after the client verifies
+      // there are no assigned users and no transactions. Keep farmList admin-only.
+    }
+
+    match /transactions/{transactionId} {
+      // Users can only read records belonging to their currently approved farm.
+      allow read: if signedIn() && hasFarmAccess(resource.data.farmId);
+
+      // Approved users may create new records only for their assigned farm.
+      allow create: if signedIn()
+        && hasFarmAccess(request.resource.data.farmId)
+        && validTransactionCreate();
+
+      // Existing records are immutable to ordinary farm users.
+      // Only the super administrator can edit an existing record.
+      allow update: if isSuperAdmin()
+        && request.resource.data.farmId == resource.data.farmId;
+
+      // Deleting a financial/animal-history record is also restricted to the
+      // super administrator so the audit history cannot be erased by ordinary users.
+      allow delete: if isSuperAdmin();
+    }
+  }
+}
