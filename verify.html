@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#1b5e20">
+<title>Verify Email • Farm Ledger</title>
+<style>
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+html,body{margin:0;min-height:100%;background:#f4f7f6;color:#333}
+body{display:flex;align-items:center;justify-content:center;padding:24px}
+.card{width:100%;max-width:420px;background:#fff;border-radius:22px;padding:34px 26px;text-align:center;box-shadow:0 12px 35px rgba(0,0,0,.12)}
+.logo{width:68px;height:68px;border-radius:18px;background:#e8f5e9;color:#2e7d32;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px}
+h1{margin:0;color:#1b5e20;font-size:26px}
+h2{margin:8px 0 10px;font-size:21px;color:#222}
+p{color:#666;font-size:14px;line-height:1.55;margin:8px 0}
+.status{margin:18px 0;padding:13px;border-radius:10px;background:#f6f8f7;color:#555;font-size:13px}
+.status.success{background:#e8f5e9;color:#1b5e20}
+.status.error{background:#ffebee;color:#b71c1c}
+.btn{display:block;width:100%;padding:13px 16px;border:0;border-radius:10px;background:#2e7d32;color:#fff;font-weight:800;font-size:14px;text-decoration:none;margin-top:12px}
+.small{font-size:11px;color:#999;margin-top:18px}
+.spinner{width:24px;height:24px;border:3px solid #dfe8e1;border-top-color:#2e7d32;border-radius:50%;animation:spin .8s linear infinite;margin:15px auto}
+.hidden{display:none!important}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+</head>
+<body>
+<main class="card">
+  <div class="logo">🌿</div>
+  <h1>Farm Ledger</h1>
+  <h2 id="title">Verifying your email</h2>
+  <div id="spinner" class="spinner"></div>
+  <div id="status" class="status">Please wait while we securely verify your email address.</div>
+  <a id="continue" class="btn hidden" href="/Farm-ledger/">Open Farm Ledger</a>
+  <p class="small">Secure account verification • Farm Ledger</p>
+</main>
+<script>
+const firebaseConfig={
+ apiKey:"AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
+ authDomain:"goatledger-132c7.firebaseapp.com",
+ projectId:"goatledger-132c7",
+ storageBucket:"goatledger-132c7.firebasestorage.app",
+ messagingSenderId:"576591882291",
+ appId:"1:576591882291:web:9d540d6c99150a63e81b46"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const params=new URLSearchParams(window.location.search);
+const mode=params.get("mode");
+const code=params.get("oobCode");
+const continueUrl=params.get("continueUrl");
+const statusEl=document.getElementById("status");
+const titleEl=document.getElementById("title");
+const spinner=document.getElementById("spinner");
+const continueEl=document.getElementById("continue");
+const fallback="https://kaado4868.github.io/Farm-ledger/";
+function finish(success,message){
+ spinner.style.display="none";
+ statusEl.textContent=message;
+ statusEl.className="status"+(success?" success":" error");
+ continueEl.classList.remove("hidden");
+ continueEl.href=success && continueUrl && /^https:\/\/kaado4868\.github\.io\/Farm-ledger\//.test(continueUrl) ? continueUrl : fallback;
+}
+(async function(){
+ if(mode!=="verifyEmail"||!code){
+  titleEl.textContent="Verification link unavailable";
+  finish(false,"This verification link is missing or incomplete. Please request a new verification email from Farm Ledger.");
+  return;
+ }
+ try{
+  await auth.applyActionCode(code);
+  titleEl.textContent="Email verified";
+  finish(true,"Your email address has been verified successfully. You can now return to Farm Ledger and sign in.");
+ }catch(error){
+  const codeName=String(error&&error.code||"");
+  const expired=codeName.includes("expired");
+  titleEl.textContent=expired?"Verification link expired":"Verification could not be completed";
+  finish(false,expired?"This verification link has expired. Return to Farm Ledger and request a new verification email.":"This verification link is invalid or has already been used. Return to Farm Ledger and request a new verification email.");
+ }
+})();
+</script>
+</body>
+</html>
