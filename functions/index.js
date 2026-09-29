@@ -173,19 +173,31 @@ exports.deleteFarm = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError("not-found", "Farm not found.");
   }
 
-  const [membersSnap, txSnap, auditSnap] = await Promise.all([
+  const [membersSnap, txSnap] = await Promise.all([
     farmRef.collection("members").limit(1).get(),
-    farmRef.collection("transactions").limit(1).get(),
-    farmRef.collection("auditLogs").limit(1).get()
+    farmRef.collection("transactions").limit(1).get()
   ]);
 
-  if (!membersSnap.empty || !txSnap.empty || !auditSnap.empty) {
+  if (!membersSnap.empty || !txSnap.empty) {
     throw new functions.https.HttpsError(
       "failed-precondition",
-      "Farm must have no members, transactions, or audit logs before deletion."
+      "Farm must have no members or transactions before deletion."
     );
   }
 
+  const auditSnap = await farmRef.collection("auditLogs").get();
+  let batch = db.batch();
+  let writes = 0;
+  for (const auditDoc of auditSnap.docs) {
+    batch.delete(auditDoc.ref);
+    writes++;
+    if (writes === 400) {
+      await batch.commit();
+      batch = db.batch();
+      writes = 0;
+    }
+  }
+  if (writes) await batch.commit();
   await farmRef.delete();
   return { farmId, deleted: true, actorUid: authContext.uid };
 });
