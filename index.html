@@ -1118,7 +1118,7 @@ function syncHerdsmanProvisionFields(existing=[]){
   $("death-count-box").classList.toggle("hidden",type!=="death");
  }
 }
-$("herdsman-livestock-count").oninput=()=>{if($("record-type").value==="herdsman")renderHerdsmanLivestockRows($("herdsman-livestock-count").value);};
+$("herdsman-livestock-count").onchange=()=>{if($("record-type").value==="herdsman")renderHerdsmanLivestockRows($("herdsman-livestock-count").value);};
 $("record-type").onchange=()=>{
  const type=$("record-type").value;
  const isDeath=type==="death";
