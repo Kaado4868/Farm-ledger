@@ -1,41 +1,29 @@
 {
-  "id": "/Farm-ledger/",
+  "id": "./",
   "name": "Farm Ledger",
   "short_name": "Farm Ledger",
   "description": "Secure farm records, expenses, livestock values, losses and transaction history.",
-  "start_url": "/Farm-ledger/",
-  "scope": "/Farm-ledger/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "minimal-ui"
-  ],
   "background_color": "#f4f7f6",
   "theme_color": "#1b5e20",
   "orientation": "portrait-primary",
-  "lang": "en",
-  "dir": "ltr",
-  "categories": [
-    "business",
-    "productivity"
-  ],
-  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/Farm-ledger/icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Farm-ledger/icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/Farm-ledger/icons/icon-512-maskable.png",
+      "src": "./icons/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

@@ -248,9 +248,9 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 }
 </style>
 
-<link rel="manifest" href="/Farm-ledger/manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="/Farm-ledger/icons/icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/Farm-ledger/icons/apple-touch-icon-180.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1434,7 +1434,7 @@ $("record-type").dispatchEvent(new Event("change"));
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function(){
-      navigator.serviceWorker.register('/Farm-ledger/service-worker.js', {scope:'/Farm-ledger/'})
+      navigator.serviceWorker.register('./service-worker.js', {scope:'./'})
         .then(function(reg){
           if (reg.waiting) showUpdate(reg);
           reg.addEventListener('updatefound', function(){
