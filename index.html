@@ -204,6 +204,12 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .snapshot-grid div{background:#f7f9f8;border-radius:9px;padding:10px}
 .snapshot-grid span{display:block;font-size:10px;color:#777;font-weight:700;text-transform:uppercase}
 .snapshot-grid strong{display:block;font-size:15px;color:#1b5e20;margin-top:3px}
+.handover-snapshot-card{padding:14px}
+.handover-snapshot-action{margin-top:10px;width:100%;border:1px solid #2e7d32;background:#fff;color:#2e7d32;border-radius:9px;padding:9px;font-weight:800;font-size:12px}
+.handover-list{margin-top:10px}
+.handover-list-row{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid #eef1ef;font-size:11px}
+.handover-list-row strong{color:#333}
+.handover-list-row span{color:#777;text-align:right}
 
 .admin-action-card{border:1px solid #e4e9e6}
 .admin-danger-bottom{margin-top:22px;border-top:3px solid #ffebee}
@@ -421,6 +427,17 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div><span>Purchase Records</span><strong id="snapshot-purchases">0</strong></div>
 <div><span>Last Record</span><strong id="snapshot-last-date">—</strong></div>
 </div>
+</div>
+<div class="card handover-snapshot-card">
+<h3><i class="fas fa-hand-holding-heart" style="color:#2e7d32"></i> Handover Snapshot</h3>
+<div class="snapshot-grid">
+<div><span>Total Handovers</span><strong id="snapshot-handover-count">0</strong></div>
+<div><span>Livestock Handed Over</span><strong id="snapshot-handover-livestock">0</strong></div>
+<div><span>Expected Returns</span><strong id="snapshot-handover-returns">0</strong></div>
+<div><span>Last Handover</span><strong id="snapshot-handover-last">—</strong></div>
+</div>
+<div id="handover-snapshot-list" class="handover-list"></div>
+<button type="button" id="open-handover-tab" class="handover-snapshot-action"><i class="fas fa-arrow-right"></i> Open Handover</button>
 </div>
 
 
@@ -700,6 +717,12 @@ function showScreen(id){
 }
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
 
+$("open-handover-tab").onclick=()=>{
+ showScreen("manage");
+ const tab=document.querySelector('.manage-tab[data-sub="sub-handover"]');
+ if(tab)tab.click();
+};
+
 document.querySelectorAll(".manage-tab").forEach(tab=>{
  tab.onclick=()=>{
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
@@ -956,6 +979,19 @@ function render(){
  $("snapshot-loss-count").textContent=lossCount;
  $("snapshot-purchases").textContent=purchaseCount;
  $("snapshot-last-date").textContent=lastDate?new Date(lastDate+"T00:00:00").toLocaleDateString("en-NG",{day:"2-digit",month:"short",year:"numeric"}):"—";
+ const handovers=records.filter(r=>r.type==="handover").sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+ const handedLivestock=handovers.reduce((sum,r)=>sum+Math.max(0,Number(r.animalCount)||((Array.isArray(r.handoverLivestock)?r.handoverLivestock.length:0))),0);
+ const expectedReturns=handovers.filter(r=>r.handoverReturnDate&&String(r.handoverReturnDate)>=today()).length;
+ $("snapshot-handover-count").textContent=handovers.length;
+ $("snapshot-handover-livestock").textContent=handedLivestock;
+ $("snapshot-handover-returns").textContent=expectedReturns;
+ $("snapshot-handover-last").textContent=handovers[0]?.date?new Date(handovers[0].date+"T00:00:00").toLocaleDateString("en-NG",{day:"2-digit",month:"short",year:"numeric"}):"—";
+ $("handover-snapshot-list").innerHTML=handovers.slice(0,3).map(r=>{
+  const name=escapeHtml(r.handoverName||"Unknown recipient");
+  const count=Math.max(0,Number(r.animalCount)||((Array.isArray(r.handoverLivestock)?r.handoverLivestock.length:0)));
+  const returnDate=r.handoverReturnDate?new Date(r.handoverReturnDate+"T00:00:00").toLocaleDateString("en-NG",{day:"2-digit",month:"short"}):"No return date";
+  return `<div class="handover-list-row"><strong>${name}</strong><span>${count} animal${count===1?"":"s"} · Return: ${escapeHtml(returnDate)}</span></div>`;
+ }).join("");
 
  const labels={goat:"Goats",sheep:"Sheep",cattle:"Cattle",chicken:"Chicken"};
  const icons={goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",other:"fa-paw"};
