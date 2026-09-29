@@ -1134,6 +1134,8 @@ function renderHandoverLivestockRows(count,existing=[]){
 function getHandoverLivestock(){
  return Array.from(document.querySelectorAll("#handover-livestock-list .livestock-row")).map(row=>({animalType:row.querySelector(".handover-livestock-type").value,animalName:"",tagId:row.querySelector(".handover-livestock-id").value.trim(),sex:row.querySelector(".handover-livestock-sex").value,age:row.querySelector(".handover-livestock-age").value.trim(),details:row.querySelector(".handover-livestock-details").value.trim(),photo:row.dataset.photo||""}));
 }
+$("handover-livestock-count").onchange=()=>renderHandoverLivestockRows($("handover-livestock-count").value);
+$("handover-photos").onchange=async e=>{const files=Array.from(e.target.files).slice(0,3);selectedHandoverPhotos=[];$("handover-photo-preview").innerHTML="";for(const file of files)try{const data=await compressImage(file,420,.45);selectedHandoverPhotos.push(data);const img=document.createElement("img");img.src=data;$("handover-photo-preview").appendChild(img);}catch(err){showError(getFriendlyErrorMessage(err));}};
 function resetHandoverForm(){
  $("handover-id").value="";$("handover-date").valueAsDate=new Date();$("handover-name").value="";$("handover-phone").value="";$("handover-location").value="";$("handover-purpose").value="grazing";$("handover-return-date").value="";$("handover-livestock-count").value="1";$("handover-livestock-list").innerHTML="";$("handover-notes").value="";$("handover-photos").value="";$("handover-photo-preview").innerHTML="";selectedHandoverPhotos=[];
  renderHandoverLivestockRows(1);$("save-handover").innerHTML='<i class="fas fa-save"></i> Save Handover';
