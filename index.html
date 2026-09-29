@@ -914,13 +914,8 @@ function calculateFarmMetrics(data){
    // Only livestock purchase records can increase an animal count.
    animalTotals[animal]=(animalTotals[animal]||0)+count;
    animalValue[animal]=(animalValue[animal]||0)+amount;
-  }else if(r.type==="herdsman"){
-   // Livestock handed to a herdsman leave the farm live-animal balance.
-   spent+=amount;
-   const livestock=Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock:[];
-   livestock.forEach(item=>{const handedAnimal=item.animalType||"goat";animalTotals[handedAnimal]=(animalTotals[handedAnimal]||0)-1;});
   }else{
-   // Medical, feed and other expenses never affect livestock counts/value.
+   // Herdsman provisions are still farm-owned livestock; only the payment is an expense.
    spent+=amount;
   }
  });
