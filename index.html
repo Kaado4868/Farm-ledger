@@ -701,6 +701,23 @@ function showSuccess(message){
  const box=$("success-box"); box.textContent=message; box.style.display="block";
  setTimeout(()=>box.style.display="none",4000);
 }
+function getVerificationActionCodeSettings(){
+ const returnUrl=window.location.origin+window.location.pathname+"?verified=1";
+ return {url:returnUrl,handleCodeInApp:false};
+}
+async function sendBrandedVerificationEmail(user){
+ if(!user)throw new Error("No signed-in account was found.");
+ await user.sendEmailVerification(getVerificationActionCodeSettings());
+}
+function handleVerificationReturn(){
+ const params=new URLSearchParams(window.location.search);
+ if(params.get("verified")==="1"){
+  history.replaceState({},document.title,window.location.pathname);
+  setTimeout(()=>showSuccess("Email verified. You can now sign in to Farm Ledger."),250);
+ }
+}
+handleVerificationReturn();
+
 function getFriendlyErrorMessage(err){
  const msg=(typeof err==="string"?err:(err?.message||"")).toLowerCase();
  if(msg.includes("invalid_login_credentials")||msg.includes("invalid-credential")||msg.includes("wrong-password")||msg.includes("user-not-found")) return "Invalid email or password.";
@@ -778,7 +795,7 @@ $("email-btn").onclick=async()=>{
   if(loginMode) await auth.signInWithEmailAndPassword(email,password);
   else{
    const cred=await auth.createUserWithEmailAndPassword(email,password);
-   if(cred.user && !cred.user.emailVerified) await cred.user.sendEmailVerification();
+   if(cred.user && !cred.user.emailVerified) await sendBrandedVerificationEmail(cred.user);
   }
  }catch(e){showError(getFriendlyErrorMessage(e));}
  finally{btn.disabled=false;btn.textContent=loginMode?"Login":"Sign Up";}
@@ -798,7 +815,7 @@ $("pending-logout").onclick=async()=>{if(unsubscribeRecords)unsubscribeRecords()
 $("verification-logout").onclick=async()=>{if(unsubscribeRecords)unsubscribeRecords();await auth.signOut();};
 
 $("resend-verification").onclick=async()=>{
- try{await auth.currentUser.sendEmailVerification();showSuccess("Verification email sent.");}
+ try{await sendBrandedVerificationEmail(auth.currentUser);showSuccess("Verification email sent. Check your inbox for the Farm Ledger verification email.");}
  catch(e){showError(getFriendlyErrorMessage(e));}
 };
 $("refresh-verification").onclick=async()=>{
