@@ -1,12 +1,13 @@
 {
-  "id": "./",
-  "name": "Farm Ledger - Professional Edition",
+  "id": "/Farm-ledger/",
+  "name": "Farm Ledger",
   "short_name": "Farm Ledger",
   "description": "Secure farm records, expenses, livestock values, losses and transaction history.",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/Farm-ledger/",
+  "scope": "/Farm-ledger/",
   "display": "standalone",
   "display_override": [
+    "window-controls-overlay",
     "standalone",
     "minimal-ui"
   ],
@@ -17,25 +18,24 @@
   "dir": "ltr",
   "categories": [
     "business",
-    "productivity",
-    "finance"
+    "productivity"
   ],
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "/Farm-ledger/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "/Farm-ledger/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/icon-512-maskable.png",
+      "src": "/Farm-ledger/icons/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

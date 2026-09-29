@@ -216,6 +216,17 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 }
 #pwa-update-bar.show{display:flex}
 #pwa-update-bar button{border:0;border-radius:8px;background:#fff;color:#1b5e20;font-weight:800;padding:8px 11px}
+
+#sync-status-bar{
+ position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:100000;
+ display:none;align-items:center;gap:7px;padding:6px 11px;border-radius:0 0 10px 10px;
+ font-size:11px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.15);
+ max-width:94%;white-space:nowrap
+}
+#sync-status-bar.show{display:flex}
+#sync-status-bar.offline{background:#8a5a00;color:#fff}
+#sync-status-bar.pending{background:#1565c0;color:#fff}
+#sync-status-bar.synced{background:#2e7d32;color:#fff}
 #pwa-offline-bar{
   display:none;position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;
   transform:translateX(-50%);width:calc(100% - 24px);max-width:456px;
@@ -237,9 +248,9 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 }
 </style>
 
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png">
+<link rel="manifest" href="/Farm-ledger/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="/Farm-ledger/icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/Farm-ledger/icons/apple-touch-icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -247,13 +258,9 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <meta name="theme-color" content="#1b5e20">
 <meta name="description" content="Farm Ledger — secure livestock, expenses, losses and farm records.">
 <meta name="application-name" content="Farm Ledger">
+<meta name="version" content="10">
 <meta name="format-detection" content="telephone=no">
 
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Farm Ledger">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
 </head>
 <body>
 
@@ -308,7 +315,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 </div>
 
 
-<div id="pwa-offline-bar" role="status">You are offline. The app shell is available; live Firebase data may require a connection.</div>
+<div id="pwa-offline-bar" role="status">Offline mode: your saved Farm Ledger data can be used and Firestore changes will sync when you reconnect.</div>
 <div id="pwa-update-bar" role="status">
 <span><i class="fas fa-arrows-rotate"></i> A new Farm Ledger version is available.</span>
 <button id="pwa-update-btn" type="button">Update</button>
@@ -320,6 +327,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <h1 id="app-header-title"><i class="fas fa-leaf"></i> Farm Ledger</h1>
 <small id="farm-name">Farm: Loading...</small>
 </div>
+<div id="sync-status-bar" role="status" aria-live="polite"><i class="fas fa-cloud"></i><span id="sync-status-text">Synced</span></div>
 <div class="header-actions">
 <button id="install-app-btn" title="Install Farm Ledger"><i class="fas fa-download"></i> Install</button>
 
@@ -501,7 +509,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <button id="clear-images-btn" class="clear-btn hidden" type="button"><i class="fas fa-trash"></i> Clear Existing Images</button>
 
 <p style="font-size:11px;color:#777;margin:12px 0">Images are compressed for instant Firestore storage.</p>
-<button id="save-record" class="main-btn">Save Record</button>
+<p id="offline-save-note" style="font-size:11px;color:#777;margin:0 0 10px"><i class="fas fa-cloud-arrow-up"></i> If you are offline, this change is saved on this device and Firebase will sync it automatically when you reconnect.</p><button id="save-record" class="main-btn">Save Record</button>
 </div>
 </div>
 </div>
@@ -603,6 +611,14 @@ const firebaseConfig={
 
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(),db=firebase.firestore();
+
+// Firestore offline persistence: records are cached locally in IndexedDB and
+// writes are queued by Firebase and synchronized automatically when the
+// connection returns. synchronizeTabs keeps multiple browser tabs coherent.
+let firestoreReady=db.enablePersistence({synchronizeTabs:true}).catch(err=>{
+  console.warn("Firestore offline persistence unavailable:",err);
+  return null;
+});
 const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
@@ -726,6 +742,51 @@ $("switch-farm-btn").onclick=()=>{
  }
 };
 
+
+let lastSyncHadPendingWrites=false;
+let lastSyncWasFromCache=false;
+
+function updateSyncStatus(pendingWrites, fromCache){
+  const bar=$("sync-status-bar"), text=$("sync-status-text");
+  if(!bar||!text)return;
+  lastSyncHadPendingWrites=!!pendingWrites;
+  lastSyncWasFromCache=!!fromCache;
+
+  bar.classList.remove("offline","pending","synced");
+  if(!navigator.onLine){
+    bar.classList.add("offline");
+    text.textContent=pendingWrites ? "Offline • changes waiting to sync" : "Offline • local data available";
+  }else if(pendingWrites){
+    bar.classList.add("pending");
+    text.textContent="Syncing changes…";
+  }else{
+    bar.classList.add("synced");
+    text.textContent=fromCache ? "Using saved data • synced when online" : "Synced";
+    setTimeout(()=>{
+      if(navigator.onLine && !lastSyncHadPendingWrites && $("sync-status-bar")){
+        $("sync-status-bar").classList.remove("show");
+      }
+    },3500);
+  }
+  bar.classList.add("show");
+}
+
+function refreshConnectionStatus(){
+  const bar=$("sync-status-bar"), text=$("sync-status-text");
+  if(!bar||!text)return;
+  if(!navigator.onLine){
+    bar.classList.remove("pending","synced");
+    bar.classList.add("offline","show");
+    text.textContent=lastSyncHadPendingWrites ? "Offline • changes waiting to sync" : "Offline • local data available";
+  }else if(lastSyncHadPendingWrites){
+    bar.classList.remove("offline","synced");
+    bar.classList.add("pending","show");
+    text.textContent="Syncing changes…";
+  }
+}
+window.addEventListener("online",refreshConnectionStatus);
+window.addEventListener("offline",refreshConnectionStatus);
+
 async function ensureUserProfile(user){
  const email=(user.email||"").toLowerCase();
  if(!email)return null;
@@ -750,6 +811,7 @@ auth.onAuthStateChanged(async user=>{
 
  $("auth-view").classList.add("hidden");
  try{
+  await firestoreReady;
   if(!user.emailVerified){
    $("verify-view").classList.remove("hidden");
    $("verify-message").textContent=`Please verify ${user.email||"your email"} before accessing the farm ledger.`;
@@ -784,12 +846,16 @@ function loadRecords(){
  if(unsubscribeRecords)unsubscribeRecords();
  unsubscribeRecords=db.collection("transactions")
   .where("farmId","==",currentFarmId)
-  .onSnapshot(snapshot=>{
+  .onSnapshot({includeMetadataChanges:true},snapshot=>{
    records=[];
    snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
    records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||Number(b.createdAt?.toMillis?.()||b.createdAt||0)-Number(a.createdAt?.toMillis?.()||a.createdAt||0));
+   updateSyncStatus(snapshot.metadata.hasPendingWrites,snapshot.metadata.fromCache);
    render();
-  },e=>showError(getFriendlyErrorMessage(e)));
+  },e=>{
+   refreshConnectionStatus();
+   showError(getFriendlyErrorMessage(e));
+  });
 }
 
 function getDateKey(r){return r.date||today();}
@@ -1018,6 +1084,7 @@ $("save-record").onclick=async()=>{
  if(editId&&!isSuperAdmin())return showError("Only the super administrator can update an existing record.");
  const btn=$("save-record");btn.disabled=true;btn.textContent="Saving...";
  try{
+  await firestoreReady;
   const now=firebase.firestore.FieldValue.serverTimestamp();
   let data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type,animalType,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,updatedAt:now};
   if(editId){
@@ -1058,7 +1125,7 @@ function editRecord(id){
 async function deleteRecord(id){
  if(!isSuperAdmin())return showError("Only the super administrator can delete an existing record.");
  if(!confirm("Permanently delete this record? This action cannot be undone."))return;
- try{await db.collection("transactions").doc(id).delete();showSuccess("Record deleted successfully.");}
+ try{await firestoreReady;await db.collection("transactions").doc(id).delete();showSuccess("Record deleted successfully.");}
  catch(e){showError(getFriendlyErrorMessage(e));}
 }
 
@@ -1301,6 +1368,7 @@ $("record-type").dispatchEvent(new Event("change"));
   function setOfflineState(){
     if (!offlineBar) return;
     offlineBar.classList.toggle('show', !navigator.onLine);
+    if (window.refreshConnectionStatus) window.refreshConnectionStatus();
   }
   window.addEventListener('online', setOfflineState);
   window.addEventListener('offline', setOfflineState);
@@ -1325,6 +1393,33 @@ $("record-type").dispatchEvent(new Event("change"));
   window.addEventListener('appinstalled', function(){
     deferredInstallPrompt = null;
     if (installBtn) installBtn.classList.remove('show');
+    var help=document.getElementById('pwa-install-help');
+    if(help) help.classList.add('hidden');
+  });
+
+  function showInstallHelp(){
+    var help=document.getElementById('pwa-install-help');
+    var text=document.getElementById('pwa-install-help-text');
+    if(!help) return;
+    if(text){
+      if(/iPhone|iPad|iPod/i.test(navigator.userAgent)) text.textContent='In Safari, tap Share, then Add to Home Screen.';
+      else text.textContent='If Chrome does not show Install app, open the browser menu (⋮) and choose Add to home screen. If an Install app option appears, choose it.';
+    }
+    help.classList.remove('hidden');
+  }
+  var fallbackInstall=document.getElementById('pwa-install-action');
+  var fallbackClose=document.getElementById('pwa-install-close');
+  if(fallbackInstall) fallbackInstall.addEventListener('click', async function(){
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      try{await deferredInstallPrompt.userChoice;}catch(e){}
+      deferredInstallPrompt=null;
+      if(installBtn) installBtn.classList.remove('show');
+    }else showInstallHelp();
+  });
+  if(fallbackClose) fallbackClose.addEventListener('click',function(){
+    var help=document.getElementById('pwa-install-help');
+    if(help) help.classList.add('hidden');
   });
 
   function showUpdate(reg){
@@ -1339,7 +1434,7 @@ $("record-type").dispatchEvent(new Event("change"));
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function(){
-      navigator.serviceWorker.register('./service-worker.js', {scope:'./'})
+      navigator.serviceWorker.register('/Farm-ledger/service-worker.js', {scope:'/Farm-ledger/'})
         .then(function(reg){
           if (reg.waiting) showUpdate(reg);
           reg.addEventListener('updatefound', function(){

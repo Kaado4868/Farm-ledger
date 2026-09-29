@@ -1,12 +1,12 @@
-const CACHE_NAME = "farm-ledger-v8";
+const CACHE_NAME = "farm-ledger-v10";
 const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icons/icon-192.png",
+  "/Farm-ledger/",
+  "/Farm-ledger/index.html",
+  "/Farm-ledger/manifest.webmanifest",
+  "/Farm-ledger/icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-512-maskable.png",
-  "./icons/apple-touch-icon-180.png"
+  "/Farm-ledger/icons/apple-touch-icon-180.png"
 ];
 
 self.addEventListener("install", event => {
@@ -50,11 +50,11 @@ self.addEventListener("fetch", event => {
         .then(response => {
           if (response && response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+            caches.open(CACHE_NAME).then(cache => cache.put("/Farm-ledger/index.html", copy));
           }
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(() => caches.match("/Farm-ledger/index.html"))
     );
     return;
   }
