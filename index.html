@@ -90,6 +90,18 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .delete-btn{border:0;background:none;color:#d32f2f;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
 
 
+.herdsman-provision{border:1px solid #dfe8e1;background:#f7faf8;border-radius:10px;padding:12px;margin:12px 0}
+.herdsman-provision h4{margin:0 0 6px;color:#1b5e20;font-size:13px}
+.herdsman-provision-note{font-size:11px;color:#777;margin:0 0 10px}
+.livestock-row{background:#fff;border:1px solid #e2e7e4;border-radius:9px;padding:10px;margin-bottom:8px}
+.livestock-row-title{font-size:11px;font-weight:800;color:#555;margin-bottom:8px}
+.livestock-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.livestock-grid .form-group{margin-bottom:0}
+.livestock-grid label{font-size:10px;margin-bottom:4px}
+.livestock-grid .form-input{padding:9px;font-size:13px}
+.herdsman-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.herdsman-contact-grid .form-group{margin-bottom:0}
+@media(max-width:380px){.livestock-grid,.herdsman-contact-grid{grid-template-columns:1fr}}
 .clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
 
 
@@ -489,6 +501,17 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 
 <div id="animal-count-box" class="form-group"><label id="animal-count-label">Number of Goats</label><input id="animal-count" class="form-input" type="number" min="1" value="1"></div>
 <div id="death-count-box" class="form-group hidden"><label>Number of Animals Lost</label><input id="death-count" class="form-input" type="number" min="1" value="1"></div>
+
+<div id="herdsman-provision-box" class="herdsman-provision hidden">
+<h4><i class="fas fa-user-tie"></i> Livestock Given to Herdsman</h4>
+<p class="herdsman-provision-note">Record who received the livestock and the specific animals handed over.</p>
+<div class="herdsman-contact-grid">
+<div class="form-group"><label>Herdsman Name</label><input id="herdsman-name" class="form-input" type="text" maxlength="100" placeholder="Full name"></div>
+<div class="form-group"><label>Phone Number</label><input id="herdsman-phone" class="form-input" type="tel" maxlength="30" placeholder="080..."></div>
+</div>
+<div class="form-group" style="margin-top:10px"><label>Number of Livestock Given</label><input id="herdsman-livestock-count" class="form-input" type="number" min="1" max="100" value="1"></div>
+<div id="herdsman-livestock-list"></div>
+</div>
 
 <div class="form-group"><label>Description</label><input id="record-description" class="form-input" type="text" placeholder="e.g. 5 goats purchased"></div>
 
@@ -1039,6 +1062,56 @@ $("animal-type").onchange=()=>{
  if(type!=="other")otherName.value="";
  $("animal-count-label").textContent=`Number of ${animalLabel(type,otherName.value)}s`;
 };
+function renderHerdsmanLivestockRows(count,existing=[]){
+ const list=$("herdsman-livestock-list");
+ const safeCount=Math.min(100,Math.max(1,Number(count)||1));
+ list.innerHTML="";
+ for(let i=0;i<safeCount;i++){
+  const item=existing[i]||{};
+  const row=document.createElement("div");row.className="livestock-row";
+  row.innerHTML=`<div class="livestock-row-title">Livestock #${i+1}</div>
+   <div class="livestock-grid">
+    <div class="form-group"><label>Animal Type</label><select class="form-input livestock-type"><option value="goat">Goat</option><option value="sheep">Sheep</option><option value="cattle">Cattle</option><option value="chicken">Chicken</option><option value="other">Other</option></select></div>
+    <div class="form-group"><label>Tag / ID</label><input class="form-input livestock-id" type="text" maxlength="50" placeholder="e.g. G-014"></div>
+    <div class="form-group"><label>Sex</label><select class="form-input livestock-sex"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div>
+    <div class="form-group"><label>Age</label><input class="form-input livestock-age" type="text" maxlength="30" placeholder="e.g. 2 years"></div>
+    <div class="form-group" style="grid-column:1/-1"><label>Identifying Details</label><input class="form-input livestock-details" type="text" maxlength="150" placeholder="Colour, markings, breed, etc."></div>
+   </div>`;
+  row.querySelector(".livestock-type").value=item.animalType||"goat";
+  row.querySelector(".livestock-id").value=item.tagId||"";
+  row.querySelector(".livestock-sex").value=item.sex||"";
+  row.querySelector(".livestock-age").value=item.age||"";
+  row.querySelector(".livestock-details").value=item.details||"";
+  list.appendChild(row);
+ }
+}
+function getHerdsmanLivestock(){
+ return Array.from(document.querySelectorAll("#herdsman-livestock-list .livestock-row")).map(row=>({
+  animalType:row.querySelector(".livestock-type").value,
+  tagId:row.querySelector(".livestock-id").value.trim(),
+  sex:row.querySelector(".livestock-sex").value,
+  age:row.querySelector(".livestock-age").value.trim(),
+  details:row.querySelector(".livestock-details").value.trim()
+ }));
+}
+function syncHerdsmanProvisionFields(existing=[]){
+ const type=$("record-type").value,isHerdsman=type==="herdsman";
+ $("herdsman-provision-box").classList.toggle("hidden",!isHerdsman);
+ if(isHerdsman){
+  $("animal-count-box").style.display="none";
+  $("death-count-box").classList.add("hidden");
+  const count=Math.min(100,Math.max(1,Number($("herdsman-livestock-count").value)||1));
+  $("herdsman-livestock-count").value=count;
+  renderHerdsmanLivestockRows(count,existing);
+ }else{
+  $("herdsman-name").value="";
+  $("herdsman-phone").value="";
+  $("herdsman-livestock-list").innerHTML="";
+  $("animal-count-box").style.display=type==="purchase"?"block":"none";
+  $("death-count-box").classList.toggle("hidden",type!=="death");
+ }
+}
+$("herdsman-livestock-count").oninput=()=>{if($("record-type").value==="herdsman")renderHerdsmanLivestockRows($("herdsman-livestock-count").value);};
 $("record-type").onchange=()=>{
  const type=$("record-type").value;
  const isDeath=type==="death";
@@ -1079,6 +1152,7 @@ $("clear-images-btn").onclick=()=>{
 
 function resetForm(){
  $("record-id").value="";$("animal-type").value="goat";$("record-type").value="purchase";$("record-amount").value="";$("other-animal-name").value="";$("other-animal-name").classList.add("hidden");
+ $("herdsman-name").value="";$("herdsman-phone").value="";$("herdsman-livestock-count").value="1";$("herdsman-livestock-list").innerHTML="";$("herdsman-provision-box").classList.add("hidden");
  $("animal-count").value="1";$("death-count").value="1";$("record-description").value="";$("record-date").valueAsDate=new Date();
  $("death-count-box").classList.add("hidden");$("amount-label").textContent="Amount (₦)";$("record-amount").placeholder="50000";
  $("goat-images").value="";$("receipt-image").value="";$("image-preview").innerHTML="";$("receipt-preview").style.display="none";
@@ -1093,8 +1167,14 @@ $("save-record").onclick=async()=>{
  const otherAnimalName=animalType==="other"?$("other-animal-name").value.trim():"";
  const amountInput=$("record-amount").value.trim(),amount=amountInput===""?0:Number(amountInput);
  const description=$("record-description").value.trim(),date=$("record-date").value;
- const animalCount=type==="purchase"?Math.max(1,Number($("animal-count").value)||1):type==="death"?Math.max(1,Number($("death-count").value)||1):0;
+ const herdsmanName=type==="herdsman"?$("herdsman-name").value.trim():"";
+ const herdsmanPhone=type==="herdsman"?$("herdsman-phone").value.trim():"";
+ const herdsmanLivestock=type==="herdsman"?getHerdsmanLivestock():[];
+ const animalCount=type==="purchase"?Math.max(1,Number($("animal-count").value)||1):type==="death"?Math.max(1,Number($("death-count").value)||1):type==="herdsman"?herdsmanLivestock.length:0;
  if(!Number.isFinite(amount)||amount<0)return showError("Please enter a valid amount.");
+ if(type==="herdsman"&&(!herdsmanName||herdsmanName.length>100))return showError("Please enter the herdsman's name.");
+ if(type==="herdsman"&&(!herdsmanPhone||herdsmanPhone.length>30))return showError("Please enter the herdsman's phone number.");
+ if(type==="herdsman"&&(!herdsmanLivestock.length||herdsmanLivestock.length>100))return showError("Please specify the livestock given to the herdsman.");
  if(amount>1000000000)return showError("Amount is too large.");
  if(!description||description.length>300)return showError("Description is required and must be 300 characters or less.");
  if(animalType==="other"&&(!otherAnimalName||otherAnimalName.length>50))return showError("Please specify the animal name (1-50 characters).");
@@ -1106,7 +1186,7 @@ $("save-record").onclick=async()=>{
  try{
   await firestoreReady;
   const now=firebase.firestore.FieldValue.serverTimestamp();
-  let data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type,animalType,animalName:otherAnimalName,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,updatedAt:now};
+  let data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type,animalType,animalName:otherAnimalName,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,herdsmanName,herdsmanPhone,herdsmanLivestock,updatedAt:now};
   if(editId){
    const existing=records.find(r=>r.id===editId);if(!existing)throw new Error("Record not found.");
    if(!selectedGoatImages.length&&!imagesCleared)data.images=existing.images||[];
@@ -1131,11 +1211,15 @@ function editRecord(id){
  $("other-animal-name").classList.toggle("hidden",r.animalType!=="other");
  $("record-amount").value=r.amount??0;$("animal-count").value=r.type==="purchase"?(r.animalCount??r.goatCount??1):1;
  $("death-count").value=r.type==="death"?Math.abs(Number(r.animalCount??1)):1;
+ $("herdsman-name").value=r.herdsmanName||"";
+ $("herdsman-phone").value=r.herdsmanPhone||"";
+ $("herdsman-livestock-count").value=Math.min(100,Math.max(1,Array.isArray(r.herdsmanLivestock)&&r.herdsmanLivestock.length?r.herdsmanLivestock.length:1));
  $("record-description").value=r.description||"";$("record-date").value=r.date||"";
  $("animal-count-label").textContent=`Number of ${animalLabel($("animal-type").value,$("other-animal-name").value)}s`;
  $("form-title").innerHTML='<i class="fas fa-edit" style="color:#2e7d32"></i> Edit Record';$("save-record").textContent="Update Record";
  $("animal-count-box").style.display=r.type==="purchase"?"block":"none";
  $("death-count-box").classList.toggle("hidden",r.type!=="death");
+ syncHerdsmanProvisionFields(Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock:[]);
  $("amount-label").textContent=r.type==="death"?"Loss Value (₦) — optional":"Amount (₦)";
  $("record-amount").placeholder=r.type==="death"?"Optional estimated value of lost animal":"50000";
  selectedGoatImages=[];selectedReceipt=null;imagesCleared=false;
