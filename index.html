@@ -442,7 +442,6 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <option value="sheep">Sheep</option>
 <option value="cattle">Cattle</option>
 <option value="chicken">Chicken</option>
-<option value="pig">Pigs</option>
 <option value="other">Other</option>
 </select>
 <div class="history-date-box">
@@ -472,9 +471,10 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <option value="sheep">Sheep</option>
 <option value="cattle">Cattle</option>
 <option value="chicken">Chicken</option>
-<option value="pig">Pig</option>
 <option value="other">Other</option>
-</select></div>
+</select>
+<input id="other-animal-name" class="form-input hidden" type="text" maxlength="50" placeholder="Specify animal name (e.g. Rabbit)">
+</div>
 <div class="form-group"><label>Category</label>
 <select id="record-type">
 <option value="purchase">Animal Purchase</option>
@@ -649,8 +649,8 @@ function getFriendlyErrorMessage(err){
 }
 function money(n){return "₦"+Number(n||0).toLocaleString("en-NG");}
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
-function animalLabel(type){return ({goat:"Goat",sheep:"Sheep",cattle:"Cattle",chicken:"Chicken",pig:"Pig",other:"Animal"}[type]||"Animal");}
-function animalIcon(type){return ({goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",pig:"fa-paw",other:"fa-paw"}[type]||"fa-paw");}
+function animalLabel(type,name){return name&&String(name).trim()?String(name).trim():({goat:"Goat",sheep:"Sheep",cattle:"Cattle",chicken:"Chicken",other:"Animal"}[type]||"Animal");}
+function animalIcon(type){return ({goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",other:"fa-paw"}[type]||"fa-paw");}
 function isSuperAdmin(){return !!currentUser && (currentUser.email||"").toLowerCase()===SUPER_ADMIN;}
 function today(){return new Date().toISOString().slice(0,10);}
 
@@ -914,9 +914,9 @@ function render(){
  $("snapshot-purchases").textContent=purchaseCount;
  $("snapshot-last-date").textContent=lastDate?new Date(lastDate+"T00:00:00").toLocaleDateString("en-NG",{day:"2-digit",month:"short",year:"numeric"}):"—";
 
- const labels={goat:"Goats",sheep:"Sheep",cattle:"Cattle",chicken:"Chicken",pig:"Pigs",other:"Other Animals"};
- const icons={goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",pig:"fa-paw",other:"fa-paw"};
- const order=["goat","sheep","cattle","chicken","pig","other"];
+ const labels={goat:"Goats",sheep:"Sheep",cattle:"Cattle",chicken:"Chicken",other:"Other Animals"};
+ const icons={goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",other:"fa-paw"};
+ const order=["goat","sheep","cattle","chicken","other"];
  const active=order.filter(a=>metrics.animalTotals[a]!==undefined || records.some(r=>(r.animalType||"goat")===a));
  $("animal-stats-grid").innerHTML=active.map(a=>`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`).join("");
 
@@ -936,7 +936,7 @@ function render(){
   if(animalFilter!=="all"&&animal!==animalFilter)return false;
   if(from&&String(r.date||"")<from)return false;
   if(to&&String(r.date||"")>to)return false;
-  if(search&&!`${desc} ${author} ${animalLabel(animal).toLowerCase()}`.includes(search))return false;
+  if(search&&!`${desc} ${author} ${animalLabel(animal,r.animalName).toLowerCase()}`.includes(search))return false;
   return true;
  });
  renderList($("history-list"),filtered,true);
@@ -980,17 +980,17 @@ function renderList(container,data,controls){
    const animal=r.animalType||"goat",count=Number(r.animalCount??r.goatCount??0)||0;
    const isDeath=r.type==="death";
    const icon=isDeath?"fa-skull-crossbones":r.type==="purchase"?"fa-shopping-cart":r.type==="medical"?"fa-pills":r.type==="feed"?"fa-wheat-awn":r.type==="herdsman"?"fa-user-tie":"fa-receipt";
-   const amountText=isDeath?(count?`-${count} ${animalLabel(animal)}${Math.abs(count)!==1?"s":""}`:`Loss ${money(r.amount)}`):`−${money(r.amount)}`;
+   const amountText=isDeath?(count?`-${count} ${animalLabel(animal,r.animalName)}${Math.abs(count)!==1?"s":""}`:`Loss ${money(r.amount)}`):`−${money(r.amount)}`;
    const images=Array.isArray(r.images)?r.images.filter(Boolean):[];
    const hasReceipt=!!r.receipt;
    const div=document.createElement("div");div.className=`txn-row ${isDeath?"death-row":""}`;
    div.innerHTML=`<div class="txn-icon"><i class="fas ${icon}"></i></div>
     <div class="txn-main"><div class="txn-title">${escapeHtml(r.description||"Untitled record")}</div>
-    <div class="txn-sub">${escapeHtml(animalLabel(animal))}${count?` • ${Math.abs(count)} animal(s)`:``} • By ${escapeHtml((r.author||"").split("@")[0])} • Tap for details</div>
+    <div class="txn-sub">${escapeHtml(animalLabel(animal,r.animalName))}${count?` • ${Math.abs(count)} animal(s)`:``} • By ${escapeHtml((r.author||"").split("@")[0])} • Tap for details</div>
     <div class="txn-details">
       <div class="txn-detail-label">Record details</div>
       <div style="font-size:12px;color:#555">${isDeath?"Animal loss / death":"Transaction"} • ${escapeHtml(formatDateHeader(r.date||""))}</div>
-      ${isDeath?`<div class="record-death-note"><i class="fas fa-skull-crossbones"></i> This record reduces the live ${escapeHtml(animalLabel(animal))} balance by ${Math.abs(count)}.</div>`:""}
+      ${isDeath?`<div class="record-death-note"><i class="fas fa-skull-crossbones"></i> This record reduces the live ${escapeHtml(animalLabel(animal,r.animalName))} balance by ${Math.abs(count)}.</div>`:""}
       ${images.length?`<div style="margin-top:9px"><div class="txn-detail-label">Photos</div><div class="txn-images">${images.map((src,i)=>`<img src="${escapeHtml(src)}" alt="Animal photo ${i+1}" data-photo="${i}">`).join("")}</div></div>`:""}
       ${hasReceipt?`<div style="margin-top:9px"><div class="txn-detail-label">Receipt</div><button class="txn-receipt" type="button"><i class="fas fa-receipt"></i> View receipt</button></div>`:""}
       ${!images.length&&!hasReceipt?`<div class="txn-empty-detail" style="margin-top:8px">No photos or receipt attached to this record.</div>`:""}
@@ -1019,7 +1019,11 @@ $("viewer-close").onclick=()=>$("image-viewer").style.display="none";
 $("image-viewer").onclick=e=>{if(e.target===$("image-viewer"))$("image-viewer").style.display="none";};
 
 $("animal-type").onchange=()=>{
- $("animal-count-label").textContent=`Number of ${animalLabel($("animal-type").value)}s`;
+ const type=$("animal-type").value;
+ const otherName=$("other-animal-name");
+ otherName.classList.toggle("hidden",type!=="other");
+ if(type!=="other")otherName.value="";
+ $("animal-count-label").textContent=`Number of ${animalLabel(type,otherName.value)}s`;
 };
 $("record-type").onchange=()=>{
  const type=$("record-type").value;
@@ -1060,7 +1064,7 @@ $("clear-images-btn").onclick=()=>{
 };
 
 function resetForm(){
- $("record-id").value="";$("animal-type").value="goat";$("record-type").value="purchase";$("record-amount").value="";
+ $("record-id").value="";$("animal-type").value="goat";$("record-type").value="purchase";$("record-amount").value="";$("other-animal-name").value="";$("other-animal-name").classList.add("hidden");
  $("animal-count").value="1";$("death-count").value="1";$("record-description").value="";$("record-date").valueAsDate=new Date();
  $("death-count-box").classList.add("hidden");$("amount-label").textContent="Amount (₦)";$("record-amount").placeholder="50000";
  $("goat-images").value="";$("receipt-image").value="";$("image-preview").innerHTML="";$("receipt-preview").style.display="none";
@@ -1072,12 +1076,14 @@ function resetForm(){
 $("save-record").onclick=async()=>{
  if(!currentUser||!currentFarmId)return showError("No farm is currently selected.");
  const type=$("record-type").value,animalType=$("animal-type").value;
+ const otherAnimalName=animalType==="other"?$("other-animal-name").value.trim():"";
  const amountInput=$("record-amount").value.trim(),amount=amountInput===""?0:Number(amountInput);
  const description=$("record-description").value.trim(),date=$("record-date").value;
  const animalCount=type==="purchase"?Math.max(1,Number($("animal-count").value)||1):type==="death"?Math.max(1,Number($("death-count").value)||1):0;
  if(!Number.isFinite(amount)||amount<0)return showError("Please enter a valid amount.");
  if(amount>1000000000)return showError("Amount is too large.");
  if(!description||description.length>300)return showError("Description is required and must be 300 characters or less.");
+ if(animalType==="other"&&(!otherAnimalName||otherAnimalName.length>50))return showError("Please specify the animal name (1-50 characters).");
  if(!date)return showError("Please select a date.");
  if(date>today())return showError("Record date cannot be in the future.");
  const editId=$("record-id").value;
@@ -1086,7 +1092,7 @@ $("save-record").onclick=async()=>{
  try{
   await firestoreReady;
   const now=firebase.firestore.FieldValue.serverTimestamp();
-  let data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type,animalType,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,updatedAt:now};
+  let data={farmId:currentFarmId,author:currentUser.email.toLowerCase(),type,animalType,animalName:otherAnimalName,animalCount,goatCount:animalType==="goat"&&type==="purchase"?animalCount:0,amount,description,date,images:selectedGoatImages,receipt:selectedReceipt,updatedAt:now};
   if(editId){
    const existing=records.find(r=>r.id===editId);if(!existing)throw new Error("Record not found.");
    if(!selectedGoatImages.length&&!imagesCleared)data.images=existing.images||[];
@@ -1107,10 +1113,12 @@ function editRecord(id){
  if(!isSuperAdmin())return showError("Only the super administrator can update existing records.");
  const r=records.find(x=>x.id===id);if(!r)return;
  $("record-id").value=r.id;$("animal-type").value=r.animalType||"goat";$("record-type").value=r.type;
+ $("other-animal-name").value=r.animalType==="other"?(r.animalName||""):"";
+ $("other-animal-name").classList.toggle("hidden",r.animalType!=="other");
  $("record-amount").value=r.amount??0;$("animal-count").value=r.type==="purchase"?(r.animalCount??r.goatCount??1):1;
  $("death-count").value=r.type==="death"?Math.abs(Number(r.animalCount??1)):1;
  $("record-description").value=r.description||"";$("record-date").value=r.date||"";
- $("animal-count-label").textContent=`Number of ${animalLabel($("animal-type").value)}s`;
+ $("animal-count-label").textContent=`Number of ${animalLabel($("animal-type").value,$("other-animal-name").value)}s`;
  $("form-title").innerHTML='<i class="fas fa-edit" style="color:#2e7d32"></i> Edit Record';$("save-record").textContent="Update Record";
  $("animal-count-box").style.display=r.type==="purchase"?"block":"none";
  $("death-count-box").classList.toggle("hidden",r.type!=="death");
@@ -1241,7 +1249,7 @@ function parseCSV(text){
 }
 function normalizeAnimal(value){
  const v=String(value||"").trim().toLowerCase();
- return ({goat:"goat",goats:"goat",sheep:"sheep",cattle:"cattle",cow:"cattle",chicken:"chicken",chickens:"chicken",pig:"pig",pigs:"pig",other:"other","other animal":"other","other animals":"other"}[v]||"other");
+ return ({goat:"goat",goats:"goat",sheep:"sheep",cattle:"cattle",cow:"cattle",chicken:"chicken",chickens:"chicken",other:"other","other animal":"other","other animals":"other"}[v]||"other");
 }
 function normalizeType(value){
  const v=String(value||"").trim().toLowerCase();
@@ -1253,17 +1261,18 @@ function normalizeType(value){
  return "other";
 }
 function validateImportedRecord(r){
- const type=normalizeType(r.type),animalType=normalizeAnimal(r.animalType||r.animal),date=String(r.date||"").slice(0,10),description=String(r.description||"").trim();
+ const type=normalizeType(r.type),animalType=normalizeAnimal(r.animalType||r.animal),animalName=animalType==="other"?String(r.animalName||r.animal||"").trim():"",date=String(r.date||"").slice(0,10),description=String(r.description||"").trim();
  const amount=Number(r.amount??0),count=Math.max(0,Number(r.animalCount??r.goatCount??0)||0);
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw new Error("Invalid record date.");
  if(date>today())throw new Error("Imported records cannot have future dates.");
  if(!description||description.length>300)throw new Error("Every imported record needs a description of 1-300 characters.");
+ if(animalType==="other"&&(!animalName||animalName.length>50))throw new Error("Imported records with Other animal type must specify an animal name of 1-50 characters.");
  if(!Number.isFinite(amount)||amount<0||amount>1000000000)throw new Error("Imported record has an invalid amount.");
  if(type==="purchase"&&count<1)throw new Error("Purchase records must contain at least 1 animal.");
  if(type==="death"&&count<1)throw new Error("Death records must contain at least 1 lost animal.");
  const images=Array.isArray(r.images)?r.images.slice(0,3).filter(x=>typeof x==="string"&&x.length<=500000):[];
  const receipt=typeof r.receipt==="string"&&r.receipt.length<=500000?r.receipt:null;
- return {type,animalType,date,description,amount,animalCount:count,images,receipt};
+ return {type,animalType,animalName,date,description,amount,animalCount:count,images,receipt};
 }
 async function importRecordsFromFile(){
  if(!isSuperAdmin())return showError("Only the super administrator can import records.");
@@ -1299,7 +1308,7 @@ async function importRecordsFromFile(){
    const batch=db.batch();
    clean.slice(offset,offset+400).forEach(r=>{
     const ref=db.collection("transactions").doc();
-    const data={farmId:farm,author:currentUser.email.toLowerCase(),type:r.type,animalType:r.animalType,animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    const data={farmId:farm,author:currentUser.email.toLowerCase(),type:r.type,animalType:r.animalType,animalName:r.animalName||"",animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
     batch.set(ref,data);imported++;
    });
    await batch.commit();
@@ -1327,7 +1336,7 @@ $("export-csv-btn").onclick=async()=>{
   const {farm,data}=await getAdminFarmRecords();
   if(!data.length)return showError("No records found for this farm.");
   let csv="Date,Animal,Type,Description,Animal Count,Amount (NGN),Author\n";
-  data.forEach(r=>{csv+=`"${r.date||""}","${animalLabel(r.animalType||"goat")}","${r.type||""}","${(r.description||"").replace(/"/g,'""')}","${r.animalCount??r.goatCount??0}","${r.amount||0}","${(r.author||"").replace(/"/g,'""')}"\n`;});
+  data.forEach(r=>{csv+=`"${r.date||""}","${animalLabel(r.animalType||"goat",r.animalName)}","${r.type||""}","${(r.description||"").replace(/"/g,'""')}","${r.animalCount??r.goatCount??0}","${r.amount||0}","${(r.author||"").replace(/"/g,'""')}"\n`;});
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),link=document.createElement("a");
   link.href=URL.createObjectURL(blob);link.download=`${farm}_ledger_${today()}.csv`;link.click();URL.revokeObjectURL(link.href);
   showSuccess("CSV export created successfully.");
