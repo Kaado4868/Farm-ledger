@@ -880,7 +880,6 @@ function calculateFarmMetrics(data){
  let spent=0,lossValue=0;
  const animalTotals={},animalValue={};
  data.forEach(r=>{
-  const isAnimalTransaction=r.type==="purchase"||r.type==="death";
   const animal=r.animalType||"goat";
   const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
   const amount=Math.max(0,Number(r.amount)||0);
@@ -896,9 +895,6 @@ function calculateFarmMetrics(data){
    // Medical, feed, herdsman and other expenses never affect livestock counts/value.
    spent+=amount;
   }
-  // Keep the explicit transaction classification visible in the logic:
-  // expense records must never be treated as animal transactions.
-  if(!isAnimalTransaction)delete animalTotals[animal];
  });
  Object.keys(animalTotals).forEach(a=>{animalTotals[a]=Math.max(0,animalTotals[a]);});
  const totalValue=Math.max(0,Object.values(animalValue).reduce((a,b)=>a+b,0));
@@ -914,10 +910,10 @@ function render(){
  const lossCount=records.filter(r=>r.type==="death").reduce((sum,r)=>sum+Math.abs(Number(r.animalCount??r.goatCount??0)||0),0);
  const purchaseCount=records.filter(r=>r.type==="purchase").length;
  const lastDate=records.map(r=>r.date).filter(Boolean).sort().pop();
- $("snapshot-live-animals").textContent=records.filter(r=>r.type==="purchase"||r.type==="death").reduce((sum,r)=>{
+ $("snapshot-live-animals").textContent=Math.max(0,records.filter(r=>r.type==="purchase"||r.type==="death").reduce((sum,r)=>{
   const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
   return sum+(r.type==="death"?-count:r.type==="purchase"?count:0);
-},0);
+},0));
  $("snapshot-loss-count").textContent=lossCount;
  $("snapshot-purchases").textContent=purchaseCount;
  $("snapshot-last-date").textContent=lastDate?new Date(lastDate+"T00:00:00").toLocaleDateString("en-NG",{day:"2-digit",month:"short",year:"numeric"}):"—";
