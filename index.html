@@ -1377,7 +1377,11 @@ function validateImportedRecord(r){
  if(type==="death"&&count<1)throw new Error("Death records must contain at least 1 lost animal.");
  const images=Array.isArray(r.images)?r.images.slice(0,3).filter(x=>typeof x==="string"&&x.length<=500000):[];
  const receipt=typeof r.receipt==="string"&&r.receipt.length<=500000?r.receipt:null;
- return {type,animalType,animalName,date,description,amount,animalCount:count,images,receipt};
+ const herdsmanName=type==="herdsman"?String(r.herdsmanName||"").trim():"";
+ const herdsmanPhone=type==="herdsman"?String(r.herdsmanPhone||"").trim():"";
+ const herdsmanLivestock=type==="herdsman"&&Array.isArray(r.herdsmanLivestock)?r.herdsmanLivestock.slice(0,100).map(x=>({animalType:normalizeAnimal(x.animalType||x.animal),tagId:String(x.tagId||"").trim(),sex:String(x.sex||"").trim(),age:String(x.age||"").trim(),details:String(x.details||"").trim()})):[];
+ if(type==="herdsman"&&(!herdsmanName||herdsmanName.length>100||!herdsmanPhone||herdsmanPhone.length>30||!herdsmanLivestock.length))throw new Error("Herdsman records must include name, phone number and livestock details.");
+ return {type,animalType,animalName,date,description,amount,animalCount:type==="herdsman"?herdsmanLivestock.length:count,images,receipt,herdsmanName,herdsmanPhone,herdsmanLivestock};
 }
 async function importRecordsFromFile(){
  if(!isSuperAdmin())return showError("Only the super administrator can import records.");
@@ -1413,7 +1417,7 @@ async function importRecordsFromFile(){
    const batch=db.batch();
    clean.slice(offset,offset+400).forEach(r=>{
     const ref=db.collection("transactions").doc();
-    const data={farmId:farm,author:currentUser.email.toLowerCase(),type:r.type,animalType:r.animalType,animalName:r.animalName||"",animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    const data={farmId:farm,author:currentUser.email.toLowerCase(),type:r.type,animalType:r.animalType,animalName:r.animalName||"",animalCount:r.animalCount,goatCount:r.animalType==="goat"&&r.type==="purchase"?r.animalCount:0,amount:r.amount,description:r.description,date:r.date,images:r.images||[],receipt:r.receipt||null,herdsmanName:r.herdsmanName||"",herdsmanPhone:r.herdsmanPhone||"",herdsmanLivestock:r.herdsmanLivestock||[],imported:true,importedAt:firebase.firestore.FieldValue.serverTimestamp(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
     batch.set(ref,data);imported++;
    });
    await batch.commit();
