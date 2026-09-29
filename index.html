@@ -1319,7 +1319,7 @@ function validateImportedRecord(r){
  const handoverPhone=type==="handover"?String(r.handoverPhone||"").trim():"";
  const handoverLocation=type==="handover"?String(r.handoverLocation||"").trim():"";
  const handoverNotes=type==="handover"?String(r.handoverNotes||"").trim():"";
- const handoverLivestock=type==="handover"&&Array.isArray(r.handoverLivestock)?r.handoverLivestock.slice(0,100).map(x=>({animalType:normalizeAnimal(x.animalType||x.animal),animalName:String(x.animalName||"").trim(),tagId:String(x.tagId||"").trim(),sex:String(x.sex||"").trim(),age:String(x.age||"").trim(),details:String(x.details||"").trim()})):[];
+ const handoverLivestock=type==="handover"&&Array.isArray(r.handoverLivestock)?r.handoverLivestock.slice(0,20).map(x=>({animalType:normalizeAnimal(x.animalType||x.animal),animalName:String(x.animalName||"").trim(),tagId:String(x.tagId||"").trim(),sex:String(x.sex||"").trim(),age:String(x.age||"").trim(),details:String(x.details||"").trim(),photo:String(x.photo||"")})):[];
  if(type==="handover"&&(!handoverName||handoverName.length>100||!handoverPhone||handoverPhone.length>30||!handoverLivestock.length))throw new Error("Handover records must include recipient name, phone number and livestock details.");
  if(type==="handover"&&handoverReturnDate&&handoverReturnDate<date)throw new Error("Handover return date cannot be before the handover date.");
  const herdsmanName=type==="herdsman"?String(r.herdsmanName||"").trim():"";
