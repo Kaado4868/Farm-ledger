@@ -1292,9 +1292,9 @@ async function importRecordsFromFile(){
    if(rows.length<2)throw new Error("The CSV file contains no records.");
    const headers=rows[0].map(h=>h.trim().toLowerCase());
    const idx=name=>headers.indexOf(name.toLowerCase());
-   const dateI=idx("date"),animalI=idx("animal"),typeI=idx("type"),descI=idx("description"),countI=idx("animal count"),amountI=idx("amount (ngn)");
+   const dateI=idx("date"),animalI=idx("animal"),animalNameI=idx("animal name"),typeI=idx("type"),descI=idx("description"),countI=idx("animal count"),amountI=idx("amount (ngn)");
    if(dateI<0||typeI<0||descI<0||amountI<0)throw new Error("CSV must contain Date, Type, Description and Amount (NGN) columns.");
-   sourceRecords=rows.slice(1).map(r=>({date:r[dateI],animal:r[animalI],type:r[typeI],description:r[descI],animalCount:countI>=0?r[countI]:0,amount:r[amountI]}));
+   sourceRecords=rows.slice(1).map(r=>({date:r[dateI],animal:r[animalI],animalName:animalNameI>=0?r[animalNameI]:"",type:r[typeI],description:r[descI],animalCount:countI>=0?r[countI]:0,amount:r[amountI]}));
   }
   if(!sourceRecords.length)return showError("No records found in the selected file.");
   if(sourceRecords.length>400)return showError("Import is limited to 400 records at a time for safety. Split the backup and import it in parts.");
@@ -1335,8 +1335,8 @@ $("export-csv-btn").onclick=async()=>{
  try{
   const {farm,data}=await getAdminFarmRecords();
   if(!data.length)return showError("No records found for this farm.");
-  let csv="Date,Animal,Type,Description,Animal Count,Amount (NGN),Author\n";
-  data.forEach(r=>{csv+=`"${r.date||""}","${animalLabel(r.animalType||"goat",r.animalName)}","${r.type||""}","${(r.description||"").replace(/"/g,'""')}","${r.animalCount??r.goatCount??0}","${r.amount||0}","${(r.author||"").replace(/"/g,'""')}"\n`;});
+  let csv="Date,Animal,Animal Name,Type,Description,Animal Count,Amount (NGN),Author\\n";
+  data.forEach(r=>{csv+=`"${r.date||""}","${animalLabel(r.animalType||"goat",r.animalName)}","${(r.animalName||"").replace(/"/g,'""')}","${r.type||""}","${(r.description||"").replace(/"/g,'""')}","${r.animalCount??r.goatCount??0}","${r.amount||0}","${(r.author||"").replace(/"/g,'""')}"\\n`;});
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),link=document.createElement("a");
   link.href=URL.createObjectURL(blob);link.download=`${farm}_ledger_${today()}.csv`;link.click();URL.revokeObjectURL(link.href);
   showSuccess("CSV export created successfully.");
