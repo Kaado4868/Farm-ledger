@@ -375,12 +375,10 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="stat-icon" style="background:#ffebee;color:#c62828;"><i class="fas fa-skull-crossbones"></i></div>
 <div class="stat-info"><h4>Loss Value</h4><h2 id="total-loss-value">₦0</h2><small>Recorded animal losses</small></div>
 </div>
-</div>
-
-<!-- Total Farm Value is deliberately in the former Expense Value card position. -->
-<div class="stat-card expense-value-card">
+<div class="stat-card farm-value-card expense-value-card">
 <div class="stat-icon" style="background:#fff3e0;color:#ef6c00;"><i class="fas fa-landmark"></i></div>
 <div class="stat-info"><h4>Total Farm Value</h4><h2 id="total-farm-value">₦0</h2><small id="farm-value-note">Recorded livestock value</small></div>
+</div>
 </div>
 
 <div class="card period-card">
@@ -698,6 +696,20 @@ function showScreen(id){
  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
  const screen=$(id); if(screen)screen.classList.add("active");
  const nav=document.querySelector(`.nav-item[data-screen="${id}"]`); if(nav)nav.classList.add("active");
+
+ // A Manage sub-tab must never remain visible when the user leaves Manage.
+ if(id!=="manage"){
+  document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
+ }else{
+  const activeSub=document.querySelector(".manage-tab.active")?.dataset.sub;
+  if(activeSub) $(activeSub)?.classList.remove("hidden");
+  else{
+   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
+   const historyTab=document.querySelector('.manage-tab[data-sub="sub-history"]');
+   if(historyTab) historyTab.classList.add("active");
+   $("sub-history")?.classList.remove("hidden");
+  }
+ }
 }
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
 
