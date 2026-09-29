@@ -1,0 +1,7 @@
+{
+  "name": "farm-ledger-migration",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
