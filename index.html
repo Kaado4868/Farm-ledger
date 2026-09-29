@@ -1009,25 +1009,29 @@ function render(){
  const icons={goat:"fa-paw",sheep:"fa-paw",cattle:"fa-cow",chicken:"fa-kiwi-bird",other:"fa-paw"};
  const order=["goat","sheep","cattle","chicken"];
  const active=order.filter(a=>metrics.animalTotals[a]!==undefined || records.some(r=>(r.animalType||"goat")===a));
- const makeAnimalCard=a=>`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]||animalLabel(a)}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`;
- let visibleAnimals=active.slice(0,4);
+ const customOtherNames=[...new Set(records.filter(r=>(r.type==="purchase"||r.type==="death")&&(r.animalType||"goat")==="other").map(r=>String(r.animalName||"").trim()).filter(Boolean))];
+ const animalItems=active.concat(customOtherNames.map(n=>"other:"+n));
+ const makeAnimalCard=a=>{
+   if(a.indexOf("other:")===0){
+     const name=a.slice(6);
+     const total=records.filter(r=>(r.animalType||"goat")==="other"&&String(r.animalName||"").trim()===name).reduce((sum,r)=>{
+       const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
+       return sum+(r.type==="death"?-count:r.type==="purchase"?count:0);
+     },0);
+     return `<div class="stat-card"><div class="stat-icon"><i class="fas fa-paw"></i></div><div class="stat-info"><h4>Total ${escapeHtml(name)}</h4><h2>${Math.max(0,total)}</h2></div></div>`;
+   }
+   return `<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]||animalLabel(a)}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`;
+ };
+ let visibleAnimals=animalItems.slice(0,4);
  const animalSelect=$("animal-card-select");
  if(animalSelect){
    const previous=animalSelect.value;
-   const extra=active.slice(4);
-   animalSelect.innerHTML='<option value="">Showing first 4 animal types</option>'+extra.map(a=>`<option value="${a}">Show ${escapeHtml(labels[a]||animalLabel(a))}</option>`).join("");
-   if(extra.includes(previous)){animalSelect.value=previous;visibleAnimals=active.slice(0,3).concat(previous);}
+   const extra=animalItems.slice(4);
+   animalSelect.innerHTML='<option value="">Showing first 4 animal types</option>'+extra.map(a=>`<option value="${escapeHtml(a)}">Show ${escapeHtml(a.indexOf("other:")===0?a.slice(6):labels[a]||animalLabel(a))}</option>`).join("");
+   if(extra.includes(previous)){animalSelect.value=previous;visibleAnimals=animalItems.slice(0,3).concat(previous);}
  }
  const cards=visibleAnimals.map(makeAnimalCard);
- const otherNames=[...new Set(records.filter(r=>(r.type==="purchase"||r.type==="death")&&(r.animalType||"goat")==="other").map(r=>String(r.animalName||"").trim()).filter(Boolean))];
- otherNames.forEach(name=>{
-   const total=records.filter(r=>(r.animalType||"goat")==="other"&&String(r.animalName||"").trim()===name).reduce((sum,r)=>{
-     const count=Math.abs(Number(r.animalCount??r.goatCount??0)||0);
-     return sum+(r.type==="death"?-count:r.type==="purchase"?count:0);
-   },0);
-   /* Custom "Other" cards are handled below so the dashboard remains capped at four cards. */
- });
- if(!otherNames.length&&records.some(r=>(r.animalType||"goat")==="other"))cards.push(`<div class="stat-card"><div class="stat-icon"><i class="fas ${icons.other}"></i></div><div class="stat-info"><h4>Total Other</h4><h2>${metrics.animalTotals.other||0}</h2></div></div>`);
+ if(!animalItems.length) cards.length=0;
  $("animal-stats-grid").innerHTML=cards.slice(0,4).join("");
 
  const periodMetrics=calculateExpenseBreakdown(records,getPeriodRange(expensePeriod));
