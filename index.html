@@ -380,13 +380,8 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 
 </div>
 
-<div class="animal-stats-header">
-<label for="animal-card-select"><i class="fas fa-layer-group"></i> Animal Totals</label>
-<select id="animal-card-select" class="animal-card-select">
-<option value="">Showing first 4 animal types</option>
-</select>
-</div>
-<div id="animal-stats-grid" class="animal-stats-grid"></div>
+<div class="animal-stats-header"><label><i class="fas fa-layer-group"></i> Animal Totals</label></div>
+<div class="animal-stats-scroll"><div id="animal-stats-grid" class="animal-stats-grid"></div></div>
 
 <div class="farm-value-grid">
 <div class="stat-card farm-value-card">
@@ -734,7 +729,6 @@ $("open-handover-tab").onclick=()=>{
  if(tab)tab.click();
 };
 
-$("animal-card-select").onchange=()=>render();
 document.querySelectorAll(".manage-tab").forEach(tab=>{
  tab.onclick=()=>{
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
@@ -1022,15 +1016,7 @@ function render(){
    }
    return `<div class="stat-card"><div class="stat-icon"><i class="fas ${icons[a]}"></i></div><div class="stat-info"><h4>Total ${labels[a]||animalLabel(a)}</h4><h2>${metrics.animalTotals[a]||0}</h2></div></div>`;
  };
- let visibleAnimals=animalItems.slice(0,4);
- const animalSelect=$("animal-card-select");
- if(animalSelect){
-   const previous=animalSelect.value;
-   const extra=animalItems.slice(4);
-   animalSelect.innerHTML='<option value="">Showing first 4 animal types</option>'+extra.map(a=>`<option value="${escapeHtml(a)}">Show ${escapeHtml(a.indexOf("other:")===0?a.slice(6):labels[a]||animalLabel(a))}</option>`).join("");
-   if(extra.includes(previous)){animalSelect.value=previous;visibleAnimals=animalItems.slice(0,3).concat(previous);}
- }
- const cards=visibleAnimals.map(makeAnimalCard);
+ const cards=animalItems.map(makeAnimalCard);
  if(!animalItems.length) cards.length=0;
  $("animal-stats-grid").innerHTML=cards.slice(0,4).join("");
 
