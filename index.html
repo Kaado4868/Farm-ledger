@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Farm Ledger - Professional Edition</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -197,15 +197,57 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 #install-app-btn{display:none;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.18);
 border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;align-items:center;gap:6px}
 #install-app-btn.show{display:flex}
+
+/* Installable app / mobile polish */
+html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+body{padding:0}
+.app{min-height:100dvh}
+.header{padding-top:max(16px,env(safe-area-inset-top));}
+.content{padding-bottom:calc(85px + env(safe-area-inset-bottom))}
+.nav{padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{min-height:58px;padding-top:9px}
+button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touch-action:manipulation}
+#pwa-update-bar{
+  display:none;position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);width:calc(100% - 24px);max-width:456px;
+  background:#173d1b;color:#fff;border-radius:12px;padding:10px 12px;
+  z-index:100000;box-shadow:0 8px 28px rgba(0,0,0,.22);
+  align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:700
+}
+#pwa-update-bar.show{display:flex}
+#pwa-update-bar button{border:0;border-radius:8px;background:#fff;color:#1b5e20;font-weight:800;padding:8px 11px}
+#pwa-offline-bar{
+  display:none;position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;
+  transform:translateX(-50%);width:calc(100% - 24px);max-width:456px;
+  background:#6d4c41;color:#fff;border-radius:9px;padding:7px 10px;
+  z-index:99998;text-align:center;font-size:11px;font-weight:700
+}
+#pwa-offline-bar.show{display:block}
+#pwa-splash-brand{font-size:14px;font-weight:800;color:#2e7d32;letter-spacing:.4px}
+#install-app-btn{white-space:nowrap}
+@media(max-width:380px){
+  #install-app-btn{padding:7px 8px;font-size:11px}
+  .header-actions{gap:5px}
+}
+@media(display-mode:standalone){
+  #install-app-btn{display:none!important}
+}
+@supports (-webkit-touch-callout:none){
+  .header{padding-top:max(16px,env(safe-area-inset-top))}
+}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1b5e20">
+<meta name="description" content="Farm Ledger — secure livestock, expenses, losses and farm records.">
+<meta name="application-name" content="Farm Ledger">
+<meta name="format-detection" content="telephone=no">
+
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Farm Ledger">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180.png">
 </head>
 <body>
 
@@ -215,9 +257,10 @@ border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;align-items:ce
 
 <div id="splash-view" class="auth-view">
 <div class="auth-box">
-<i class="fas fa-leaf fa-spin" style="font-size: 40px; color: #2e7d32; margin-bottom: 15px;"></i>
-<h2>Farm Ledger</h2>
-<p>Loading your session...</p>
+<i class="fas fa-leaf" style="font-size:46px;color:#2e7d32;margin-bottom:14px"></i>
+<h2 style="margin-bottom:4px">Farm Ledger</h2>
+<div id="pwa-splash-brand">Professional Edition</div>
+<p>Loading your secure farm records...</p>
 </div>
 </div>
 
@@ -258,6 +301,12 @@ border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;align-items:ce
 </div>
 </div>
 
+
+<div id="pwa-offline-bar" role="status">You are offline. The app shell is available; live Firebase data may require a connection.</div>
+<div id="pwa-update-bar" role="status">
+<span><i class="fas fa-arrows-rotate"></i> A new Farm Ledger version is available.</span>
+<button id="pwa-update-btn" type="button">Update</button>
+</div>
 
 <div id="app-view" class="app hidden">
 <div class="header">
@@ -1232,25 +1281,37 @@ $("record-type").dispatchEvent(new Event("change"));
 
 <script>
 (function(){
-  if (!('serviceWorker' in navigator)) return;
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./service-worker.js', {scope:'./'}).catch(function(){});
-  });
-
   var deferredInstallPrompt = null;
   var installBtn = document.getElementById('install-app-btn');
+  var updateBar = document.getElementById('pwa-update-bar');
+  var updateBtn = document.getElementById('pwa-update-btn');
+  var offlineBar = document.getElementById('pwa-offline-bar');
+  var reloading = false;
+
+  function isStandalone(){
+    return window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+  }
+
+  function setOfflineState(){
+    if (!offlineBar) return;
+    offlineBar.classList.toggle('show', !navigator.onLine);
+  }
+  window.addEventListener('online', setOfflineState);
+  window.addEventListener('offline', setOfflineState);
+  setOfflineState();
 
   window.addEventListener('beforeinstallprompt', function(event){
     event.preventDefault();
     deferredInstallPrompt = event;
-    if (installBtn) installBtn.classList.add('show');
+    if (installBtn && !isStandalone()) installBtn.classList.add('show');
   });
 
   if (installBtn) {
     installBtn.addEventListener('click', async function(){
       if (!deferredInstallPrompt) return;
       deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
+      try { await deferredInstallPrompt.userChoice; } catch(e) {}
       deferredInstallPrompt = null;
       installBtn.classList.remove('show');
     });
@@ -1260,6 +1321,52 @@ $("record-type").dispatchEvent(new Event("change"));
     deferredInstallPrompt = null;
     if (installBtn) installBtn.classList.remove('show');
   });
+
+  function showUpdate(reg){
+    if (!updateBar) return;
+    updateBar.classList.add('show');
+    if (updateBtn) {
+      updateBtn.onclick = function(){
+        if (reg && reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+      };
+    }
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./service-worker.js', {scope:'./'})
+        .then(function(reg){
+          if (reg.waiting) showUpdate(reg);
+          reg.addEventListener('updatefound', function(){
+            var worker = reg.installing;
+            if (!worker) return;
+            worker.addEventListener('statechange', function(){
+              if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                showUpdate(reg);
+              }
+            });
+          });
+          // Ask the browser to check for a newer service worker.
+          reg.update().catch(function(){});
+          setInterval(function(){ reg.update().catch(function(){}); }, 30 * 60 * 1000);
+        })
+        .catch(function(){});
+    });
+
+    navigator.serviceWorker.addEventListener('message', function(event){
+      if (event.data && event.data.type === 'UPDATE_READY') {
+        if (navigator.serviceWorker.controller) {
+          document.documentElement.setAttribute('data-update-ready','true');
+        }
+      }
+    });
+
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      if (reloading) return;
+      reloading = true;
+      window.location.reload();
+    });
+  }
 })();
 </script>
 </body>

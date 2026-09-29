@@ -1,11 +1,12 @@
-const CACHE_NAME = "farm-ledger-shell-v1";
+const CACHE_NAME = "farm-ledger-shell-v6";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./icons/icon-512-maskable.png"
+  "./icons/icon-512-maskable.png",
+  "./icons/apple-touch-icon-180.png"
 ];
 
 self.addEventListener("install", event => {
@@ -26,25 +27,44 @@ self.addEventListener("activate", event => {
   );
 });
 
+self.addEventListener("message", event => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-
-  // Keep Firebase, authentication, Firestore and other API requests online.
   if (url.origin !== self.location.origin) return;
 
+  // Navigation: prefer the newest version, fall back to the cached app shell offline.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
+
+  // Same-origin assets: cache-first with background refresh.
   event.respondWith(
     caches.match(request).then(cached => {
-      if (cached) return cached;
-      return fetch(request).then(response => {
+      const network = fetch(request).then(response => {
         if (response && response.ok) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
         }
         return response;
-      });
+      }).catch(() => cached);
+      return cached || network;
     })
   );
 });

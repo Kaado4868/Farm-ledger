@@ -1,13 +1,19 @@
 {
+  "id": "./",
   "name": "Farm Ledger - Professional Edition",
   "short_name": "Farm Ledger",
-  "description": "Secure farm records, expenses, livestock values and transaction history.",
+  "description": "Secure farm records, expenses, livestock values, losses and transaction history.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f8f9fa",
+  "display_override": ["standalone"],
+  "background_color": "#f4f7f6",
   "theme_color": "#1b5e20",
   "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "finance"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icons/icon-192.png",
