@@ -896,18 +896,48 @@ auth.onAuthStateChanged(async user=>{
 function loadRecords(){
  if(!currentFarmId)return;
  if(unsubscribeRecords)unsubscribeRecords();
+
+ const applySnapshot=(snapshot)=>{
+  records=[];
+  snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
+  records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||Number(b.createdAt?.toMillis?.()||b.createdAt||0)-Number(a.createdAt?.toMillis?.()||a.createdAt||0));
+  updateSyncStatus(snapshot.metadata.hasPendingWrites,snapshot.metadata.fromCache);
+  render();
+ };
+
+ const showLoadError=(e)=>{
+  refreshConnectionStatus();
+  showError(getFriendlyErrorMessage(e));
+ };
+
+ // Primary source: all records assigned to the current farm.
  unsubscribeRecords=db.collection("transactions")
   .where("farmId","==",currentFarmId)
   .onSnapshot({includeMetadataChanges:true},snapshot=>{
-   records=[];
-   snapshot.forEach(doc=>records.push({id:doc.id,...doc.data()}));
-   records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||Number(b.createdAt?.toMillis?.()||b.createdAt||0)-Number(a.createdAt?.toMillis?.()||a.createdAt||0));
-   updateSyncStatus(snapshot.metadata.hasPendingWrites,snapshot.metadata.fromCache);
-   render();
-  },e=>{
-   refreshConnectionStatus();
-   showError(getFriendlyErrorMessage(e));
-  });
+   if(!snapshot.empty){
+    applySnapshot(snapshot);
+    return;
+   }
+
+   // Recovery path for older records that were written with the author
+   // association but whose farmId field is missing/stale.
+   const email=(currentUser?.email||"").toLowerCase();
+   if(!email){
+    applySnapshot(snapshot);
+    return;
+   }
+
+   db.collection("transactions").where("author","==",email).get().then(authorSnapshot=>{
+    const recovered=[];
+    authorSnapshot.forEach(doc=>{
+     const data=doc.data()||{};
+     if(!data.farmId || data.farmId===currentFarmId) recovered.push({id:doc.id,...data});
+    });
+    recovered.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||Number(b.createdAt?.toMillis?.()||b.createdAt||0)-Number(a.createdAt?.toMillis?.()||a.createdAt||0));
+    records=recovered;
+    render();
+   }).catch(showLoadError);
+  },showLoadError);
 }
 
 function getDateKey(r){return r.date||today();}
