@@ -12,12 +12,8 @@
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 html,body{height:100%;margin:0;background:#f4f7f6;color:#333;overflow:hidden}
 button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!important}
-
-/* Notifications */
-#error-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#d32f2f;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
-#success-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#2e7d32;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
-
-/* Auth & Splash Screens */
+#error-box,#success-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
+#error-box{background:#d32f2f} #success-box{background:#2e7d32}
 .auth-view{height:100%;width:100%;display:flex;justify-content:center;align-items:center;padding:20px;background:linear-gradient(135deg,#1b5e20,#2e7d32)}
 .auth-box{width:100%;max-width:400px;background:#fff;padding:32px 24px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.15);text-align:center}
 .auth-box h2{color:#1b5e20;margin-top:0;font-size:26px;margin-bottom:8px}
@@ -25,80 +21,55 @@ button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!im
 .input{width:100%;padding:14px;border:1px solid #ddd;border-radius:10px;margin-bottom:14px;background:#fafafa;outline:none;transition:border .2s}
 .input:focus{border-color:#2e7d32}
 .main-btn{width:100%;padding:14px;border:0;border-radius:10px;background:#2e7d32;color:#fff;font-weight:bold;margin-bottom:12px;box-shadow:0 4px 10px rgba(46,125,50,.3)}
-.main-btn:active{transform:scale(0.98)}
 .google-btn{width:100%;padding:13px;border:1px solid #ddd;border-radius:10px;background:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;gap:10px;color:#444}
 .auth-toggle{display:block;color:#2e7d32;text-decoration:none;cursor:pointer;font-size:13px;font-weight:600}
-
-/* App Container */
-.app{width:100%;max-width:480px;height:100vh;height:100dvh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 0 25px rgba(0,0,0,.08)}
-.header{background:#1b5e20;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.app{width:100%;max-width:480px;height:100vh;margin:auto;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 0 25px rgba(0,0,0,.08)}
+.header{background:#1b5e20;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
 .header h1{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}.header small{opacity:.85;font-size:11px;display:block}
 .header-actions{display:flex;gap:8px;align-items:center}
 .icon-btn{background:rgba(255,255,255,0.15);color:#fff;border:none;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-
-/* Content Area */
 .content{flex:1;overflow-y:auto;padding:16px;padding-bottom:85px;background:#f8f9fa}
 .screen{display:none}.screen.active{display:block}
-
-/* Dashboard Cards & Banners */
-.dash-banner{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(27,94,32,.2);display:flex;justify-content:space-between;align-items:center}
-.dash-banner h3{margin:0 0 4px;font-size:12px;opacity:.9;text-transform:uppercase;letter-spacing:.5px}
+.dash-banner{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:#fff;border-radius:14px;padding:20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.dash-banner h3{margin:0 0 4px;font-size:12px;opacity:.9;text-transform:uppercase}
 .dash-banner h1{margin:0;font-size:26px;font-weight:700}
 .export-btn{background:rgba(255,255,255,0.2);color:#fff;border:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
-
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.stat-card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.02);display:flex;align-items:center;gap:12px}
+.stat-card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px}
 .stat-icon{width:45px;height:45px;border-radius:10px;background:#e8f5e9;color:#2e7d32;display:flex;align-items:center;justify-content:center;font-size:20px}
 .stat-info h4{margin:0 0 2px;font-size:11px;color:#777;text-transform:uppercase}
 .stat-info h2{margin:0;color:#1b5e20;font-size:18px}
-
-.card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.02)}
+.card{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:16px;margin-bottom:16px}
 .card h3{margin-top:0;font-size:15px;color:#333;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-
 .breakdown-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f3f4;font-size:14px}
 .breakdown-row:last-child{border-bottom:none}
-.breakdown-row span{display:flex;align-items:center;gap:8px;font-weight:500;color:#444}
-.breakdown-row strong{color:#d32f2f;font-size:15px}
-
-/* Sub-tabs */
 .manage-tabs{display:flex;background:#eee;border-radius:10px;padding:4px;margin-bottom:16px}
 .manage-tab{flex:1;text-align:center;padding:10px;font-size:13px;font-weight:600;color:#666;border-radius:8px;cursor:pointer;transition:all .2s}
 .manage-tab.active{background:#fff;color:#1b5e20;box-shadow:0 2px 5px rgba(0,0,0,.05)}
-
-/* Forms & Inputs */
 label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#444}
 .form-group{margin-bottom:14px}
 select,.form-input{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fafafa;outline:none}
-select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
-
-/* Records List */
-.date-header{background:#e0e0e0;padding:6px 12px;font-weight:bold;font-size:12px;margin:16px 0 8px;border-radius:6px;color:#555;text-transform:uppercase;box-shadow:inset 0 1px 3px rgba(0,0,0,0.05)}
-.record{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 2px 5px rgba(0,0,0,.02);border-left:4px solid #2e7d32}
+.date-header{background:#e0e0e0;padding:6px 12px;font-weight:bold;font-size:12px;margin:16px 0 8px;border-radius:6px;color:#555;text-transform:uppercase}
+.record{background:#fff;border:1px solid #eaeaea;border-radius:12px;padding:14px;margin-bottom:12px;border-left:4px solid #2e7d32}
 .record-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px}
 .record-title{font-weight:700;font-size:15px;color:#222}
-.animal-tag{background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;height:20px}
+.animal-tag{background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
 .record-meta{color:#777;font-size:12px;margin-bottom:10px}
-.images{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px;padding-bottom:4px}
+.images{display:flex;gap:8px;overflow-x:auto;margin-bottom:8px}
 .thumbnail{width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer}
 .receipt-btn{display:inline-flex;align-items:center;gap:6px;background:#fff9c4;color:#f57f17;border:1px solid #fbc02d;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:bold;cursor:pointer}
 .record-actions{display:flex;justify-content:flex-end;gap:16px;border-top:1px solid #f1f3f4;padding-top:10px;margin-top:10px}
-.edit-btn{border:0;background:none;color:#f57c00;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
-.delete-btn{border:0;background:none;color:#d32f2f;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
-.clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
-
-/* Bottom Navigation Bar */
-.nav{position:absolute;bottom:0;left:0;width:100%;display:flex;background:#fff;border-top:1px solid #e0e0e0;box-shadow:0 -2px 10px rgba(0,0,0,.05);z-index:10}
-.nav-item{flex:1;text-align:center;padding:10px 4px 8px;color:#777;font-size:12px;font-weight:600;cursor:pointer;transition:color .2s}
+.edit-btn,.delete-btn{border:0;background:none;font-weight:bold;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px}
+.edit-btn{color:#f57c00} .delete-btn{color:#d32f2f}
+.clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer}
+.nav{position:absolute;bottom:0;left:0;width:100%;display:flex;background:#fff;border-top:1px solid #e0e0e0;z-index:10}
+.nav-item{flex:1;text-align:center;padding:10px 4px 8px;color:#777;font-size:12px;font-weight:600;cursor:pointer}
 .nav-item i{display:block;font-size:20px;margin-bottom:3px}
 .nav-item.active{color:#2e7d32}
-
-/* Viewer */
 .viewer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;justify-content:center;align-items:center}
 .viewer img{max-width:92%;max-height:85%;border-radius:10px}
 .viewer-close{position:absolute;right:20px;top:20px;color:#fff;font-size:32px;cursor:pointer}
 .preview{display:flex;gap:8px;overflow-x:auto;margin-top:8px}
-
-/* Admin Panel Additions */
 .admin-section-title{font-size:14px;color:#f57c00;margin:15px 0 5px;border-bottom:2px solid #eee;padding-bottom:5px;}
 .active-users-title{color:#2e7d32;}
 </style>
@@ -158,34 +129,16 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 
 <div class="content">
-
 <!-- TAB 1: Dashboard -->
 <div id="dashboard" class="screen active">
 <div class="dash-banner">
-<div>
-<h3>Total Farm Expenses</h3>
-<h1 id="total-spent">₦0</h1>
-</div>
+<div><h3>Total Farm Expenses</h3><h1 id="total-spent">₦0</h1></div>
 <button id="export-csv-btn" class="export-btn" title="Export CSV"><i class="fas fa-download"></i> Export</button>
 </div>
-
 <div class="stats-grid">
-<div class="stat-card">
-<div class="stat-icon"><i class="fas fa-paw"></i></div>
-<div class="stat-info">
-<h4>Total Animals</h4>
-<h2 id="total-animals">0</h2>
+<div class="stat-card"><div class="stat-icon"><i class="fas fa-paw"></i></div><div class="stat-info"><h4>Total Animals</h4><h2 id="total-animals">0</h2></div></div>
+<div class="stat-card"><div class="stat-icon" style="background:#e3f2fd;color:#1976d2;"><i class="fas fa-receipt"></i></div><div class="stat-info"><h4>Records Logged</h4><h2 id="total-records-count">0</h2></div></div>
 </div>
-</div>
-<div class="stat-card">
-<div class="stat-icon" style="background:#e3f2fd;color:#1976d2;"><i class="fas fa-receipt"></i></div>
-<div class="stat-info">
-<h4>Records Logged</h4>
-<h2 id="total-records-count">0</h2>
-</div>
-</div>
-</div>
-
 <div class="card">
 <h3><i class="fas fa-chart-pie" style="color:#2e7d32"></i> Detailed Expense Breakdown</h3>
 <div class="breakdown-row"><span><i class="fas fa-pills" style="color:#e53935"></i> Medical / Drugs</span><strong id="medical-total">₦0</strong></div>
@@ -201,7 +154,6 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <div class="manage-tab active" data-sub="sub-history"><i class="fas fa-list"></i> Records History</div>
 <div class="manage-tab" data-sub="sub-form"><i class="fas fa-plus-circle"></i> Add Record</div>
 </div>
-
 <div id="sub-history" class="sub-screen">
 <div class="form-group">
 <select id="history-filter">
@@ -220,7 +172,6 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <div class="card" style="margin-bottom:0">
 <h3 id="form-title"><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record</h3>
 <input type="hidden" id="record-id">
-
 <div class="form-group"><label>Expense Category</label>
 <select id="record-type">
 <option value="purchase">Animal Purchase</option>
@@ -229,9 +180,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <option value="herdsman">Staff / Herdsman</option>
 <option value="other">Other Expense</option>
 </select></div>
-
 <div class="form-group"><label>Amount (₦)</label><input id="record-amount" class="form-input" type="number" min="0" placeholder="50000"></div>
-
 <div id="animal-details-box">
 <div class="form-group"><label>Animal Type</label>
 <select id="animal-type" class="form-input">
@@ -241,26 +190,13 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 <option value="Poultry">Poultry</option>
 <option value="Pig">Pigs</option>
 <option value="Other">Other</option>
-</select>
-</div>
+</select></div>
 <div class="form-group"><label>Number of Animals</label><input id="animal-count" class="form-input" type="number" min="1" value="1"></div>
 </div>
-
 <div class="form-group"><label>Description</label><input id="record-description" class="form-input" type="text" placeholder="e.g. Purchased 5 sheep"></div>
 <div class="form-group"><label>Date</label><input id="record-date" class="form-input" type="date"></div>
-
-<div class="form-group">
-<label>Images (Maximum 3)</label>
-<input id="animal-images" class="form-input" type="file" accept="image/*" multiple>
-<div id="image-preview" class="preview"></div>
-</div>
-
-<div class="form-group">
-<label>Receipt Image (Optional)</label>
-<input id="receipt-image" class="form-input" type="file" accept="image/*">
-<div id="receipt-preview" style="display:none;color:#2e7d32;margin-top:6px;font-size:13px;font-weight:600"><i class="fas fa-check-circle"></i> Receipt selected</div>
-</div>
-
+<div class="form-group"><label>Images (Maximum 3)</label><input id="animal-images" class="form-input" type="file" accept="image/*" multiple><div id="image-preview" class="preview"></div></div>
+<div class="form-group"><label>Receipt Image (Optional)</label><input id="receipt-image" class="form-input" type="file" accept="image/*"><div id="receipt-preview" style="display:none;color:#2e7d32;margin-top:6px;font-size:13px;font-weight:600"><i class="fas fa-check-circle"></i> Receipt selected</div></div>
 <button id="clear-images-btn" class="clear-btn hidden" type="button"><i class="fas fa-trash"></i> Clear Existing Images</button>
 <p style="font-size:11px;color:#777;margin:12px 0">Images are compressed for instant Firestore storage.</p>
 <button id="save-record" class="main-btn">Save Record</button>
@@ -270,34 +206,12 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 
 <!-- TAB 3: Admin -->
 <div id="admin" class="screen">
-<div class="card">
-<h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3>
-<div class="form-group">
-<select id="farm-select" class="form-input"><option value="">Select a farm...</option></select>
-</div>
-<button id="enter-farm-btn" class="main-btn" style="margin-bottom:0">Open Farm Ledger</button>
-</div>
-
-<div class="card">
-<h3><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create New Farm</h3>
-<div class="form-group">
-<input id="new-farm-id" class="form-input" type="text" placeholder="e.g. farm-kano-02">
-</div>
-<button id="create-farm-btn" class="main-btn" style="background:#1b5e20;margin-bottom:0">Create Farm ID</button>
-</div>
-
-<div class="card">
-<h3><i class="fas fa-users-cog" style="color:#2e7d32"></i> User Directory & Assignments</h3>
-<p style="color:#666;font-size:12px;margin-top:0">Manage registered users. New users await your approval here.</p>
-<div id="admin-user-list" style="max-height:400px;overflow-y:auto;border-top:1px solid #eee;padding-top:8px;">
-<p style="color:#888;font-size:13px">Loading users...</p>
-</div>
+<div class="card"><h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3><div class="form-group"><select id="farm-select" class="form-input"><option value="">Select a farm...</option></select></div><button id="enter-farm-btn" class="main-btn" style="margin-bottom:0">Open Farm Ledger</button></div>
+<div class="card"><h3><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create New Farm</h3><div class="form-group"><input id="new-farm-id" class="form-input" type="text" placeholder="e.g. farm-kano-02"></div><button id="create-farm-btn" class="main-btn" style="background:#1b5e20;margin-bottom:0">Create Farm ID</button></div>
+<div class="card"><h3><i class="fas fa-users-cog" style="color:#2e7d32"></i> User Directory</h3><p style="color:#666;font-size:12px;margin-top:0">Manage registered users.</p><div id="admin-user-list" style="max-height:400px;overflow-y:auto;border-top:1px solid #eee;padding-top:8px;"><p style="color:#888;font-size:13px">Loading users...</p></div></div>
 </div>
 </div>
 
-</div>
-
-<!-- Bottom Navigation -->
 <div class="nav">
 <div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-line"></i>Dashboard</div>
 <div class="nav-item" data-screen="manage"><i class="fas fa-folder-open"></i>Manage</div>
@@ -305,13 +219,17 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 </div>
 
-<!-- Lightbox -->
-<div id="image-viewer" class="viewer">
-<span id="viewer-close" class="viewer-close">&times;</span>
-<img id="viewer-image" src="">
-</div>
+<div id="image-viewer" class="viewer"><span id="viewer-close" class="viewer-close">&times;</span><img id="viewer-image" src=""></div>
 
 <script>
+// ERROR CATCHERS - If the app crashes, these will display the exact issue on your phone.
+window.addEventListener("error", function(e) {
+    alert("Code Error: " + (e.message || "Unknown error") + " at line " + (e.lineno || "unknown"));
+});
+window.addEventListener("unhandledrejection", function(e) {
+    alert("Firebase Error: " + (e.reason && e.reason.message ? e.reason.message : "Connection blocked. Check ad-blocker or VPN."));
+});
+
 const firebaseConfig={
 apiKey:"AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
 authDomain:"goatledger-132c7.firebaseapp.com",
@@ -328,17 +246,12 @@ const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
-let selectedImages=[],selectedReceipt=null,imagesCleared=false;
-let isSuperAdminViewingAsAdmin=false;
+let selectedImages=[],selectedReceipt=null,imagesCleared=false,isSuperAdminViewingAsAdmin=false;
 
 const $=id=>document.getElementById(id);
 
-function showError(message){
-const box=$("error-box"); box.textContent=message; box.style.display="block"; setTimeout(()=>box.style.display="none",5000);
-}
-function showSuccess(message){
-const box=$("success-box"); box.textContent=message; box.style.display="block"; setTimeout(()=>box.style.display="none",4000);
-}
+function showError(message){const box=$("error-box"); box.textContent=message; box.style.display="block"; setTimeout(()=>box.style.display="none",5000);}
+function showSuccess(message){const box=$("success-box"); box.textContent=message; box.style.display="block"; setTimeout(()=>box.style.display="none",4000);}
 function getFriendlyErrorMessage(err){
 const msg=(typeof err==="string"?err:(err.message||"")).toLowerCase();
 if(msg.includes("invalid_login_credentials")||msg.includes("wrong-password")||msg.includes("user-not-found")) return "Invalid email or password.";
@@ -348,7 +261,9 @@ return err.message||"An unexpected error occurred.";
 }
 
 function money(n){return "₦"+Number(n||0).toLocaleString("en-NG");}
-function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function escapeHtml(value){
+    return String(value != null ? value : "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
 
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
@@ -377,26 +292,19 @@ $("email-btn").textContent=loginMode?"Login":"Sign Up";
 $("auth-toggle").textContent=loginMode?"Need an account? Register":"Already have an account? Login";
 };
 
-// Forgot Password Feature
 $("forgot-password").onclick = async () => {
     const email = $("email").value.trim();
     if(!email) return showError("Please enter your email in the field above to reset password.");
-    try {
-        await auth.sendPasswordResetEmail(email);
-        showSuccess("Password reset email sent! Check your inbox.");
-    } catch(e) {
-        showError(getFriendlyErrorMessage(e));
-    }
+    try { await auth.sendPasswordResetEmail(email); showSuccess("Password reset email sent! Check your inbox."); }
+    catch(e) { showError(getFriendlyErrorMessage(e)); }
 };
 
 $("email-btn").onclick=async()=>{
 const email=$("email").value.trim().toLowerCase(),password=$("password").value;
 if(!email||!password)return showError("Please enter your email and password.");
 const btn=$("email-btn");btn.disabled=true;btn.textContent="Processing...";
-try{
-if(loginMode)await auth.signInWithEmailAndPassword(email,password);
-else await auth.createUserWithEmailAndPassword(email,password);
-}catch(e){ showError(getFriendlyErrorMessage(e)); }
+try{ if(loginMode)await auth.signInWithEmailAndPassword(email,password); else await auth.createUserWithEmailAndPassword(email,password); }
+catch(e){ showError(getFriendlyErrorMessage(e)); }
 finally{ btn.disabled=false;btn.textContent=loginMode?"Login":"Sign Up"; }
 };
 
@@ -407,9 +315,7 @@ $("pending-logout").onclick=async()=>{ if(unsubscribeRecords)unsubscribeRecords(
 $("switch-farm-btn").onclick=()=>{
 if(currentUser && currentUser.email.toLowerCase()===SUPER_ADMIN){
 if(unsubscribeRecords)unsubscribeRecords();
-isSuperAdminViewingAsAdmin=true;
-$("switch-farm-btn").classList.add("hidden");
-$("app-view").classList.remove("hidden");
+isSuperAdminViewingAsAdmin=true; $("switch-farm-btn").classList.add("hidden"); $("app-view").classList.remove("hidden");
 loadAdminFarms(); loadAdminUsers(); showScreen("admin");
 }
 };
@@ -427,9 +333,7 @@ const userEmail = user.email.toLowerCase();
 const userDocRef = db.collection("users").doc(userEmail);
 try {
     const userSnap = await userDocRef.get();
-    if (!userSnap.exists && userEmail !== SUPER_ADMIN) {
-        await userDocRef.set({ farmId: "", createdAt: Date.now() });
-    }
+    if (!userSnap.exists && userEmail !== SUPER_ADMIN) { await userDocRef.set({ farmId: "", createdAt: Date.now() }); }
 } catch(err) { console.error("Auto-register error:", err); }
 
 if(userEmail===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
@@ -447,13 +351,9 @@ $("admin-nav").classList.add("hidden");
 try{
 const doc=await userDocRef.get();
 if(doc.exists&&doc.data().farmId){
-currentFarmId=doc.data().farmId;
-$("farm-name").textContent="Farm: "+currentFarmId;
-$("pending-view").classList.add("hidden"); $("app-view").classList.remove("hidden");
-loadRecords();
-}else{
-$("app-view").classList.add("hidden"); $("pending-view").classList.remove("hidden");
-}
+currentFarmId=doc.data().farmId; $("farm-name").textContent="Farm: "+currentFarmId;
+$("pending-view").classList.add("hidden"); $("app-view").classList.remove("hidden"); loadRecords();
+}else{ $("app-view").classList.add("hidden"); $("pending-view").classList.remove("hidden"); }
 }catch(e){ showError(getFriendlyErrorMessage("Could not read farm access: "+e.message)); }
 });
 
@@ -490,7 +390,6 @@ function renderList(container,data,controls){
 container.innerHTML="";
 if(!data.length){ container.innerHTML="<p style='text-align:center;color:#888;padding:25px;font-size:14px'>No records found.</p>"; return; }
 
-// Bank-style Date Sorting
 data.sort((a,b) => {
     let dateA = new Date(a.date || 0).getTime();
     let dateB = new Date(b.date || 0).getTime();
@@ -500,11 +399,9 @@ data.sort((a,b) => {
 
 let currentDate = "";
 data.forEach(r=>{
-// Daily Grouping Header
 if(r.date !== currentDate) {
     currentDate = r.date;
-    const header = document.createElement("div");
-    header.className = "date-header";
+    const header = document.createElement("div"); header.className = "date-header";
     header.textContent = r.date ? new Date(r.date + "T00:00:00").toLocaleDateString("en-NG", {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'}) : "Unknown Date";
     container.appendChild(header);
 }
@@ -531,9 +428,7 @@ function openImage(src){ $("viewer-image").src=src; $("image-viewer").style.disp
 $("viewer-close").onclick=()=>$("image-viewer").style.display="none";
 $("image-viewer").onclick=e=>{if(e.target===$("image-viewer"))$("image-viewer").style.display="none";};
 
-$("record-type").onchange=()=>{
-$("animal-details-box").style.display=$("record-type").value==="purchase"?"block":"none";
-};
+$("record-type").onchange=()=>{ $("animal-details-box").style.display=$("record-type").value==="purchase"?"block":"none"; };
 
 function compressImage(file,maxWidth=320,quality=.45){
 return new Promise((resolve,reject)=>{
@@ -636,7 +531,6 @@ $("farm-select").innerHTML='<option value="">Select a farm...</option>'+farms.ma
 }catch(e){ showError(getFriendlyErrorMessage("Could not load farms: "+e.message)); }
 }
 
-// Expanded User Directory View
 async function loadAdminUsers(){
 try{
 const snap = await db.collection("users").get();
@@ -682,7 +576,7 @@ if(activeCount === 0) $("active-users-list").innerHTML = "<p style='color:#aaa;f
 }
 
 window.promptChangeUserFarm = async function(email){
-const newFarm = prompt(`Enter Farm ID to assign to ${email}:`);
+const newFarm = prompt("Enter Farm ID to assign to " + email + ":");
 if(!newFarm) return;
 try{
 await db.collection("users").doc(email).set({farmId:newFarm.trim()},{merge:true});
@@ -693,7 +587,7 @@ loadAdminUsers(); loadAdminFarms();
 };
 
 window.revokeUserAccess = async function(email){
-if(!confirm(`Revoke farm access for ${email}? They will be moved back to 'Awaiting Approval'.`)) return;
+if(!confirm("Revoke farm access for " + email + "? They will be moved back to 'Awaiting Approval'.")) return;
 try{
 await db.collection("users").doc(email).set({farmId:""},{merge:true});
 showSuccess("User access revoked.");
@@ -718,9 +612,9 @@ $("new-farm-id").value=""; await loadAdminFarms(); showSuccess("Farm '"+farm+"' 
 $("export-csv-btn").onclick=()=>{
 if(!records.length)return showError("No records to export.");
 let csv="Date,Type,Description,Animal Count,Amount (NGN),Author\n";
-records.forEach(r=>{ csv+=`"${r.date}","${r.type}","${(r.description||'').replace(/"/g,'""')}","${r.animalCount||0}","${r.amount}","${r.author}"\n`; });
+records.forEach(r=>{ csv+='"' + r.date + '","' + r.type + '","' + (r.description||'').replace(/"/g,'""') + '","' + (r.animalCount||0) + '","' + r.amount + '","' + r.author + '"\n'; });
 const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-const link=document.createElement("a"); link.href=URL.createObjectURL(blob); link.download=`${currentFarmId}_ledger_${new Date().toISOString().slice(0,10)}.csv`; link.click();
+const link=document.createElement("a"); link.href=URL.createObjectURL(blob); link.download=currentFarmId + "_ledger_" + new Date().toISOString().slice(0,10) + ".csv"; link.click();
 };
 
 </script>
