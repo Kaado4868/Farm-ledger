@@ -338,7 +338,22 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 </div>
 
 <script>
-// Keep original Firebase config[span_3](start_span)[span_3](end_span)
+// 1. VISUAL ERROR CATCHER (Prints hidden errors to your phone screen)
+window.onerror = function(msg, url, lineNo) {
+    const splash = document.getElementById("splash-view");
+    if(splash) {
+        splash.style.background = "#ffebee";
+        splash.innerHTML = `<div style="background:#fff; padding:30px; border-radius:15px; text-align:center; color:#d32f2f; box-shadow:0 10px 30px rgba(0,0,0,0.15); width:90%; max-width:400px;">
+        <i class="fas fa-exclamation-triangle" style="font-size:40px; margin-bottom:15px;"></i>
+        <h3 style="margin-top:0">System Crash</h3>
+        <p style="font-size:14px; font-weight:bold; margin-bottom:5px;">${msg}</p>
+        <p style="font-size:12px; color:#666;">Line: ${lineNo}</p>
+        <p style="font-size:11px; color:#888; margin-top:15px;">Take a screenshot of this error.</p>
+        </div>`;
+    }
+};
+
+// 2. FIREBASE CONFIGURATION
 const firebaseConfig={
 apiKey:"AIzaSyBNEK3cSaxK0pEI1sOufrVpQkhf2ENK-rw",
 authDomain:"goatledger-132c7.firebaseapp.com",
@@ -353,7 +368,6 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 const googleProvider=new firebase.auth.GoogleAuthProvider();
 
-// Strict authorization check[span_4](start_span)[span_4](end_span)
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
@@ -452,7 +466,7 @@ if(unsubscribeRecords)unsubscribeRecords(); await auth.signOut();
 };
 
 $("switch-farm-btn").onclick=()=>{
-if(currentUser && currentUser.email.toLowerCase()===SUPER_ADMIN){
+if(currentUser && (currentUser.email || "").toLowerCase()===SUPER_ADMIN){
 if(unsubscribeRecords)unsubscribeRecords();
 isSuperAdminViewingAsAdmin=true;
 $("switch-farm-btn").classList.add("hidden");
@@ -474,7 +488,7 @@ return;
 }
 
 $("auth-view").classList.add("hidden");
-const userEmail = user.email.toLowerCase();
+const userEmail = (user.email || "").toLowerCase();
 const userDocRef = db.collection("users").doc(userEmail);
 
 try {
@@ -532,7 +546,7 @@ function render(){
 let animals=0, spent=0, revenue=0, medical=0, feed=0, herdsman=0, purchase=0, other=0;
 records.forEach(r=>{
 const amount=Number(r.amount)||0;
-const count=Number(r.animalCount || r.goatCount || 0); // Backwards compatible[span_5](start_span)[span_5](end_span)
+const count=Number(r.animalCount || r.goatCount || 0);
 
 if(r.type==="sale") { revenue+=amount; animals-=count; }
 else { 
@@ -588,7 +602,6 @@ container.innerHTML="<p style='text-align:center;color:#888;padding:25px;font-si
 return;
 }
 
-// Group by Date
 const grouped = {};
 data.forEach(r => {
     const dateKey = r.date || 'Unknown Date';
@@ -596,7 +609,6 @@ data.forEach(r => {
     grouped[dateKey].push(r);
 });
 
-// Sort Dates descending
 const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b||0) - new Date(a||0));
 
 sortedDates.forEach(dateStr => {
@@ -615,7 +627,7 @@ sortedDates.forEach(dateStr => {
         let receipt=r.receipt?`<div class="receipt-btn"><i class="fas fa-file-invoice-dollar"></i> Receipt</div>`:"";
         let isIncome = r.type === 'sale';
         
-        let countText = Number(r.animalCount || r.goatCount || 0); // Backwards compatibility[span_6](start_span)[span_6](end_span)
+        let countText = Number(r.animalCount || r.goatCount || 0); 
         let animalType = sanitize(r.animalType || (r.goatCount ? 'Goat' : ''));
         let tag = (r.type==="purchase"||r.type==="sale") ? `<span class="animal-tag">${isIncome ? '-' : '+'}${countText} ${animalType}(s)</span>` : "";
         let payBadge = r.paymentMethod ? `<span class="badge-pay"><i class="fas fa-wallet"></i> ${sanitize(r.paymentMethod)}</span>` : "";
@@ -711,7 +723,6 @@ $("animal-details-box").style.display="block";
 $("save-record").onclick=async()=>{
 if(!currentUser||!currentFarmId)return showError("No farm is currently selected.");
 
-// Strict Parsing & Validation
 const type = sanitize($("record-type").value);
 const amount = Number($("record-amount").value);
 const paymentMethod = sanitize($("payment-method").value);
@@ -782,7 +793,6 @@ showSuccess("Record deleted successfully.");
 }catch(e){ showError(getFriendlyErrorMessage(e)); }
 }
 
-// Super Admin Functions[span_7](start_span)[span_7](end_span)
 async function loadAdminFarms(){
 try{
 const doc = await db.collection("metadata").doc("farmList").get();
@@ -793,7 +803,7 @@ $("farm-select").innerHTML='<option value="">Select a farm...</option>'+farms.ma
 
 async function loadAdminUsers(){
 try{
-if(currentUser.email.toLowerCase() !== SUPER_ADMIN) return;
+if((currentUser.email || "").toLowerCase() !== SUPER_ADMIN) return;
 const snap = await db.collection("users").get();
 const activeContainer = $("admin-user-list");
 const pendingContainer = $("admin-pending-list");
@@ -810,7 +820,7 @@ div.innerHTML = `
 <div><strong>${escapeHtml(email)}</strong><br><small style="color:#666">Farm: <b>${farm ? escapeHtml(farm) : '<span style="color:#e65100">Awaiting Assignment</span>'}</b></small></div>
 <div style="display:flex;gap:6px;">
 <button onclick="promptChangeUserFarm('${escapeHtml(email)}')", style="background:#ff9800;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="${farm ? 'Change Farm' : 'Assign Farm'}"><i class="fas fa-link"></i> ${farm ? 'Reassign' : 'Assign'}</button>
-${farm ? `<button onclick="revokeUserAccess('${escapeHtml(email)}')" style="background:#d32f2f;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Revoke Access"><i class="fas fa-ban"></i></button>` : ''}
+${farm ? `<button onclick="revokeUserAccess('${escapeHtml(email)}')", style="background:#d32f2f;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600" title="Revoke Access"><i class="fas fa-ban"></i></button>` : ''}
 </div>`;
 
 if(!farm) { pendingContainer.appendChild(div); pendingCount++; }
@@ -824,7 +834,7 @@ if(activeCount===0) activeContainer.innerHTML = "<p style='color:#888;font-size:
 }
 
 window.promptChangeUserFarm = async function(email){
-if(currentUser.email.toLowerCase() !== SUPER_ADMIN) return; // Strict enforce
+if((currentUser.email || "").toLowerCase() !== SUPER_ADMIN) return;
 const newFarm = prompt(`Enter exact Farm ID to assign ${email}:`);
 if(!newFarm) return;
 try{
@@ -836,7 +846,7 @@ loadAdminUsers(); loadAdminFarms();
 };
 
 window.revokeUserAccess = async function(email){
-if(currentUser.email.toLowerCase() !== SUPER_ADMIN) return;
+if((currentUser.email || "").toLowerCase() !== SUPER_ADMIN) return;
 if(!confirm(`Revoke farm access for ${email}?`)) return;
 try{
 await db.collection("users").doc(email).set({farmId:""},{merge:true});
@@ -854,7 +864,7 @@ loadRecords(); showScreen("dashboard");
 };
 
 $("create-farm-btn").onclick=async()=>{
-if(currentUser.email.toLowerCase() !== SUPER_ADMIN) return;
+if((currentUser.email || "").toLowerCase() !== SUPER_ADMIN) return;
 const farm=sanitize($("new-farm-id").value.trim()); if(!farm)return showError("Enter a Farm ID.");
 try{
 await db.collection("metadata").doc("farmList").set({farms: firebase.firestore.FieldValue.arrayUnion(farm)},{merge:true});
