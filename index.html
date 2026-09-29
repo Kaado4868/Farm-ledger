@@ -362,9 +362,10 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div id="dashboard" class="screen active">
 <div class="dash-banner">
 <div>
-<h3>Total Farm Value</h3>
-<h1 id="total-farm-value">₦0</h1>
+<h3>Total Farm Expenses</h3>
+<h1 id="total-spent">₦0</h1>
 </div>
+
 </div>
 
 <div id="animal-stats-grid" class="animal-stats-grid"></div>
@@ -375,8 +376,8 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="stat-info"><h4>Loss Value</h4><h2 id="total-loss-value">₦0</h2><small>Recorded animal losses</small></div>
 </div>
 <div class="stat-card farm-value-card expense-value-card">
-<div class="stat-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fas fa-money-bill-wave"></i></div>
-<div class="stat-info"><h4>Total Farm Expenses</h4><h2 id="total-spent-card">₦0</h2><small>Recorded farm expenses</small></div>
+<div class="stat-icon" style="background:#fff3e0;color:#ef6c00;"><i class="fas fa-landmark"></i></div>
+<div class="stat-info"><h4>Total Farm Value</h4><h2 id="total-farm-value">₦0</h2><small id="farm-value-note">Recorded livestock value</small></div>
 </div>
 </div>
 
@@ -954,7 +955,6 @@ function calculateFarmMetrics(data){
 function render(){
  const metrics=calculateFarmMetrics(records);
  $("total-spent").textContent=money(metrics.spent);
- $("total-spent-card").textContent=money(metrics.spent);
  $("total-farm-value").textContent=money(metrics.totalValue);
  $("total-loss-value").textContent=money(metrics.lossValue);
  $("expense-value-home").textContent=money(metrics.spent);
