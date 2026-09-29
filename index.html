@@ -101,7 +101,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .livestock-grid .form-input{padding:9px;font-size:13px}
 .herdsman-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .herdsman-contact-grid .form-group{margin-bottom:0}
-.handover-note{font-size:11px;color:#666;line-height:1.45;background:#f1f8f2;border-radius:9px;padding:9px;margin:0 0 12px}
+.handover-note{font-size:11px;color:#666;line-height:1.45;background:#f1f8f2;border-radius:9px;padding:9px;margin:0 0 12px}.handover-photo-preview{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.handover-photo-preview img{width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid #dfe8e1}.livestock-photo-box{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.livestock-photo-preview img{width:58px;height:58px;object-fit:cover;border-radius:7px;border:1px solid #dfe8e1}
 @media(max-width:380px){.livestock-grid,.herdsman-contact-grid{grid-template-columns:1fr}}
 .clear-btn{background:#e53935;color:#fff;border:0;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;}
 
@@ -551,8 +551,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="form-group" style="margin-top:14px"><label>Location / Where Livestock Will Stay</label><input id="handover-location" class="form-input" type="text" maxlength="150" placeholder="e.g. grazing field"></div>
 <div class="form-group"><label>Number of Livestock</label><input id="handover-livestock-count" class="form-input" type="number" min="1" max="100" value="1"></div>
 <div id="handover-livestock-list"></div>
-<div class="form-group"><label>Notes</label><input id="handover-notes" class="form-input" type="text" maxlength="300" placeholder="Purpose, instructions or other notes"></div>
-<button id="save-handover" class="main-btn" type="button"><i class="fas fa-save"></i> Save Handover</button>
+<div class="form-group"><label>Handover Photo Evidence <span style="font-weight:400;color:#888">(up to 3 photos)</span></label><input id="handover-photos" class="form-input" type="file" accept="image/*" capture="environment" multiple><div id="handover-photo-preview" class="handover-photo-preview"></div></div><div class="form-group"><label>Notes</label><input id="handover-notes" class="form-input" type="text" maxlength="300" placeholder="Purpose, instructions or other notes"></div><button id="save-handover" class="main-btn" type="button"><i class="fas fa-save"></i> Save Handover</button>
 </div>
 </div>
 
@@ -664,7 +663,7 @@ const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
-let selectedGoatImages=[],selectedReceipt=null,imagesCleared=false;
+let selectedGoatImages=[],selectedReceipt=null,selectedHandoverPhotos=[],imagesCleared=false;
 let isSuperAdminViewingAsAdmin=false;
 let expensePeriod="all";
 const $=id=>document.getElementById(id);
@@ -1160,7 +1159,7 @@ function syncHerdsmanProvisionFields(existing=[]){
  }
 }
 $("herdsman-livestock-count").onchange=()=>{if($("record-type").value==="herdsman")renderHerdsmanLivestockRows($("herdsman-livestock-count").value);};
-$("handover-livestock-count").onchange=()=>renderHandoverLivestockRows($("handover-livestock-count").value);
+$("handover-livestock-count").onchange=()=>renderHandoverLivestockRows($("handover-livestock-count").value);$("handover-photos").onchange=async e=>{const files=Array.from(e.target.files).slice(0,3);selectedHandoverPhotos=[];$("handover-photo-preview").innerHTML="";for(const file of files)try{const data=await compressImage(file,420,.45);selectedHandoverPhotos.push(data);const img=document.createElement("img");img.src=data;$("handover-photo-preview").appendChild(img);}catch(err){showError(getFriendlyErrorMessage(err));}};
 $("record-type").onchange=()=>{
  const type=$("record-type").value;
  const isDeath=type==="death";
