@@ -19,8 +19,9 @@ html,body{height:100%;margin:0;background:#f4f7f6;color:#333;overflow:hidden}
 button,input,select{font-size:16px}button{cursor:pointer}.hidden{display:none!important}
 
 
-#error-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#d32f2f;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
-#success-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:92%;max-width:460px;background:#2e7d32;color:#fff;padding:12px 16px;border-radius:10px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:14px}
+#error-box,#success-box{display:none;position:fixed;top:15px;left:50%;transform:translateX(-50%);width:auto;max-width:min(360px,88%);padding:9px 13px;border-radius:9px;text-align:center;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-weight:600;font-size:13px;line-height:1.3}
+#error-box{background:#d32f2f;color:#fff}
+#success-box{background:#2e7d32;color:#fff}
 
 
 .auth-view{height:100%;width:100%;display:flex;justify-content:center;align-items:center;padding:20px;background:linear-gradient(135deg,#1b5e20,#2e7d32)}
@@ -1434,7 +1435,7 @@ $("enter-farm-btn").onclick=()=>{
 };
 $("create-farm-btn").onclick=async()=>{
  const farm=$("new-farm-id").value.trim();
- if(!/^[a-zA-Z0-9][a-zA-Z0-9 _'-]{0,58}[a-zA-Z0-9]$/.test(farm))return showError("Invalid Farm ID. Use 2-60 characters: letters, numbers, spaces, hyphens, underscores or apostrophes.");
+ if(farm.length<2||farm.length>60)return showError("Farm name must be 2-60 characters.");
  try{
   await db.collection("metadata").doc("farmList").set({farms:firebase.firestore.FieldValue.arrayUnion(farm)},{merge:true});
   $("new-farm-id").value="";await loadAdminFarms();showSuccess("Farm '"+farm+"' created successfully!");
@@ -1746,7 +1747,7 @@ $("record-type").dispatchEvent(new Event("change"));
   var backTimer = null;
   function armBackExit(){
     backExitDeadline = Date.now() + 5000;
-    if (window.showSuccess) window.showSuccess('Press back again within 5 seconds to exit Farm Ledger.');
+    if (window.showSuccess) window.showSuccess('Press again to exit.');
     clearTimeout(backTimer);
     backTimer = setTimeout(function(){
       backExitDeadline = 0;
