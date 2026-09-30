@@ -18,6 +18,7 @@ const {Timestamp}=require('firebase/firestore');
   await assertSucceeds(user.collection('transactions').doc('good').set(good));
   await assertFails(user.collection('transactions').doc('bad-type').set({...good,type:'forged'}));
   await assertFails(user.collection('transactions').doc('bad-author').set({...good,author:'other@example.com'}));
+  await assertFails(user.collection('transactions').doc('bad-date').set({...good,date:'2026-02-30'}));
   await assertSucceeds(user.collection('notifications').doc('n1').update({readBy:[email]}));
   await assertFails(user.collection('notifications').doc('n1').update({readBy:['other@example.com']}));
   await assertSucceeds(user.collection('custodyEvents').doc('ce1').set({farmId:farm,inventoryId:'goat-001',action:'handover',actor:email,date:'2026-09-30',transactionId:'good'}));
