@@ -1,0 +1,157 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return signedIn()
+        && request.auth.token.email == "abdulkadirbukar2006@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
+
+    function myUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.token.email));
+    }
+
+    function hasFarmAccess(farmId) {
+      return signedIn()
+        && (
+          isSuperAdmin()
+          || (
+            myUserDoc().data.farmId == farmId
+            && myUserDoc().data.status == "approved"
+          )
+        );
+    }
+
+    function validTransactionCreate() {
+      return request.resource.data.farmId is string
+        && request.resource.data.author == request.auth.token.email
+        && request.resource.data.type is string
+        && request.resource.data.animalType is string
+        && request.resource.data.amount is number
+        && request.resource.data.amount >= 0
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 300
+        && request.resource.data.date is string
+        && request.resource.data.animalCount is number
+        && request.resource.data.animalCount >= 0
+        && (
+          request.resource.data.type != "death"
+          || request.resource.data.animalCount > 0
+        );
+    }
+
+    function isChatMember(chatData) {
+      return signedIn()
+        && (
+          chatData.members.hasAny([request.auth.token.email])
+          || chatData.createdBy == request.auth.token.email
+        );
+    }
+
+    function canAccessChat(chatData) {
+      return isSuperAdmin()
+        || (
+          isChatMember(chatData)
+          && hasFarmAccess(chatData.farmId)
+        );
+    }
+
+    function validChatCreate() {
+      return request.resource.data.farmId is string
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.members is list
+        && request.resource.data.members.size() > 0
+        && request.resource.data.members.size() <= 100
+        && request.resource.data.createdBy == request.auth.token.email
+        && request.resource.data.createdAt is timestamp;
+    }
+
+    match /users/{email} {
+      allow read: if isSuperAdmin()
+        || (signedIn() && request.auth.token.email == email);
+
+      allow create: if signedIn()
+        && request.auth.token.email == email
+        && request.resource.data.farmId == ""
+        && request.resource.data.status == "pending";
+
+      allow update: if isSuperAdmin()
+        || (
+          signedIn()
+          && request.auth.token.email == email
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(["lastActive", "lastLogin", "isOnline"])
+        );
+
+      allow delete: if isSuperAdmin();
+    }
+
+    match /metadata/{docId} {
+      allow read: if signedIn()
+        && (isSuperAdmin() || docId == "farmList");
+
+      allow write: if isSuperAdmin();
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if signedIn()
+        && hasFarmAccess(resource.data.farmId);
+
+      allow create: if signedIn()
+        && hasFarmAccess(request.resource.data.farmId)
+        && validTransactionCreate();
+
+      allow update: if isSuperAdmin()
+        && request.resource.data.farmId == resource.data.farmId;
+
+      allow delete: if isSuperAdmin();
+    }
+
+    match /chats/{chatId} {
+      allow read: if canAccessChat(resource.data);
+
+      allow create: if isSuperAdmin()
+        && validChatCreate()
+        && hasFarmAccess(request.resource.data.farmId);
+
+      allow update: if isSuperAdmin()
+        || (
+          canAccessChat(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(["lastMessage", "lastMessageSender", "lastMessageAt"])
+        );
+
+      allow delete: if isSuperAdmin();
+
+      match /messages/{messageId} {
+        allow read: if canAccessChat(
+          get(/databases/$(database)/documents/chats/$(chatId)).data
+        );
+
+        allow create: if canAccessChat(
+            get(/databases/$(database)/documents/chats/$(chatId)).data
+          )
+          && request.resource.data.sender == request.auth.token.email
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.senderName is string
+          && request.resource.data.senderName.size() <= 100
+          && request.resource.data.createdAt is timestamp;
+
+        allow update: if isSuperAdmin();
+
+        allow delete: if isSuperAdmin();
+      }
+    }
+  }
+}
