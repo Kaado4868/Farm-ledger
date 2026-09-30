@@ -105,7 +105,18 @@ function showScreen(id){
   }
 }
 
-document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
+document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>{
+  const target=item.dataset.screen;
+  if(target==="dashboard"||target==="manage"||target==="chat"||target==="admin"){
+    const pageMap={dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html"};
+    const page=pageMap[target];
+    if(page && !(window.location.pathname.endsWith("/"+page)||window.location.pathname.endsWith(page))){
+      window.location.href=page;
+      return;
+    }
+  }
+  showScreen(target);
+});
 function switchAdminPanel(panelId){
  if(!isSuperAdmin())return;
  const panels=["admin-tools","admin-notifications","admin-chat"];
