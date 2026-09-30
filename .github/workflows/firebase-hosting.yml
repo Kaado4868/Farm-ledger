@@ -27,8 +27,19 @@ jobs:
       - name: Deploy Firestore security rules
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: |
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
-          npx --yes firebase-tools@latest deploy --only firestore:rules --project goatledger-132c7 --non-interactive
-          rm -f "$RUNNER_TEMP/firebase-service-account.json"
+          npm install --no-save --no-package-lock firebase-admin@latest
+          node <<'NODE'
+          const fs = require("fs");
+          const admin = require("firebase-admin");
+          const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            projectId: "goatledger-132c7"
+          });
+          const source = fs.readFileSync("firestore.rules", "utf8");
+          admin.securityRules().releaseFirestoreRulesetFromSource(source)
+            .then(ruleset => console.log("Firestore rules deployed:", ruleset.name))
+            .catch(error => { console.error("Firestore rules deployment failed:", error); process.exit(1); });
+          NODE
+
