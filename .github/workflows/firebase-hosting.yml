@@ -20,10 +20,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - name: Install dependencies
-        run: npm install
-      - name: Run tests
-        run: npm test
+        run: npm ci
+      - name: Run ledger unit tests
+        run: npm run test:ledger
+      - name: Run Firestore rules tests in emulator
+        run: npx firebase-tools@13.35.1 emulators:exec --only firestore --project farm-ledger-rules-test "npm run test:rules"
       - name: Validate Firebase CLI
         run: npx firebase-tools@13.35.1 --version
 
