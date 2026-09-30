@@ -10,18 +10,18 @@ function amount(v){return finite(v)&&v>=0&&v<=MAX_AMOUNT;}
 function positiveInt(v){return Number.isInteger(v)&&v>0&&v<=MAX_COUNT;}
 function nonNegativeInt(v){return Number.isInteger(v)&&v>=0&&v<=MAX_COUNT;}
 function enumValue(v,list){return typeof v==='string'&&list.includes(v);}
-function date(v){return typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v);}
+function date(v){return typeof v==='string'&&/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v);}
 function validateTransaction(d){
  const e=[]; if(!d||typeof d!=='object')return ['record must be an object'];
  if(typeof d.farmId!=='string'||!d.farmId.trim()||d.farmId.length>120)e.push('invalid farmId');
  if(typeof d.author!=='string'||!d.author.trim()||d.author.length>160)e.push('invalid author');
  if(!enumValue(d.type,TYPES))e.push('invalid transaction type');
  if(!enumValue(d.animalType,ANIMAL_TYPES))e.push('invalid animal type');
- if(!amount(Number(d.amount)))e.push('invalid amount');
+ if(!amount(d.amount))e.push('invalid amount');
  if(typeof d.description!=='string'||!d.description.trim()||d.description.length>300)e.push('invalid description');
  if(!date(d.date))e.push('invalid date');
- if(d.type==='purchase'||d.type==='death'||d.type==='handover'){if(!positiveInt(Number(d.animalCount)))e.push('animalCount must be a positive integer for livestock events');}
- else if(d.animalCount!==undefined&&!nonNegativeInt(Number(d.animalCount)))e.push('invalid animalCount');
+ if(d.type==='purchase'||d.type==='death'||d.type==='handover'){if(!positiveInt(d.animalCount))e.push('animalCount must be a positive integer for livestock events');}
+ else if(d.animalCount!==undefined&&!nonNegativeInt(d.animalCount))e.push('invalid animalCount');
  if(d.schemaVersion!==undefined&&d.schemaVersion!==2)e.push('unsupported schemaVersion');
  return e;
 }
