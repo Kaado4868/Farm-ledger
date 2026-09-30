@@ -122,7 +122,7 @@ function currentFarmLedgerPage(){
  return document.body?.dataset?.farmLedgerPage || "";
 }
 function activateFarmNav(page){
- const navPage=(page==="add-record"||page==="handover"||page==="manage")?"manage":(page==="notifications"||page==="admin-chat"||page==="admin"?"admin":page);
+ const navPage=(page==="add-record"||page==="handover"||page==="records"||page==="manage")?"manage":(page==="notifications"||page==="admin-chat"||page==="admin"?"admin":page);
  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.screen===navPage));
 }
 function openFarmPage(page){
