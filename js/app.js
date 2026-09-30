@@ -120,17 +120,26 @@ document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>{
   showScreen(target);
 });
 function switchAdminPanel(panelId){
- if(!isSuperAdmin())return;
- const panels=["admin-tools","admin-notifications","admin-chat"];
- panels.forEach(id=>{
-  const panel=$(id);
-  if(panel){
-   panel.classList.toggle("hidden",id!==panelId);
-   panel.style.display=id===panelId?"block":"none";
+  const pageMap={
+    "admin-tools":"admin.html",
+    "admin-notifications":"notifications.html",
+    "admin-chat":"admin-chat.html"
+  };
+  if(isSuperAdmin()){
+    const page=pageMap[panelId];
+    if(page && !(window.location.pathname.endsWith("/"+page)||window.location.pathname.endsWith(page))){
+      window.location.href=page;
+      return;
+    }
   }
- });
- document.querySelectorAll(".admin-panel-tab").forEach(t=>t.classList.toggle("active",t.dataset.adminPanel===panelId));
+  const panels=["admin-tools","admin-notifications","admin-chat"];
+  panels.forEach(id=>{
+    const panel=$(id);
+    if(panel){panel.classList.toggle("hidden",id!==panelId);panel.style.display=id===panelId?"block":"none";}
+  });
+  document.querySelectorAll(".admin-panel-tab").forEach(t=>t.classList.toggle("active",t.dataset.adminPanel===panelId));
 }
+
 document.querySelectorAll(".admin-panel-tab").forEach(tab=>tab.onclick=()=>{
  switchAdminPanel(tab.dataset.adminPanel);
 });
