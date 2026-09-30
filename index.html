@@ -801,15 +801,13 @@ function showScreen(id){
  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
 
- // Admin sub-panels live inside the admin screen container but are not
- // themselves .screen elements, so explicitly hide them whenever leaving Admin.
- const adminPanels=["admin-tools","admin-notifications","admin-chat"];
- adminPanels.forEach(panelId=>{
+ // Hide every nested Admin and Manage panel before switching top-level screens.
+ ["admin-tools","admin-notifications","admin-chat"].forEach(panelId=>{
   const panel=$(panelId);
-  if(panel){
-   panel.classList.add("hidden");
-   panel.style.display="none";
-  }
+  if(panel){panel.classList.add("hidden");panel.style.display="none";}
+ });
+ document.querySelectorAll(".sub-screen").forEach(panel=>{
+  panel.classList.add("hidden");panel.style.display="none";
  });
 
  const screen=$(id);
@@ -817,8 +815,15 @@ function showScreen(id){
  const nav=document.querySelector(`.nav-item[data-screen="${id}"]`);
  if(nav)nav.classList.add("active");
 
- // Entering Admin always starts with exactly one admin sub-panel visible.
- if(id==="admin" && isSuperAdmin()) switchAdminPanel("admin-tools");
+ if(id==="admin" && isSuperAdmin()){
+  switchAdminPanel("admin-tools");
+ }else if(id==="manage"){
+  const history=document.querySelector('.manage-tab[data-sub="sub-history"]');
+  document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
+  if(history)history.classList.add("active");
+  const historyPanel=$("sub-history");
+  if(historyPanel){historyPanel.classList.remove("hidden");historyPanel.style.display="block";}
+ }
 }
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
 function switchAdminPanel(panelId){
@@ -1008,19 +1013,40 @@ auth.onAuthStateChanged(async user=>{
   const email=(user.email||"").toLowerCase();
   if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
-   $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
-   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();await loadAdminChats();startChatListener();
    const savedFarm=localStorage.getItem(SELECTED_FARM_KEY)||"";
-   if(savedFarm && $("farm-select") && Array.from($("farm-select").options).some(o=>o.value===savedFarm)){
+   if(savedFarm){
+    // Restore the last farm immediately; background admin data loading should not
+    // make the user wait before seeing their farm.
     currentFarmId=savedFarm;
     isSuperAdminViewingAsAdmin=true;
-    $("farm-select").value=savedFarm;
     $("farm-name").textContent="Farm: "+savedFarm;
-    $("switch-farm-btn").classList.remove("hidden");
-    loadRecords();startNotificationListener();showScreen("dashboard");
+    $("app-view").classList.remove("hidden");
+    loadRecords();
+    startNotificationListener();
+    showScreen("dashboard");
    }else{
+    $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
     showScreen("admin");
    }
+   // Populate admin controls in the background.
+   loadAdminFarms().then(()=>{
+    const farm=savedFarm;
+    if(farm && $("farm-select") && Array.from($("farm-select").options).some(o=>o.value===farm)){
+     $("farm-select").value=farm;
+    }else if(farm){
+     localStorage.removeItem(SELECTED_FARM_KEY);
+     currentFarmId="";
+     if(unsubscribeRecords)unsubscribeRecords();
+     unsubscribeRecords=null;
+     $("app-view").classList.add("hidden");
+     isSuperAdminViewingAsAdmin=false;
+     showScreen("admin");
+    }
+   }).catch(()=>{});
+   loadAdminUsers().catch(()=>{});
+   loadAdminNotifications().catch(()=>{});
+   loadAdminChats().catch(()=>{});
+   startChatListener();
    return;
   }
 
