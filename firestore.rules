@@ -3,44 +3,25 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
-
-    function isSuperAdmin() {
-      return signedIn() && request.auth.token.email == "abdulkadirbukar2006@gmail.com";
-    }
-
-    function legacyUser(email) {
-      return get(/databases/$(database)/documents/users/$(email));
-    }
-
-    function hasLegacyFarmAccess(farmId) {
-      return signedIn()
-        && legacyUser(request.auth.token.email).data.farmId == farmId
-        && legacyUser(request.auth.token.email).data.status == "approved";
-    }
-
+    function isSuperAdmin() { return signedIn() && request.auth.token.email == "abdulkadirbukar2006@gmail.com"; }
+    function legacyUser(email) { return get(/databases/$(database)/documents/users/$(email)); }
+    function hasLegacyFarmAccess(farmId) { return signedIn() && legacyUser(request.auth.token.email).data.farmId == farmId && legacyUser(request.auth.token.email).data.status == "approved"; }
     function hasMembership(farmId) {
       return signedIn()
         && exists(/databases/$(database)/documents/farms/$(farmId)/members/$(request.auth.token.email))
         && get(/databases/$(database)/documents/farms/$(farmId)/members/$(request.auth.token.email)).data.status == "active"
         && get(/databases/$(database)/documents/farms/$(farmId)/members/$(request.auth.token.email)).data.role in ["owner", "manager", "member"];
     }
-
-    function hasFarmAccess(farmId) {
-      return isSuperAdmin() || hasMembership(farmId) || hasLegacyFarmAccess(farmId);
-    }
-
+    function hasFarmAccess(farmId) { return isSuperAdmin() || hasMembership(farmId) || hasLegacyFarmAccess(farmId); }
     function validFarmId(v) { return v is string && v.size() > 0 && v.size() <= 120; }
     function validEmail(v) { return v is string && v.size() > 3 && v.size() <= 160; }
     function validDate(v) { return v is string && v.size() == 10; }
     function validAnimal(v) { return v in ["goat", "sheep", "cattle", "chicken", "other"]; }
     function validType(v) { return v in ["purchase", "death", "medical", "feed", "herdsman", "handover", "other"]; }
     function validAmount(v) { return v is number && v >= 0 && v <= 100000000000; }
-    function validCount(v) { return v is number && v >= 0 && v <= 1000000 && v == v.floor(); }
-
+    function validCount(v) { return v is int && v >= 0 && v <= 1000000; }
     function validTransactionCreate() {
-      return request.resource.data.keys().hasAll([
-          "farmId", "author", "type", "animalType", "amount", "description", "date", "animalCount"
-        ])
+      return request.resource.data.keys().hasAll(["farmId", "author", "type", "animalType", "amount", "description", "date", "animalCount"])
         && validFarmId(request.resource.data.farmId)
         && validEmail(request.resource.data.author)
         && request.resource.data.author == request.auth.token.email
@@ -52,54 +33,22 @@ service cloud.firestore {
         && request.resource.data.description.size() <= 300
         && validDate(request.resource.data.date)
         && validCount(request.resource.data.animalCount)
-        && (
-          request.resource.data.type in ["purchase", "death", "handover"]
-            ? request.resource.data.animalCount > 0
-            : request.resource.data.animalCount >= 0
-        )
+        && ((request.resource.data.type in ["purchase", "death", "handover"] && request.resource.data.animalCount > 0) || (request.resource.data.type in ["medical", "feed", "herdsman", "other"] && request.resource.data.animalCount >= 0))
         && (!request.resource.data.keys().hasAny(["schemaVersion"]) || request.resource.data.schemaVersion == 2);
     }
-
-    function validMembership() {
-      return request.resource.data.keys().hasAll(["email", "farmId", "role", "status"])
-        && validEmail(request.resource.data.email)
-        && validFarmId(request.resource.data.farmId)
-        && request.resource.data.role in ["owner", "manager", "member"]
-        && request.resource.data.status in ["active", "suspended"]
-        && request.resource.data.email == resource.data.email == request.resource.data.email;
-    }
-
-    function isChatMember(chatData) {
-      return signedIn() && (
-        chatData.members.hasAny([request.auth.token.email]) || chatData.createdBy == request.auth.token.email
-      );
-    }
-
-    function canAccessChat(chatData) {
-      return isSuperAdmin() || (isChatMember(chatData) && hasFarmAccess(chatData.farmId));
-    }
-
+    function isChatMember(chatData) { return signedIn() && (chatData.members.hasAny([request.auth.token.email]) || chatData.createdBy == request.auth.token.email); }
+    function canAccessChat(chatData) { return isSuperAdmin() || (isChatMember(chatData) && hasFarmAccess(chatData.farmId)); }
     function validChatCreate() {
       return request.resource.data.farmId is string
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 120
-        && request.resource.data.members is list
-        && request.resource.data.members.size() > 0
-        && request.resource.data.members.size() <= 100
-        && request.resource.data.createdBy == request.auth.token.email
-        && request.resource.data.createdAt is timestamp;
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120
+        && request.resource.data.members is list && request.resource.data.members.size() > 0 && request.resource.data.members.size() <= 100
+        && request.resource.data.createdBy == request.auth.token.email && request.resource.data.createdAt is timestamp;
     }
 
     match /users/{email} {
       allow read: if isSuperAdmin() || (signedIn() && request.auth.token.email == email);
-      allow create: if signedIn() && request.auth.token.email == email
-        && request.resource.data.farmId == ""
-        && request.resource.data.status == "pending";
-      allow update: if isSuperAdmin() || (
-        signedIn() && request.auth.token.email == email
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["lastActive", "lastLogin", "isOnline"])
-      );
+      allow create: if signedIn() && request.auth.token.email == email && request.resource.data.farmId == "" && request.resource.data.status == "pending";
+      allow update: if isSuperAdmin() || (signedIn() && request.auth.token.email == email && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["lastActive", "lastLogin", "isOnline"]));
       allow delete: if isSuperAdmin();
     }
 
@@ -116,24 +65,18 @@ service cloud.firestore {
     match /transactions/{transactionId} {
       allow read: if signedIn() && hasFarmAccess(resource.data.farmId);
       allow create: if signedIn() && hasFarmAccess(request.resource.data.farmId) && validTransactionCreate();
-      allow update: if isSuperAdmin()
-        && request.resource.data.farmId == resource.data.farmId
-        && validTransactionCreate();
+      allow update: if isSuperAdmin() && request.resource.data.farmId == resource.data.farmId && validTransactionCreate();
       allow delete: if isSuperAdmin();
     }
 
-    match /farmUsers/{userId} {
-      allow read, write: if isSuperAdmin();
-    }
+    match /farmUsers/{userId} { allow read, write: if isSuperAdmin(); }
 
     match /notifications/{notificationId} {
       allow read: if signedIn() && (isSuperAdmin() || hasFarmAccess(resource.data.farmId));
       allow create: if isSuperAdmin()
         && validFarmId(request.resource.data.farmId)
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 80
-        && request.resource.data.message is string
-        && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 300
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 80
+        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 300
         && request.resource.data.type in ["in_app", "bar", "both"]
         && request.resource.data.createdBy == request.auth.token.email;
       allow update: if signedIn()
@@ -149,25 +92,11 @@ service cloud.firestore {
     match /chats/{chatId} {
       allow read: if canAccessChat(resource.data);
       allow create: if isSuperAdmin() && validChatCreate() && hasFarmAccess(request.resource.data.farmId);
-      allow update: if isSuperAdmin() || (
-        canAccessChat(resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["lastMessage", "lastMessageSender", "lastMessageAt"])
-        && request.resource.data.lastMessageSender == request.auth.token.email
-        && request.resource.data.lastMessage is string
-        && request.resource.data.lastMessage.size() <= 2000
-        && request.resource.data.lastMessageAt is timestamp
-      );
+      allow update: if isSuperAdmin() || (canAccessChat(resource.data) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["lastMessage", "lastMessageSender", "lastMessageAt"]) && request.resource.data.lastMessageSender == request.auth.token.email && request.resource.data.lastMessage is string && request.resource.data.lastMessage.size() <= 2000 && request.resource.data.lastMessageAt is timestamp);
       allow delete: if isSuperAdmin();
-
       match /messages/{messageId} {
         allow read: if canAccessChat(get(/databases/$(database)/documents/chats/$(chatId)).data);
-        allow create: if canAccessChat(get(/databases/$(database)/documents/chats/$(chatId)).data)
-          && request.resource.data.sender == request.auth.token.email
-          && request.resource.data.text is string
-          && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
-          && request.resource.data.senderName is string
-          && request.resource.data.senderName.size() <= 100
-          && request.resource.data.createdAt is timestamp;
+        allow create: if canAccessChat(get(/databases/$(database)/documents/chats/$(chatId)).data) && request.resource.data.sender == request.auth.token.email && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000 && request.resource.data.senderName is string && request.resource.data.senderName.size() <= 100 && request.resource.data.createdAt is timestamp;
         allow update, delete: if isSuperAdmin();
       }
     }
