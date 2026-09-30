@@ -342,6 +342,11 @@ auth.onAuthStateChanged(async user=>{
   }
 
   const email=(user.email||"").toLowerCase();
+  const page=currentFarmLedgerPage();
+  if(email!==SUPER_ADMIN && ["admin","notifications","admin-chat"].includes(page)){
+    window.location.href="dashboard.html";
+    return;
+  }
   if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
    const savedFarm=localStorage.getItem(SELECTED_FARM_KEY)||"";
