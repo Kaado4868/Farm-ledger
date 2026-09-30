@@ -118,6 +118,13 @@ function showScreen(id){
   }
 }
 
+function currentFarmLedgerPage(){
+ return document.body?.dataset?.farmLedgerPage || "";
+}
+function activateFarmNav(page){
+ const navPage=(page==="add-record"||page==="handover"||page==="manage")?"manage":(page==="notifications"||page==="admin-chat"||page==="admin"?"admin":page);
+ document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.screen===navPage));
+}
 function openFarmPage(page){
   const map={form:"add-record.html",handover:"handover.html",dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html"};
   const target=map[page];
@@ -171,10 +178,14 @@ $("open-handover-tab").onclick=()=>openFarmPage("handover");
 
 document.querySelectorAll(".manage-tab").forEach(tab=>{
  tab.onclick=()=>{
+  const sub=tab.dataset.sub;
+  if(sub==="sub-form"){openFarmPage("form");return;}
+  if(sub==="sub-handover"){openFarmPage("handover");return;}
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
-  tab.classList.add("active"); $(tab.dataset.sub).classList.remove("hidden");
-  if(tab.dataset.sub==="sub-handover"){resetHandoverForm();}
+  tab.classList.add("active");
+  const panel=$(sub);
+  if(panel)panel.classList.remove("hidden");
  };
 });
 
@@ -334,19 +345,38 @@ auth.onAuthStateChanged(async user=>{
   if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
    const savedFarm=localStorage.getItem(SELECTED_FARM_KEY)||"";
+   const page=currentFarmLedgerPage();
+   const adminPage=(page==="admin"||page==="notifications"||page==="admin-chat");
+   const farmPage=(page==="dashboard"||page==="manage"||page==="add-record"||page==="handover"||page==="chat");
    if(savedFarm){
-    // Restore the last farm immediately; background admin data loading should not
-    // make the user wait before seeing their farm.
     currentFarmId=savedFarm;
     isSuperAdminViewingAsAdmin=true;
     $("farm-name").textContent="Farm: "+savedFarm;
     $("app-view").classList.remove("hidden");
     loadRecords();
     startNotificationListener();
-    showScreen("dashboard");
+    activateFarmNav(page);
+    if(page==="admin"||page==="notifications"||page==="admin-chat"){
+      // Stay on the requested admin page instead of forcing a Dashboard redirect.
+      if(page==="admin")switchAdminPanel("admin-tools");
+      else if(page==="notifications")switchAdminPanel("admin-notifications");
+      else switchAdminPanel("admin-chat");
+    }else if(farmPage){
+      // Dedicated farm pages are already the current route.
+      if(page==="manage")showScreen("manage");
+    }
    }else{
-    $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
-    showScreen("admin");
+    $("farm-name").textContent="Super Admin Mode";
+    $("app-view").classList.remove("hidden");
+    if(adminPage){
+      activateFarmNav(page);
+      if(page==="admin")switchAdminPanel("admin-tools");
+      else if(page==="notifications")switchAdminPanel("admin-notifications");
+      else switchAdminPanel("admin-chat");
+    }else{
+      $("app-view").classList.add("hidden");
+      showScreen("admin");
+    }
    }
    // Populate admin controls in the background.
    loadAdminFarms().then(()=>{
