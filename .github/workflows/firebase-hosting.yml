@@ -16,6 +16,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate previous app.js baseline syntax
+        run: |
+          git show e72552b0849d90ec5445a5230ffcaec414054807:js/app.js > /tmp/baseline-app.js
+          node --check /tmp/baseline-app.js
+
       - name: Validate app.js syntax
         run: node --check js/app.js
 
