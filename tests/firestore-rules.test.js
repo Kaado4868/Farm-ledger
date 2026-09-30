@@ -20,6 +20,8 @@ const {Timestamp}=require('firebase/firestore');
   await assertFails(user.collection('transactions').doc('bad-author').set({...good,author:'other@example.com'}));
   await assertSucceeds(user.collection('notifications').doc('n1').update({readBy:[email]}));
   await assertFails(user.collection('notifications').doc('n1').update({readBy:['other@example.com']}));
+  await assertSucceeds(user.collection('custodyEvents').doc('ce1').set({farmId:farm,inventoryId:'goat-001',action:'handover',actor:email,date:'2026-09-30',transactionId:'good'}));
+  await assertFails(user.collection('custodyEvents').doc('ce2').set({farmId:farm,inventoryId:'goat-002',action:'return',actor:'other@example.com',date:'2026-09-30',transactionId:'good'}));
   console.log('Firestore rules tests passed.');
  }finally{await env.cleanup();}
 })().catch(err=>{console.error(err);process.exit(1);});
