@@ -222,6 +222,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .handover-list-row span{color:#777;text-align:right}
 
 .admin-action-card{border:1px solid #e4e9e6}
+.chat-panel{display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:420px}.chat-list{overflow:auto;flex:1}.chat-row{padding:12px;border-bottom:1px solid #edf0ee;cursor:pointer}.chat-row.unread{background:#f1f8f2}.chat-row-title{font-weight:800;font-size:13px}.chat-row-meta{font-size:10px;color:#888;margin-top:3px}.chat-window{display:none;flex-direction:column;height:100%}.chat-window.active{display:flex}.chat-window-head{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:1px solid #e4e9e6}.chat-window-head .chat-back{border:0;background:#eef3ef;border-radius:8px;width:34px;height:34px}.chat-messages{flex:1;overflow:auto;padding:12px;background:#f7f9f8}.chat-bubble{max-width:82%;padding:8px 10px;border-radius:11px;margin:6px 0;font-size:12px;line-height:1.4}.chat-bubble.mine{margin-left:auto;background:#dceddf}.chat-bubble.theirs{background:#fff;border:1px solid #e5e9e6}.chat-sender{font-size:9px;font-weight:800;color:#55705b;margin-bottom:2px}.chat-time{font-size:9px;color:#999;margin-top:3px;text-align:right}.chat-compose{display:flex;gap:7px;padding:9px;border-top:1px solid #e4e9e6;background:#fff}.chat-compose textarea{flex:1;resize:none;min-height:38px;max-height:90px}.chat-send{width:42px;border:0;border-radius:9px;background:#2e7d32;color:#fff}.chat-empty{text-align:center;color:#888;font-size:12px;padding:30px 15px}
 .admin-panel-tabs{display:flex;background:#eee;border-radius:10px;padding:4px;margin-bottom:16px}
 .admin-panel-tab{flex:1;border:0;background:transparent;text-align:center;padding:9px;font-size:12px;font-weight:700;color:#666;border-radius:8px;cursor:pointer}
 .admin-panel-tab.active{background:#fff;color:#1b5e20;box-shadow:0 2px 5px rgba(0,0,0,.05)}
@@ -599,6 +600,13 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 </div>
 </div>
 
+<div id="chat" class="screen">
+<div class="card chat-panel">
+<div id="chat-list-view"><h3 style="margin-top:0"><i class="fas fa-comments" style="color:#2e7d32"></i> Chats</h3><div id="chat-list" class="chat-list"><div class="chat-empty">No chats available.</div></div></div>
+<div id="chat-window" class="chat-window">
+<div class="chat-window-head"><button class="chat-back" id="chat-back" type="button"><i class="fas fa-arrow-left"></i></button><div><div id="chat-window-title" style="font-weight:800;font-size:14px">Chat</div><div id="chat-window-members" style="font-size:9px;color:#888"></div></div></div>
+<div id="chat-messages" class="chat-messages"></div><div class="chat-compose"><textarea id="chat-input" class="form-input" rows="1" maxlength="1000" placeholder="Type a message..."></textarea><button id="chat-send" class="chat-send" type="button"><i class="fas fa-paper-plane"></i></button></div>
+</div></div></div>
 <div id="admin" class="screen">
 <div class="admin-panel-tabs"><button type="button" class="admin-panel-tab active" data-admin-panel="admin-tools">Admin Tools</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-notifications"><i class="fas fa-bell"></i> Notifications</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-chat"><i class="fas fa-comments"></i> Chat</button></div>
 <div id="admin-tools">
@@ -699,6 +707,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 
 <div class="nav">
 <div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-line"></i>Dashboard</div>
+<div class="nav-item" data-screen="chat"><i class="fas fa-comments"></i>Chat<span id="chat-nav-badge" class="notification-badge" style="position:static;margin-left:4px">0</span></div>
 <div class="nav-item" data-screen="manage"><i class="fas fa-folder-open"></i>Manage</div>
 <div id="admin-nav" class="nav-item hidden" data-screen="admin"><i class="fas fa-shield-alt"></i>Admin</div>
 </div>
@@ -733,7 +742,7 @@ let firestoreReady=db.enablePersistence({synchronizeTabs:true}).catch(err=>{
 const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
-let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null,unsubscribeNotifications=null;
+let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null,unsubscribeNotifications=null,unsubscribeChats=null,unsubscribeMessages=null,currentChatId="";
 let notificationKnownIds=new Set(),notificationInitialized=false;
 let selectedGoatImages=[],selectedReceipt=null,selectedHandoverPhotos=[],imagesCleared=false;
 let isSuperAdminViewingAsAdmin=false;
@@ -972,7 +981,7 @@ auth.onAuthStateChanged(async user=>{
   if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
    $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
-   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();await loadAdminChats();showScreen("admin");return;
+   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();await loadAdminChats();startChatListener();showScreen("admin");return;
   }
 
   if(email===SUPER_ADMIN){
@@ -1444,6 +1453,15 @@ async function loadAdminFarms(){
   }
  }catch(e){showError("Could not load farms: "+getFriendlyErrorMessage(e));}
 }
+function chatMemberMatches(data){const email=(currentUser?.email||"").toLowerCase();const members=Array.isArray(data.members)?data.members.map(x=>String(x).toLowerCase()):[];return members.includes(email)||String(data.createdBy||"").toLowerCase()===email;}
+function formatChatTime(ts){const d=ts?.toDate?ts.toDate():(ts?new Date(ts):new Date());return isNaN(d.getTime())?"":d.toLocaleString("en-NG",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});}
+function renderChatList(chats){const box=$("chat-list"),badge=$("chat-nav-badge");if(!box)return;if(badge)badge.style.display="none";if(!chats.length){box.innerHTML='<div class="chat-empty">No chats available.</div>';return;}box.innerHTML=chats.map(ch=>'<div class="chat-row" data-chat-id="'+escapeHtml(ch.id)+'"><div class="chat-row-title">'+escapeHtml(ch.name||"Chat")+'</div><div class="chat-row-meta">'+escapeHtml(ch.lastMessage||"No messages yet.")+' • '+escapeHtml(formatChatTime(ch.lastMessageAt))+'</div></div>').join("");box.querySelectorAll(".chat-row").forEach(el=>el.onclick=()=>openChat(el.dataset.chatId,chats.find(x=>x.id===el.dataset.chatId)));}
+function startChatListener(){if(unsubscribeChats)unsubscribeChats();if(!currentUser)return;unsubscribeChats=db.collection("chats").onSnapshot(s=>{const chats=[];s.forEach(d=>{const x=d.data()||{};if(chatMemberMatches(x)&&(!x.farmId||x.farmId===currentFarmId))chats.push({id:d.id,...x});});chats.sort((a,b)=>(b.lastMessageAt?.toMillis?.()||0)-(a.lastMessageAt?.toMillis?.()||0));renderChatList(chats);},()=>{});}
+function openChat(id,ch){currentChatId=id;$("chat-list-view").style.display="none";$("chat-window").classList.add("active");$("chat-window-title").textContent=ch?.name||"Chat";$("chat-window-members").textContent=(ch?.members||[]).join(", ");startMessageListener(id);}
+function startMessageListener(id){if(unsubscribeMessages)unsubscribeMessages();const box=$("chat-messages");unsubscribeMessages=db.collection("chats").doc(id).collection("messages").orderBy("createdAt","asc").onSnapshot(s=>{const ms=[];s.forEach(d=>ms.push({id:d.id,...d.data()}));box.innerHTML=ms.length?ms.map(m=>{const mine=String(m.sender||"").toLowerCase()===(currentUser?.email||"").toLowerCase();return '<div class="chat-bubble '+(mine?"mine":"theirs")+'"><div class="chat-sender">'+escapeHtml(m.senderName||m.sender||"Member")+'</div>'+escapeHtml(m.text||"")+'<div class="chat-time">'+escapeHtml(formatChatTime(m.createdAt))+'</div></div>';}).join(""):'<div class="chat-empty">No messages yet. Start the conversation.</div>';box.scrollTop=box.scrollHeight;});}
+$("chat-back")?.addEventListener("click",()=>{$("chat-window").classList.remove("active");$("chat-list-view").style.display="block";if(unsubscribeMessages){unsubscribeMessages();unsubscribeMessages=null;}currentChatId="";});
+async function sendChatMessage(){const input=$("chat-input"),text=input?.value.trim();if(!currentChatId||!text)return;try{const ref=db.collection("chats").doc(currentChatId),sender=(currentUser?.email||"").toLowerCase();await ref.collection("messages").add({text,sender,senderName:currentUser?.displayName||currentUser?.email||"Member",createdAt:firebase.firestore.FieldValue.serverTimestamp()});await ref.set({lastMessage:text,lastMessageSender:sender,lastMessageAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});input.value="";}catch(e){showError(getFriendlyErrorMessage(e));}}
+$("chat-send")?.addEventListener("click",sendChatMessage);$("chat-input")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChatMessage();}});
 function notificationRead(data){
  const email=(currentUser?.email||"").toLowerCase();
  return Array.isArray(data.readBy)&&data.readBy.includes(email);
