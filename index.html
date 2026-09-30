@@ -1434,7 +1434,7 @@ $("enter-farm-btn").onclick=()=>{
 };
 $("create-farm-btn").onclick=async()=>{
  const farm=$("new-farm-id").value.trim();
- if(!/^[a-zA-Z0-9_-]{2,60}$/.test(farm))return showError("Invalid Farm ID. Use 2-60 letters, numbers, hyphens or underscores.");
+ if(!/^[a-zA-Z0-9][a-zA-Z0-9 _'-]{0,58}[a-zA-Z0-9]$/.test(farm))return showError("Invalid Farm ID. Use 2-60 characters: letters, numbers, spaces, hyphens, underscores or apostrophes.");
  try{
   await db.collection("metadata").doc("farmList").set({farms:firebase.firestore.FieldValue.arrayUnion(farm)},{merge:true});
   $("new-farm-id").value="";await loadAdminFarms();showSuccess("Farm '"+farm+"' created successfully!");
