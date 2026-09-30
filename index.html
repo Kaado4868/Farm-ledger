@@ -1741,16 +1741,16 @@ $("record-type").dispatchEvent(new Event("change"));
     });
   }
   // Android/Chrome can otherwise leave a standalone PWA with a single back press.
-  // Keep the first back press inside the app and require a second press within 2 seconds.
-  var backArmed = false;
+  // Require the second back press within exactly 5 seconds of the warning.
+  var backExitDeadline = 0;
   var backTimer = null;
-  var exitingByBack = false;
   function armBackExit(){
-    if (backArmed) return;
-    backArmed = true;
-    if (window.showSuccess) window.showSuccess('Press back again to exit Farm Ledger.');
+    backExitDeadline = Date.now() + 5000;
+    if (window.showSuccess) window.showSuccess('Press back again within 5 seconds to exit Farm Ledger.');
     clearTimeout(backTimer);
-    backTimer = setTimeout(function(){ backArmed = false; }, 2000);
+    backTimer = setTimeout(function(){
+      backExitDeadline = 0;
+    }, 5000);
     history.pushState({farmLedger:true}, document.title, location.href);
   }
   if (window.history && window.history.pushState) {
@@ -1772,15 +1772,10 @@ $("record-type").dispatchEvent(new Event("change"));
         history.pushState({farmLedger:true}, document.title, location.href);
         return;
       }
-      if (backArmed) {
-        backArmed = false;
-        exitingByBack = true;
+      if (Date.now() <= backExitDeadline) {
+        backExitDeadline = 0;
         clearTimeout(backTimer);
         history.go(-1);
-        return;
-      }
-      if (exitingByBack) {
-        exitingByBack = false;
         return;
       }
       armBackExit();
