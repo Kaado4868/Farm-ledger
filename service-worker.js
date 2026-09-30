@@ -1,4 +1,4 @@
-const CACHE_NAME = "farm-ledger-v12";
+const CACHE_NAME = "farm-ledger-v13";
 const BASE = "/Farm-ledger/";
 const APP_SHELL = [
   BASE,
