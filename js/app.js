@@ -162,11 +162,7 @@ document.querySelectorAll(".admin-panel-tab").forEach(tab=>tab.onclick=()=>{
  switchAdminPanel(tab.dataset.adminPanel);
 });
 
-$("open-handover-tab").onclick=()=>{
- showScreen("manage");
- const tab=document.querySelector('.manage-tab[data-sub="sub-handover"]');
- if(tab)tab.click();
-};
+$("open-handover-tab").onclick=()=>openFarmPage("handover");
 
 ["history-filter","history-animal-filter","history-from","history-to","history-search"].forEach(id=>{
  const el=$(id); if(!el) return;
