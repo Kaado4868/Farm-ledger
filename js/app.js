@@ -26,7 +26,18 @@ let notificationKnownIds=new Set(),notificationInitialized=false;
 let selectedGoatImages=[],selectedReceipt=null,selectedHandoverPhotos=[],imagesCleared=false;
 let isSuperAdminViewingAsAdmin=false;
 let expensePeriod="all";
-const $=id=>document.getElementById(id);
+const missingElement=(()=>{
+  const classList={add(){},remove(){},toggle(){return false;},contains(){return false;}};
+  const style={};
+  return new Proxy({value:"",checked:false,files:[],innerHTML:"",textContent:"",style,classList},
+    {get(target,key){
+      if(key in target)return target[key];
+      if(key==="addEventListener"||key==="removeEventListener"||key==="appendChild"||key==="prepend"||key==="focus"||key==="click"||key==="scrollIntoView")return ()=>{};
+      if(key==="querySelector"||key==="querySelectorAll")return ()=>key==="querySelectorAll"?[]:null;
+      return undefined;
+    },set(target,key,val){target[key]=val;return true;}});
+})();
+const $=id=>document.getElementById(id)||missingElement;
 
 let errorToastTimer=null,successToastTimer=null;
 function showError(message){
