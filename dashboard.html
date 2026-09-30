@@ -18,11 +18,20 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
 </head>
-<body>
+<body data-farm-ledger-page="dashboard">
 <div id="error-box" style="display:none"></div>
 <div id="success-box" style="display:none"></div>
 <div id="splash-view"></div>
-<div id="app-view">
+<div id="app-view" class="app hidden"><div class="header">
+<div><h1 id="app-header-title"><i class="fas fa-leaf"></i> Farm Ledger</h1><small id="farm-name">Farm: Loading...</small></div>
+<div id="sync-status-bar" role="status" aria-live="polite"><i class="fas fa-cloud"></i><span id="sync-status-text">Synced</span></div>
+<div class="header-actions">
+<button id="install-app-btn" title="Install Farm Ledger"><i class="fas fa-download"></i> Install</button>
+<div class="notification-btn-wrap"><button id="notification-btn" class="icon-btn" title="Notifications"><i class="fas fa-bell"></i></button><span id="notification-badge" class="notification-badge">0</span></div>
+<button id="switch-farm-btn" class="icon-btn hidden" title="Switch Farm"><i class="fas fa-exchange-alt"></i></button>
+<button id="logout" class="icon-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+</div></div>
+<div id="notification-panel" class="notification-panel"><div class="notification-panel-head"><span><i class="fas fa-bell" style="color:#2e7d32"></i> Notifications</span><button id="notification-close" class="icon-btn" title="Close"><i class="fas fa-times"></i></button></div><div id="phone-notification-enable-row"><button id="enable-phone-notifications" type="button" class="secondary-btn">Enable Phone Notifications</button></div><div id="notification-list"><p style="padding:18px;text-align:center;color:#888;font-size:12px">No notifications.</p></div></div><div class="content">
 <div id="dashboard" class="screen active">
 <div class="dash-banner">
 <div>
@@ -102,6 +111,12 @@
 </div>
 
 
+</div><div class="nav">
+<div class="nav-item" data-screen="dashboard"><i class="fas fa-chart-line"></i>Dashboard</div>
+<div class="nav-item" data-screen="chat"><i class="fas fa-comments"></i>Chat<span id="chat-nav-badge" class="notification-badge" style="position:static;margin-left:4px">0</span></div>
+<div class="nav-item" data-screen="manage"><i class="fas fa-folder-open"></i>Manage</div>
+<div id="admin-nav" class="nav-item hidden" data-screen="admin"><i class="fas fa-shield-alt"></i>Admin</div>
+</div>
 </div>
 <script src="js/app.js"></script>
 <script src="js/pwa.js"></script>
