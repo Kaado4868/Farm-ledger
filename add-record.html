@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1b5e20"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<title>Farm Ledger - Add Record</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<link rel="stylesheet" href="css/farm-ledger.css"><link rel="manifest" href="/Farm-ledger/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"><link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
+</head><body><div id="error-box" style="display:none"></div><div id="success-box" style="display:none"></div><div id="splash-view"></div><div id="app-view"><div id="sub-form" class="sub-screen hidden">
+<div class="card" style="margin-bottom:0">
+<h3 id="form-title"><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create Record</h3>
+<input type="hidden" id="record-id">
+
+<div class="form-group"><label>Animal Type</label>
+<select id="animal-type">
+<option value="goat">Goat</option>
+<option value="sheep">Sheep</option>
+<option value="cattle">Cattle</option>
+<option value="chicken">Chicken</option>
+<option value="other">Other</option>
+</select>
+<input id="other-animal-name" class="form-input hidden" type="text" maxlength="50" placeholder="Specify animal name (e.g. Rabbit)">
+</div>
+<div class="form-group"><label>Category</label>
+<select id="record-type">
+<option value="purchase">Animal Purchase</option>
+<option value="death">Animal Death / Loss</option>
+<option value="medical">Medical / Drugs</option>
+<option value="feed">Feed / Fodder</option>
+<option value="herdsman">Herdsman Payment</option>
+<option value="other">Other Expense</option>
+</select></div>
+
+<div class="form-group"><label id="amount-label">Amount (₦)</label><input id="record-amount" class="form-input" type="number" min="0" placeholder="50000"></div>
+
+<div id="animal-count-box" class="form-group"><label id="animal-count-label">Number of Goats</label><input id="animal-count" class="form-input" type="number" min="1" value="1"></div>
+<div id="death-count-box" class="form-group hidden"><label>Number of Animals Lost</label><input id="death-count" class="form-input" type="number" min="1" value="1"></div>
+
+<div id="herdsman-provision-box" class="herdsman-provision hidden">
+<h4><i class="fas fa-user-tie"></i> Livestock Given to Herdsman</h4>
+<p class="herdsman-provision-note">Record who received the livestock and the specific animals handed over.</p>
+<div class="herdsman-contact-grid">
+<div class="form-group"><label>Herdsman Name</label><input id="herdsman-name" class="form-input" type="text" maxlength="100" placeholder="Full name"></div>
+<div class="form-group"><label>Phone Number</label><input id="herdsman-phone" class="form-input" type="tel" maxlength="30" placeholder="080..."></div>
+</div>
+<div class="form-group" style="margin-top:10px"><label>Number of Livestock Given</label><input id="herdsman-livestock-count" class="form-input" type="number" min="1" max="100" value="1"></div>
+<div id="herdsman-livestock-list"></div>
+</div>
+
+<div class="form-group"><label>Description</label><input id="record-description" class="form-input" type="text" placeholder="e.g. 5 goats purchased"></div>
+
+<div class="form-group"><label>Date</label><input id="record-date" class="form-input" type="date"></div>
+
+<div class="form-group">
+<label>Animal Images (Maximum 3)</label>
+<input id="goat-images" class="form-input" type="file" accept="image/*" multiple>
+<div id="image-preview" class="preview"></div>
+</div>
+
+<div class="form-group">
+<label>Receipt Image (Optional)</label>
+<input id="receipt-image" class="form-input" type="file" accept="image/*">
+<div id="receipt-preview" style="display:none;color:#2e7d32;margin-top:6px;font-size:13px;font-weight:600"><i class="fas fa-check-circle"></i> Receipt selected</div>
+</div>
+
+<button id="clear-images-btn" class="clear-btn hidden" type="button"><i class="fas fa-trash"></i> Clear Existing Images</button>
+
+<p style="font-size:11px;color:#777;margin:12px 0">Images are compressed for instant Firestore storage.</p>
+<p id="offline-save-note" style="font-size:11px;color:#777;margin:0 0 10px"><i class="fas fa-cloud-arrow-up"></i> If you are offline, this change is saved on this device and Firebase will sync it automatically when you reconnect.</p><button id="save-record" class="main-btn">Save Record</button>
+</div>
+</div>
+</div>
+
+
+</div>
+<script src="js/app.js"></script><script src="js/pwa.js"></script></body></html>
