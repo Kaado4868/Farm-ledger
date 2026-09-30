@@ -16,6 +16,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate JavaScript syntax
+        run: |
+          for file in js/*.js service-worker.js; do
+            node --check "$file"
+          done
+
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
