@@ -45,8 +45,9 @@ service cloud.firestore {
         && request.resource.data.createdBy == request.auth.token.email && request.resource.data.createdAt is timestamp;
     }
     function validInventoryId(v) { return v is string && v.size() >= 3 && v.size() <= 80; }
+    function custodyEventPath(farmId, inventoryId, action) { return /databases/$(database)/documents/custodyEvents/custody-$(farmId)-$(inventoryId)-$(action); }
     function validCustodyEvent() {
-      return request.resource.data.keys().hasAll(["farmId", "inventoryId", "action", "actor", "date"])
+      return request.resource.data.keys().hasAll(["farmId", "inventoryId", "action", "actor", "date", "transactionId"])
         && validFarmId(request.resource.data.farmId)
         && validInventoryId(request.resource.data.inventoryId)
         && request.resource.data.action in ["handover", "return", "loss"]
@@ -56,7 +57,9 @@ service cloud.firestore {
         && request.resource.data.transactionId is string
         && request.resource.data.transactionId.size() > 0
         && exists(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId))
-        && get(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId)).data.farmId == request.resource.data.farmId;
+        && get(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId)).data.farmId == request.resource.data.farmId
+        && (request.resource.data.action != "return" || !exists(custodyEventPath(request.resource.data.farmId, request.resource.data.inventoryId, "loss")))
+        && (request.resource.data.action != "loss" || !exists(custodyEventPath(request.resource.data.farmId, request.resource.data.inventoryId, "return")));
     }
 
     match /users/{email} {
@@ -65,51 +68,30 @@ service cloud.firestore {
       allow update: if isSuperAdmin() || (signedIn() && request.auth.token.email == email && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["lastActive", "lastLogin", "isOnline"]));
       allow delete: if isSuperAdmin();
     }
-
     match /farms/{farmId}/members/{email} {
       allow read: if isSuperAdmin() || (signedIn() && email == request.auth.token.email);
       allow create, update, delete: if isSuperAdmin();
     }
-
-    match /metadata/{docId} {
-      allow read: if signedIn() && (isSuperAdmin() || docId == "farmList");
-      allow write: if isSuperAdmin();
-    }
-
+    match /metadata/{docId} { allow read: if signedIn() && (isSuperAdmin() || docId == "farmList"); allow write: if isSuperAdmin(); }
     match /transactions/{transactionId} {
       allow read: if signedIn() && hasFarmAccess(resource.data.farmId);
       allow create: if signedIn() && hasFarmAccess(request.resource.data.farmId) && validTransactionCreate();
       allow update: if isSuperAdmin() && request.resource.data.farmId == resource.data.farmId && validTransactionCreate();
       allow delete: if isSuperAdmin();
     }
-
     match /custodyEvents/{eventId} {
       allow read: if signedIn() && hasFarmAccess(resource.data.farmId);
       allow create: if signedIn() && hasFarmAccess(request.resource.data.farmId) && validCustodyEvent();
       allow update: if isSuperAdmin() && validCustodyEvent() && request.resource.data.farmId == resource.data.farmId;
       allow delete: if isSuperAdmin();
     }
-
     match /farmUsers/{userId} { allow read, write: if isSuperAdmin(); }
-
     match /notifications/{notificationId} {
       allow read: if signedIn() && (isSuperAdmin() || hasFarmAccess(resource.data.farmId));
-      allow create: if isSuperAdmin()
-        && validFarmId(request.resource.data.farmId)
-        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 80
-        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 300
-        && request.resource.data.type in ["in_app", "bar", "both"]
-        && request.resource.data.createdBy == request.auth.token.email;
-      allow update: if signedIn()
-        && hasFarmAccess(resource.data.farmId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["readBy"])
-        && request.resource.data.readBy is list
-        && request.resource.data.readBy.hasAll(resource.data.readBy)
-        && request.resource.data.readBy.size() <= resource.data.readBy.size() + 1
-        && request.resource.data.readBy.hasAny([request.auth.token.email]);
+      allow create: if isSuperAdmin() && validFarmId(request.resource.data.farmId) && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 80 && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 300 && request.resource.data.type in ["in_app", "bar", "both"] && request.resource.data.createdBy == request.auth.token.email;
+      allow update: if signedIn() && hasFarmAccess(resource.data.farmId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["readBy"]) && request.resource.data.readBy is list && request.resource.data.readBy.hasAll(resource.data.readBy) && request.resource.data.readBy.size() <= resource.data.readBy.size() + 1 && request.resource.data.readBy.hasAny([request.auth.token.email]);
       allow delete: if isSuperAdmin();
     }
-
     match /chats/{chatId} {
       allow read: if canAccessChat(resource.data);
       allow create: if isSuperAdmin() && validChatCreate() && hasFarmAccess(request.resource.data.farmId);
