@@ -29,4 +29,4 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
-          npx --yes firebase-tools@latest deploy --only firestore:rules --project goatledger-132c7 --token "" --non-interactive --config firebase.json
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json" npx --yes firebase-tools@latest deploy --only firestore:rules --project goatledger-132c7 --non-interactive --config firebase.json
