@@ -803,13 +803,20 @@ function showScreen(id){
  const nav=document.querySelector(`.nav-item[data-screen="${id}"]`); if(nav)nav.classList.add("active");
 }
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
-document.querySelectorAll(".admin-panel-tab").forEach(tab=>tab.onclick=()=>{
+function switchAdminPanel(panelId){
  if(!isSuperAdmin())return;
- document.querySelectorAll(".admin-panel-tab").forEach(t=>t.classList.remove("active"));
- document.querySelectorAll("#admin-tools,#admin-notifications,#admin-chat").forEach(s=>s.classList.add("hidden"));
- tab.classList.add("active");
- const panel=$(tab.dataset.adminPanel);
- if(panel)panel.classList.remove("hidden");
+ const panels=["admin-tools","admin-notifications","admin-chat"];
+ panels.forEach(id=>{
+  const panel=$(id);
+  if(panel){
+   panel.classList.toggle("hidden",id!==panelId);
+   panel.style.display=id===panelId?"block":"none";
+  }
+ });
+ document.querySelectorAll(".admin-panel-tab").forEach(t=>t.classList.toggle("active",t.dataset.adminPanel===panelId));
+}
+document.querySelectorAll(".admin-panel-tab").forEach(tab=>tab.onclick=()=>{
+ switchAdminPanel(tab.dataset.adminPanel);
 });
 
 $("open-handover-tab").onclick=()=>{
