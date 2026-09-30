@@ -13,7 +13,7 @@ const {Timestamp}=require('firebase/firestore');
    await d.collection('farms').doc(farm).collection('members').doc(email).set({email,farmId:farm,role:'member',status:'active'});
    await d.collection('notifications').doc('n1').set({farmId:farm,title:'Test',message:'Hello',type:'in_app',createdBy:'abdulkadirbukar2006@gmail.com',readBy:[],createdAt:Timestamp.now()});
   });
-  const user=env.authenticatedContext(email,{email_verified:true}).firestore();
+  const user=env.authenticatedContext(email,{email,email_verified:true}).firestore();
   const good={farmId:farm,author:email,type:'purchase',animalType:'goat',amount:50000,description:'Purchased goats',date:'2026-09-30',animalCount:2,schemaVersion:2};
   await assertSucceeds(user.collection('transactions').doc('good').set(good));
   await assertFails(user.collection('transactions').doc('bad-type').set({...good,type:'forged'}));
