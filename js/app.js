@@ -312,7 +312,11 @@ auth.onAuthStateChanged(async user=>{
  currentUser=user;
  $("splash-view").classList.add("hidden");
  ["auth-view","pending-view","verify-view","app-view"].forEach(id=>$(id).classList.add("hidden"));
- if(!user){$("auth-view").classList.remove("hidden");return;}
+ if(!user){
+   const onEntryPage=window.location.pathname.endsWith("/index.html")||window.location.pathname.endsWith("/");
+   if(!onEntryPage){window.location.href="index.html";return;}
+   $("auth-view").classList.remove("hidden");return;
+ }
 
  $("auth-view").classList.add("hidden");
  try{
