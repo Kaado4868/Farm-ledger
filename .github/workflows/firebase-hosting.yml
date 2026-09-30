@@ -28,27 +28,5 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          npm install --no-save --no-package-lock firebase-admin@latest
-          node <<'NODE'
-          const fs = require("fs");
-          const admin = require("firebase-admin");
-          const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-          admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-            projectId: "goatledger-132c7"
-          });
-          const source = fs.readFileSync("firestore.rules", "utf8");
-          const rules = admin.securityRules();
-          (async () => {
-            try {
-              const ruleset = await rules.createRuleset({
-                source: { files: [{ name: "firestore.rules", content: source }] }
-              });
-              await rules.releaseFirestoreRuleset("cloud.firestore", ruleset.name);
-              console.log("Firestore rules deployed:", ruleset.name);
-            } catch (error) {
-              console.error("Firestore rules deployment failed:", error);
-              process.exit(1);
-            }
-          })();
-          NODE
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          npx --yes firebase-tools@latest deploy --only firestore:rules --project goatledger-132c7 --token "" --non-interactive --config firebase.json
