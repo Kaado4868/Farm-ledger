@@ -88,7 +88,7 @@ function today(){return new Date().toISOString().slice(0,10);}
 
 function showScreen(id){
   if(id==="dashboard"||id==="manage"||id==="chat"||id==="admin"){
-    const pageMap={dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html",form:"add-record.html",handover:"handover.html"};
+    const pageMap={dashboard:"dashboard.html",manage:"manage.html",records:"records.html",chat:"chat.html",admin:"admin.html",form:"add-record.html",handover:"handover.html"};
     const page=pageMap[id];
     if(page && !(window.location.pathname.endsWith("/"+page)||window.location.pathname.endsWith(page))){
       window.location.href=page;
@@ -126,7 +126,7 @@ function activateFarmNav(page){
  document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.screen===navPage));
 }
 function openFarmPage(page){
-  const map={form:"add-record.html",handover:"handover.html",dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html"};
+  const map={form:"add-record.html",handover:"handover.html",records:"records.html",dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html"};
   const target=map[page];
   if(target && !(window.location.pathname.endsWith("/"+target)||window.location.pathname.endsWith(target))){
     window.location.href=target;
@@ -179,6 +179,7 @@ $("open-handover-tab").onclick=()=>openFarmPage("handover");
 document.querySelectorAll(".manage-tab").forEach(tab=>{
  tab.onclick=()=>{
   const sub=tab.dataset.sub;
+  if(sub==="sub-history"){openFarmPage("records");return;}
   if(sub==="sub-form"){openFarmPage("form");return;}
   if(sub==="sub-handover"){openFarmPage("handover");return;}
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
@@ -352,7 +353,7 @@ auth.onAuthStateChanged(async user=>{
    const savedFarm=localStorage.getItem(SELECTED_FARM_KEY)||"";
    const page=currentFarmLedgerPage();
    const adminPage=(page==="admin"||page==="notifications"||page==="admin-chat");
-   const farmPage=(page==="dashboard"||page==="manage"||page==="add-record"||page==="handover"||page==="chat");
+   const farmPage=(page==="dashboard"||page==="manage"||page==="records"||page==="add-record"||page==="handover"||page==="chat");
    if(savedFarm){
     currentFarmId=savedFarm;
     isSuperAdminViewingAsAdmin=true;
