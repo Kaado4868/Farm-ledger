@@ -227,7 +227,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .dashboard-admin-note{font-size:11px;color:#777;margin:7px 0 0}
 .expense-value-card{margin-bottom:16px}
 
-#install-app-btn{display:none;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.18);
+#install-app-btn{display:flex;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.18);
 border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;align-items:center;gap:6px}
 #install-app-btn.show{display:flex}
 
@@ -282,10 +282,10 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 </style>
 
 <link rel="manifest" href="/Farm-ledger/manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="/Farm-ledger/icons/icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/Farm-ledger/icons/apple-touch-icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
-<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/Farm-ledger/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/Farm-ledger/apple-touch-icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -959,7 +959,7 @@ function formatDateHeader(date){
  return isNaN(d)?"Undated":d.toLocaleDateString("en-NG",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
 }
 function getPeriodRange(period){
- const end=today();let start=end,label="All Time";
+ const end=today();let start="0000-01-01",label="All Time";
  const d=new Date(end+"T00:00:00");
  if(period==="today"){start=end;label="Today";}
  else if(period==="7d"){d.setDate(d.getDate()-6);start=d.toISOString().slice(0,10);label="Last 7 Days";}
