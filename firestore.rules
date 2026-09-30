@@ -53,7 +53,7 @@ service cloud.firestore {
     }
 
     match /farms/{farmId}/members/{email} {
-      allow read: if isSuperAdmin() || (signedIn() && email == request.auth.token.email && hasFarmAccess(farmId));
+      allow read: if isSuperAdmin() || (signedIn() && email == request.auth.token.email);
       allow create, update, delete: if isSuperAdmin();
     }
 
