@@ -76,11 +76,13 @@ function isSuperAdmin(){return !!currentUser && (currentUser.email||"").toLowerC
 function today(){return new Date().toISOString().slice(0,10);}
 
 function showScreen(id){
-  if(id==="dashboard"){
-    const page="dashboard.html";
-    if(window.location.pathname.endsWith("/"+page)||window.location.pathname.endsWith(page)) return;
-    window.location.href=page;
-    return;
+  if(id==="dashboard"||id==="manage"||id==="chat"||id==="admin"){
+    const pageMap={dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html"};
+    const page=pageMap[id];
+    if(page && !(window.location.pathname.endsWith("/"+page)||window.location.pathname.endsWith(page))){
+      window.location.href=page;
+      return;
+    }
   }
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
