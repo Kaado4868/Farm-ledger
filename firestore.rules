@@ -33,9 +33,7 @@ service cloud.firestore {
         && validEmail(request.resource.data.actor) && request.resource.data.actor == request.auth.token.email && validDate(request.resource.data.date)
         && request.resource.data.transactionId is string && request.resource.data.transactionId.size() > 0
         && exists(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId))
-        && get(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId)).data.farmId == request.resource.data.farmId
-        && (request.resource.data.action != "return" || !exists(/databases/$(database)/documents/custodyEvents/custody-$(request.resource.data.farmId)-$(request.resource.data.inventoryId)-loss))
-        && (request.resource.data.action != "loss" || !exists(/databases/$(database)/documents/custodyEvents/custody-$(request.resource.data.farmId)-$(request.resource.data.inventoryId)-return));
+        && get(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId)).data.farmId == request.resource.data.farmId;
     }
     match /users/{email} { allow read: if isSuperAdmin() || (signedIn() && request.auth.token.email == email); allow create: if signedIn() && request.auth.token.email == email && request.resource.data.farmId == "" && request.resource.data.status == "pending"; allow update: if isSuperAdmin() || (signedIn() && request.auth.token.email == email && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["lastActive", "lastLogin", "isOnline"])); allow delete: if isSuperAdmin(); }
     match /farms/{farmId}/members/{email} { allow read: if isSuperAdmin() || (signedIn() && email == request.auth.token.email); allow create, update, delete: if isSuperAdmin(); }
