@@ -1537,11 +1537,17 @@ document.addEventListener("click",e=>{const p=$("notification-panel"),b=$("notif
 async function loadChatMembers(){
  const farm=$("chat-farm")?.value,box=$("chat-members"); if(!box)return;
  if(!farm){box.innerHTML='<p style="color:#888;font-size:12px">Select a farm first.</p>';return;}
+ if(!isSuperAdmin())return;
  try{
-  const snap=await db.collection("farmUsers").where("farmId","==",farm).get(),rows=[];
-  snap.forEach(d=>rows.push({id:d.id,...d.data()}));
-  box.innerHTML=rows.map(u=>'<label style="display:block;padding:7px;font-size:12px"><input type="checkbox" class="chat-member" value="'+escapeHtml(u.email||u.userId||u.id)+'"> '+escapeHtml(u.email||u.name||u.userId||u.id)+'</label>').join("")||'<p style="color:#888;font-size:12px">No members found.</p>';
- }catch(e){box.innerHTML='<p style="color:#c62828;font-size:12px">Could not load members.</p>';}
+  // Farm assignments are stored in users/{email}; farmUsers is not the source of truth.
+  const snap=await db.collection("users").where("farmId","==",farm).get(),rows=[];
+  snap.forEach(d=>{
+   const u=d.data()||{},email=String(u.email||d.id||"").trim().toLowerCase();
+   if(email && u.status==="approved")rows.push({id:d.id,...u,email});
+  });
+  rows.sort((a,b)=>String(a.email||"").localeCompare(String(b.email||"")));
+  box.innerHTML=rows.map(u=>'<label style="display:block;padding:7px;font-size:12px"><input type="checkbox" class="chat-member" value="'+escapeHtml(u.email)+'"> '+escapeHtml(u.name||u.email)+'</label>').join("")||'<p style="color:#888;font-size:12px">No approved members found for this farm.</p>';
+ }catch(e){box.innerHTML='<p style="color:#c62828;font-size:12px">Could not load members: '+escapeHtml(getFriendlyErrorMessage(e))+'</p>';}
 }
 async function loadAdminChats(){
  const box=$("admin-chat-list");if(!box)return;
