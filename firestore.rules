@@ -44,6 +44,20 @@ service cloud.firestore {
         && request.resource.data.members is list && request.resource.data.members.size() > 0 && request.resource.data.members.size() <= 100
         && request.resource.data.createdBy == request.auth.token.email && request.resource.data.createdAt is timestamp;
     }
+    function validInventoryId(v) { return v is string && v.size() >= 3 && v.size() <= 80; }
+    function validCustodyEvent() {
+      return request.resource.data.keys().hasAll(["farmId", "inventoryId", "action", "actor", "date"])
+        && validFarmId(request.resource.data.farmId)
+        && validInventoryId(request.resource.data.inventoryId)
+        && request.resource.data.action in ["handover", "return", "loss"]
+        && validEmail(request.resource.data.actor)
+        && request.resource.data.actor == request.auth.token.email
+        && validDate(request.resource.data.date)
+        && request.resource.data.transactionId is string
+        && request.resource.data.transactionId.size() > 0
+        && exists(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId))
+        && get(/databases/$(database)/documents/transactions/$(request.resource.data.transactionId)).data.farmId == request.resource.data.farmId;
+    }
 
     match /users/{email} {
       allow read: if isSuperAdmin() || (signedIn() && request.auth.token.email == email);
@@ -66,6 +80,13 @@ service cloud.firestore {
       allow read: if signedIn() && hasFarmAccess(resource.data.farmId);
       allow create: if signedIn() && hasFarmAccess(request.resource.data.farmId) && validTransactionCreate();
       allow update: if isSuperAdmin() && request.resource.data.farmId == resource.data.farmId && validTransactionCreate();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /custodyEvents/{eventId} {
+      allow read: if signedIn() && hasFarmAccess(resource.data.farmId);
+      allow create: if signedIn() && hasFarmAccess(request.resource.data.farmId) && validCustodyEvent();
+      allow update: if isSuperAdmin() && validCustodyEvent() && request.resource.data.farmId == resource.data.farmId;
       allow delete: if isSuperAdmin();
     }
 
