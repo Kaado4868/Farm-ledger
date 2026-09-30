@@ -15,7 +15,7 @@ service cloud.firestore {
     function hasFarmAccess(farmId) { return isSuperAdmin() || hasMembership(farmId) || hasLegacyFarmAccess(farmId); }
     function validFarmId(v) { return v is string && v.size() > 0 && v.size() <= 120; }
     function validEmail(v) { return v is string && v.size() > 3 && v.size() <= 160; }
-    function validDate(v) { return v is string && v.size() == 10; }
+    function validDate(v) { return v is string && v.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$'); }
     function validAnimal(v) { return v in ["goat", "sheep", "cattle", "chicken", "other"]; }
     function validType(v) { return v in ["purchase", "death", "medical", "feed", "herdsman", "handover", "other"]; }
     function validAmount(v) { return v is number && v >= 0 && v <= 100000000000; }
