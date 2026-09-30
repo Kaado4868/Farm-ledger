@@ -1,12 +1,7 @@
-const CACHE_NAME = "farm-ledger-v25";
+const CACHE_NAME = "farm-ledger-v27";
 const BASE = self.registration.scope;
-const APP_SHELL = ["","index.html","manifest.webmanifest","icon-192.png","icon-512.png","icon-512-maskable.png","apple-touch-icon-180.png","css/farm-ledger.css","js/app.js","js/pwa.js","dashboard.html","manage.html","records.html","chat.html","admin.html","notifications.html","admin-chat.html","add-record.html","handover.html","verify.html"];
+const APP_SHELL = ["","index.html","login.html","manifest.webmanifest","icon-192.png","icon-512.png","icon-512-maskable.png","apple-touch-icon-180.png","css/farm-ledger.css","js/app.js","js/pwa.js","js/ui-fixes.js","dashboard.html","manage.html","records.html","chat.html","admin.html","notifications.html","admin-chat.html","add-record.html","handover.html","verify.html"];
 function shellUrl(path){return new URL(path,BASE).href;}
-function repairAppJs(source){
-  const broken='if(currentFarmLedgerPage()==="manage"){\n  const tab=document.querySelector(\'.manage-tab[data-sub="sub-form"]\');if(tab)tab.click();\n }\n\n\nfunction renderHerdsmanLivestockRows';
-  const fixed='if(currentFarmLedgerPage()==="manage"){\n  const tab=document.querySelector(\'.manage-tab[data-sub="sub-form"]\');if(tab)tab.click();\n }\n}\n\nfunction renderHerdsmanLivestockRows';
-  return source.includes(broken)?source.replace(broken,fixed):source;
-}
 async function cacheResponse(request,response){if(response&&response.ok){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put(request,copy)).catch(()=>{});}return response;}
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL.map(shellUrl))).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("farm-ledger-")&&key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
@@ -15,19 +10,10 @@ self.addEventListener("fetch",event=>{
  const request=event.request;if(request.method!=="GET")return;
  const url=new URL(request.url),scopeUrl=new URL(BASE);
  if(url.origin!==scopeUrl.origin||!url.href.startsWith(scopeUrl.href))return;
- if(/\/js\/app\.js$/.test(url.pathname)){
-  event.respondWith(fetch(request,{cache:"no-cache"}).then(async response=>{if(!response||!response.ok)return response;const source=await response.text(),repaired=repairAppJs(source),headers=new Headers(response.headers);headers.set("Content-Type","application/javascript; charset=utf-8");return cacheResponse(request,new Response(repaired,{status:response.status,statusText:response.statusText,headers}));}).catch(()=>caches.match(request)));return;
- }
  if(request.mode==="navigate"){
-  event.respondWith((async()=>{
-   const cached=await caches.match(request);
-   const network=fetch(request,{cache:"no-cache"}).then(response=>cacheResponse(request,response)).catch(()=>cached||caches.match(shellUrl("index.html")));
-   if(cached){event.waitUntil(network.then(()=>undefined));return cached;}
-   return network;
-  })());
-  return;
+  event.respondWith((async()=>{const cached=await caches.match(request);const network=fetch(request,{cache:"no-cache"}).then(response=>cacheResponse(request,response)).catch(()=>cached||caches.match(shellUrl("login.html")));if(cached){event.waitUntil(network.then(()=>undefined));return cached;}return network;})());return;
  }
- const isCoreAppAsset=/\/(?:js|css)\//.test(url.pathname)||/\/index\.html$/.test(url.pathname);
+ const isCoreAppAsset=/\/(?:js|css)\//.test(url.pathname)||/\/(?:index|login)\.html$/.test(url.pathname);
  if(isCoreAppAsset){event.respondWith(caches.match(request).then(cached=>{const network=fetch(request,{cache:"no-cache"}).then(response=>cacheResponse(request,response)).catch(()=>cached);return cached||network;}));return;}
  event.respondWith(caches.match(request).then(cached=>{const network=fetch(request).then(response=>cacheResponse(request,response)).catch(()=>cached);return cached||network;}));
 });
