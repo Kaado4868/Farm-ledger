@@ -388,7 +388,8 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 </div>
 </div>
 
-<div id="notification-panel" class="notification-panel"><div class="notification-panel-head"><span><i class="fas fa-bell" style="color:#2e7d32"></i> Notifications</span><button id="notification-close" class="icon-btn" style="background:#f1f3f2;color:#555;width:28px;height:28px" title="Close"><i class="fas fa-times"></i></button></div><div id="notification-list"><p style="padding:18px;text-align:center;color:#888;font-size:12px">No notifications.</p></div></div>
+<div id="notification-panel" class="notification-panel"><div class="notification-panel-head"><span><i class="fas fa-bell" style="color:#2e7d32"></i> Notifications</span><button id="notification-close" class="icon-btn" style="background:#f1f3f2;color:#555;width:28px;height:28px" title="Close"><i class="fas fa-times"></i></button></div>
+<div style="padding:8px 12px;border-bottom:1px solid #eef1ef"><button id="enable-phone-notifications" type="button" class="secondary-btn" style="width:100%;padding:8px;border-radius:8px;font-size:11px"><i class="fas fa-mobile-screen-button"></i> Enable Phone Notifications</button></div><div id="notification-list"><p style="padding:18px;text-align:center;color:#888;font-size:12px">No notifications.</p></div></div>
 <div class="content">
 
 
@@ -1477,6 +1478,12 @@ $("send-notification-btn")?.addEventListener("click",async()=>{
 });
 $("notification-btn")?.addEventListener("click",()=>$("notification-panel")?.classList.toggle("show"));
 $("notification-close")?.addEventListener("click",()=>$("notification-panel")?.classList.remove("show"));
+$("enable-phone-notifications")?.addEventListener("click",async()=>{
+ if(!("Notification" in window))return showError("This browser does not support phone notifications.");
+ const p=await Notification.requestPermission();
+ if(p==="granted")showSuccess("Phone notifications enabled.");
+ else showError("Phone notification permission was not granted.");
+});
 document.addEventListener("click",e=>{const p=$("notification-panel"),b=$("notification-btn");if(p?.classList.contains("show")&&!p.contains(e.target)&&!b?.contains(e.target))p.classList.remove("show");});
 function userStatus(data){return data?.status==="revoked"?"Revoked":data?.farmId?"Approved":"Pending";}
 async function loadAdminUsers(){
