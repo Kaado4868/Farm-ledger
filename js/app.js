@@ -76,33 +76,35 @@ function isSuperAdmin(){return !!currentUser && (currentUser.email||"").toLowerC
 function today(){return new Date().toISOString().slice(0,10);}
 
 function showScreen(id){
- document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
- document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-
- // Hide every nested Admin and Manage panel before switching top-level screens.
- ["admin-tools","admin-notifications","admin-chat"].forEach(panelId=>{
-  const panel=$(panelId);
-  if(panel){panel.classList.add("hidden");panel.style.display="none";}
- });
- document.querySelectorAll(".sub-screen").forEach(panel=>{
-  panel.classList.add("hidden");panel.style.display="none";
- });
-
- const screen=$(id);
- if(screen)screen.classList.add("active");
- const nav=document.querySelector(`.nav-item[data-screen="${id}"]`);
- if(nav)nav.classList.add("active");
-
- if(id==="admin" && isSuperAdmin()){
-  switchAdminPanel("admin-tools");
- }else if(id==="manage"){
-  const history=document.querySelector('.manage-tab[data-sub="sub-history"]');
-  document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
-  if(history)history.classList.add("active");
-  const historyPanel=$("sub-history");
-  if(historyPanel){historyPanel.classList.remove("hidden");historyPanel.style.display="block";}
- }
+  if(id==="dashboard"){
+    const page="dashboard.html";
+    if(window.location.pathname.endsWith("/"+page)||window.location.pathname.endsWith(page)) return;
+    window.location.href=page;
+    return;
+  }
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  ["admin-tools","admin-notifications","admin-chat"].forEach(panelId=>{
+    const panel=$(panelId);
+    if(panel){panel.classList.add("hidden");panel.style.display="none";}
+  });
+  document.querySelectorAll(".sub-screen").forEach(panel=>{
+    panel.classList.add("hidden");panel.style.display="none";
+  });
+  const screen=$(id);
+  if(screen)screen.classList.add("active");
+  const nav=document.querySelector(`.nav-item[data-screen="${id}"]`);
+  if(nav)nav.classList.add("active");
+  if(id==="admin" && isSuperAdmin()) switchAdminPanel("admin-tools");
+  else if(id==="manage"){
+    const history=document.querySelector('.manage-tab[data-sub="sub-history"]');
+    document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
+    if(history)history.classList.add("active");
+    const historyPanel=$("sub-history");
+    if(historyPanel){historyPanel.classList.remove("hidden");historyPanel.style.display="block";}
+  }
 }
+
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
 function switchAdminPanel(panelId){
  if(!isSuperAdmin())return;
