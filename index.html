@@ -993,7 +993,7 @@ auth.onAuthStateChanged(async user=>{
   if(profile?.farmId && profile.status!=="revoked"){
    currentFarmId=profile.farmId;
    $("farm-name").textContent="Farm: "+currentFarmId;
-   $("app-view").classList.remove("hidden");loadRecords();
+   $("app-view").classList.remove("hidden");loadRecords();startChatListener();
   }else{
    $("pending-view").classList.remove("hidden");
   }
