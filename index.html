@@ -741,6 +741,7 @@ let firestoreReady=db.enablePersistence({synchronizeTabs:true}).catch(err=>{
 });
 const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
+const SELECTED_FARM_KEY="farm-ledger-selected-farm";
 
 let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null,unsubscribeNotifications=null,unsubscribeChats=null,unsubscribeMessages=null,currentChatId="";
 let notificationKnownIds=new Set(),notificationInitialized=false;
@@ -900,7 +901,7 @@ $("google-btn").onclick=async()=>{
 
 $("logout").onclick=async()=>{
  if(unsubscribeRecords)unsubscribeRecords();
- unsubscribeRecords=null;isSuperAdminViewingAsAdmin=false;currentFarmId="";
+ unsubscribeRecords=null;isSuperAdminViewingAsAdmin=false;currentFarmId="";localStorage.removeItem(SELECTED_FARM_KEY);
  await auth.signOut();
 };
 $("pending-logout").onclick=async()=>{if(unsubscribeRecords)unsubscribeRecords();await auth.signOut();};
@@ -1008,7 +1009,19 @@ auth.onAuthStateChanged(async user=>{
   if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
    $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
-   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();await loadAdminChats();startChatListener();showScreen("admin");return;
+   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();await loadAdminChats();startChatListener();
+   const savedFarm=localStorage.getItem(SELECTED_FARM_KEY)||"";
+   if(savedFarm && $("farm-select") && Array.from($("farm-select").options).some(o=>o.value===savedFarm)){
+    currentFarmId=savedFarm;
+    isSuperAdminViewingAsAdmin=true;
+    $("farm-select").value=savedFarm;
+    $("farm-name").textContent="Farm: "+savedFarm;
+    $("switch-farm-btn").classList.remove("hidden");
+    loadRecords();startNotificationListener();showScreen("dashboard");
+   }else{
+    showScreen("admin");
+   }
+   return;
   }
 
   if(email===SUPER_ADMIN){
@@ -1639,7 +1652,7 @@ async function revokeUserAccess(email){
 }
 $("enter-farm-btn").onclick=()=>{
  const farm=$("farm-select").value;if(!farm)return showError("Please select a farm first.");
- currentFarmId=farm;isSuperAdminViewingAsAdmin=false;$("farm-name").textContent="Farm: "+farm;$("switch-farm-btn").classList.remove("hidden");
+ currentFarmId=farm;localStorage.setItem(SELECTED_FARM_KEY,farm);isSuperAdminViewingAsAdmin=false;$("farm-name").textContent="Farm: "+farm;$("switch-farm-btn").classList.remove("hidden");
  $("app-view").classList.remove("hidden");loadRecords();startNotificationListener();showScreen("dashboard");
 };
 $("create-farm-btn").onclick=async()=>{
@@ -1661,7 +1674,7 @@ $("delete-farm-btn").onclick=async()=>{
   const tx=await db.collection("transactions").where("farmId","==",farm).limit(1).get();
   if(!tx.empty)return showError("This farm still has transaction records. For safety, delete the records first or keep the farm.");
   await db.collection("metadata").doc("farmList").set({farms:firebase.firestore.FieldValue.arrayRemove(farm)},{merge:true});
-  if(currentFarmId===farm){currentFarmId="";if(unsubscribeRecords)unsubscribeRecords();unsubscribeRecords=null;$("app-view").classList.add("hidden");}
+  if(currentFarmId===farm){currentFarmId="";localStorage.removeItem(SELECTED_FARM_KEY);if(unsubscribeRecords)unsubscribeRecords();unsubscribeRecords=null;$("app-view").classList.add("hidden");}
   await loadAdminFarms();showSuccess(`Farm "${farm}" deleted successfully.`);
  }catch(e){showError("Could not delete farm: "+getFriendlyErrorMessage(e));}
 };
