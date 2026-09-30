@@ -1,4 +1,4 @@
-const CACHE_NAME = "farm-ledger-v15";
+const CACHE_NAME = "farm-ledger-v16";
 const BASE = "/Farm-ledger/";
 const APP_SHELL = [
   BASE,
@@ -7,7 +7,10 @@ const APP_SHELL = [
   BASE + "icon-192.png",
   BASE + "icon-512.png",
   BASE + "icon-512-maskable.png",
-  BASE + "apple-touch-icon-180.png"
+  BASE + "apple-touch-icon-180.png",
+  BASE + "css/farm-ledger.css",
+  BASE + "js/app.js",
+  BASE + "js/pwa.js"
 ];
 
 self.addEventListener("install", event => {
