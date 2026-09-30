@@ -600,7 +600,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 </div>
 
 <div id="admin" class="screen">
-<div class="admin-panel-tabs"><button type="button" class="admin-panel-tab active" data-admin-panel="admin-tools">Admin Tools</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-notifications"><i class="fas fa-bell"></i> Notifications</button></div>
+<div class="admin-panel-tabs"><button type="button" class="admin-panel-tab active" data-admin-panel="admin-tools">Admin Tools</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-notifications"><i class="fas fa-bell"></i> Notifications</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-chat"><i class="fas fa-comments"></i> Chat</button></div>
 <div id="admin-tools">
 <div class="card">
 <h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3>
@@ -681,6 +681,19 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="card admin-action-card">
 <h3><i class="fas fa-list" style="color:#2e7d32"></i> Recent Notifications</h3>
 <div id="admin-notification-list"><p style="text-align:center;color:#888;font-size:12px">No notifications sent yet.</p></div>
+</div>
+</div>
+<div id="admin-chat" class="hidden">
+<div class="card admin-action-card">
+<h3><i class="fas fa-comments" style="color:#2e7d32"></i> Create Chat</h3>
+<div class="form-group"><label>Farm</label><select id="chat-farm" class="form-input"><option value="">Select a farm...</option></select></div>
+<div class="form-group"><label>Chat Name</label><input id="chat-name" class="form-input" maxlength="80" placeholder="e.g. Farm Management"></div>
+<div class="form-group"><label>Select Members</label><div id="chat-members" style="max-height:220px;overflow:auto;border:1px solid #ddd;border-radius:8px;padding:8px"><p style="color:#888;font-size:12px">Select a farm first.</p></div></div>
+<button id="create-chat-btn" class="main-btn"><i class="fas fa-plus"></i> Create Chat</button>
+</div>
+<div class="card admin-action-card">
+<h3><i class="fas fa-list"></i> Chats</h3>
+<div id="admin-chat-list"><p style="text-align:center;color:#888;font-size:12px">No chats yet.</p></div>
 </div>
 </div>
 
@@ -959,7 +972,7 @@ auth.onAuthStateChanged(async user=>{
   if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
    $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
-   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();showScreen("admin");return;
+   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();await loadAdminChats();showScreen("admin");return;
   }
 
   if(email===SUPER_ADMIN){
@@ -1423,6 +1436,8 @@ async function loadAdminFarms(){
   $("data-tools-farm").innerHTML=existingOptions;
   $("delete-farm-select").innerHTML=deleteOptions;
   if($("notification-farm"))$("notification-farm").innerHTML=existingOptions;
+  if($("chat-farm"))$("chat-farm").innerHTML=existingOptions;
+  if($("notification-farm"))$("notification-farm").innerHTML=existingOptions;
   if(currentFarmId&&farms.includes(currentFarmId)){
    $("data-tools-farm").value=currentFarmId;
    $("import-farm-select").value=currentFarmId;
@@ -1485,6 +1500,42 @@ $("enable-phone-notifications")?.addEventListener("click",async()=>{
  else showError("Phone notification permission was not granted.");
 });
 document.addEventListener("click",e=>{const p=$("notification-panel"),b=$("notification-btn");if(p?.classList.contains("show")&&!p.contains(e.target)&&!b?.contains(e.target))p.classList.remove("show");});
+async function loadChatMembers(){
+ const farm=$("chat-farm")?.value,box=$("chat-members"); if(!box)return;
+ if(!farm){box.innerHTML='<p style="color:#888;font-size:12px">Select a farm first.</p>';return;}
+ try{
+  const snap=await db.collection("farmUsers").where("farmId","==",farm).get(),rows=[];
+  snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  box.innerHTML=rows.map(u=>'<label style="display:block;padding:7px;font-size:12px"><input type="checkbox" class="chat-member" value="'+escapeHtml(u.email||u.userId||u.id)+'"> '+escapeHtml(u.email||u.name||u.userId||u.id)+'</label>').join("")||'<p style="color:#888;font-size:12px">No members found.</p>';
+ }catch(e){box.innerHTML='<p style="color:#c62828;font-size:12px">Could not load members.</p>';}
+}
+async function loadAdminChats(){
+ const box=$("admin-chat-list");if(!box)return;
+ try{
+  const snap=await db.collection("chats").get(),rows=[];
+  snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  box.innerHTML=rows.map(ch=>'<div class="notification-item"><div class="notification-title">'+escapeHtml(ch.name||"Chat")+'</div><div class="notification-message">'+escapeHtml((ch.members||[]).join(", "))+'</div><div style="margin-top:7px"><button type="button" class="danger-btn delete-chat-btn" data-chat-id="'+escapeHtml(ch.id)+'">Delete Chat</button></div></div>').join("")||'<p style="text-align:center;color:#888;font-size:12px">No chats yet.</p>';
+  box.querySelectorAll(".delete-chat-btn").forEach(btn=>btn.onclick=async()=>{
+   if(!confirm("Delete this chat and all its messages?"))return;
+   try{
+    const id=btn.dataset.chatId, msgs=await db.collection("chats").doc(id).collection("messages").get();
+    const batch=db.batch();msgs.forEach(m=>batch.delete(m.ref));batch.delete(db.collection("chats").doc(id));await batch.commit();
+    showSuccess("Chat deleted.");loadAdminChats();
+   }catch(e){showError(getFriendlyErrorMessage(e));}
+  });
+ }catch(e){box.innerHTML='<p style="color:#c62828;font-size:12px">Could not load chats.</p>';}
+}
+$("chat-farm")?.addEventListener("change",loadChatMembers);
+$("create-chat-btn")?.addEventListener("click",async()=>{
+ const farm=$("chat-farm")?.value,name=$("chat-name")?.value.trim();
+ const members=[...document.querySelectorAll(".chat-member:checked")].map(x=>x.value);
+ if(!farm)return showError("Select a farm.");if(!name)return showError("Enter a chat name.");if(!members.length)return showError("Select at least one member.");
+ try{
+  await db.collection("chats").add({farmId:farm,name,members,createdBy:(currentUser.email||"").toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  $("chat-name").value="";showSuccess("Chat created.");loadAdminChats();
+ }catch(e){showError(getFriendlyErrorMessage(e));}
+});
 function userStatus(data){return data?.status==="revoked"?"Revoked":data?.farmId?"Approved":"Pending";}
 async function loadAdminUsers(){
  try{
