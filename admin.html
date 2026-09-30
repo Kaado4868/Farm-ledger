@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1b5e20">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Farm Ledger">
+<title>Farm Ledger - Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<link rel="stylesheet" href="css/farm-ledger.css">
+<link rel="manifest" href="/Farm-ledger/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-180.png">
+</head>
+<body>
+<div id="error-box" style="display:none"></div>
+<div id="success-box" style="display:none"></div>
+<div id="splash-view"></div>
+<div id="app-view">
+<div id="admin" class="screen">
+<div class="admin-panel-tabs"><button type="button" class="admin-panel-tab active" data-admin-panel="admin-tools">Admin Tools</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-notifications"><i class="fas fa-bell"></i> Notifications</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-chat"><i class="fas fa-comments"></i> Chat</button></div>
+<div id="admin-tools">
+<div class="card">
+<h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3>
+<div class="form-group">
+<select id="farm-select" class="form-input"><option value="">Select a farm...</option></select>
+</div>
+<button id="enter-farm-btn" class="main-btn" style="margin-bottom:0">Open Farm Ledger</button>
+</div>
+
+<div class="card">
+<h3><i class="fas fa-plus-circle" style="color:#2e7d32"></i> Create New Farm</h3>
+<div class="form-group">
+<input id="new-farm-id" class="form-input" type="text" placeholder="e.g. farm-kano-02">
+</div>
+<button id="create-farm-btn" class="main-btn" style="background:#1b5e20;margin-bottom:0">Create Farm ID</button>
+</div>
+
+<div class="card admin-action-card">
+<h3><i class="fas fa-user-plus" style="color:#2e7d32"></i> Assign User to Farm</h3>
+
+<div class="form-group"><input id="assign-email" class="form-input" type="email" placeholder="User Email"></div>
+<div class="form-group"><label>Existing Farm</label><select id="assign-farm" class="form-input"><option value="">Select an existing farm...</option></select></div>
+<button id="assign-user" class="main-btn" style="margin-bottom:0">Grant Access</button>
+</div>
+
+<div class="card admin-action-card">
+<h3><i class="fas fa-file-import" style="color:#2e7d32"></i> Import Backup</h3>
+
+<div class="form-group"><label>Target Farm</label><select id="import-farm-select" class="form-input"><option value="">Select an existing farm...</option></select></div>
+<div class="form-group"><input id="import-file" class="form-input" type="file" accept=".json,.csv,application/json,text/csv"></div>
+<button id="import-btn" class="main-btn" style="margin-bottom:0"><i class="fas fa-file-import"></i> Import Records</button>
+<div id="import-status" class="import-status"></div>
+</div>
+
+<div class="card admin-action-card">
+<h3><i class="fas fa-database" style="color:#2e7d32"></i> Data Tools</h3>
+
+<div class="form-group"><label>Farm</label><select id="data-tools-farm" class="form-input"><option value="">Select an existing farm...</option></select></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<button id="export-csv-btn" class="main-btn" style="margin-bottom:0"><i class="fas fa-file-csv"></i> Export CSV</button>
+<button id="export-json-btn" class="main-btn" style="margin-bottom:0"><i class="fas fa-database"></i> Backup JSON</button>
+</div>
+</div>
+
+<div class="card">
+<h3><i class="fas fa-user-clock" style="color:#f57c00"></i> Pending Approvals</h3>
+<p style="color:#666;font-size:12px;margin-top:0">Newly registered users appear here until you assign them to a farm.</p>
+<div id="pending-user-list"><p style="color:#888;font-size:13px">Loading...</p></div>
+</div>
+
+<div class="card">
+<h3><i class="fas fa-users-cog" style="color:#2e7d32"></i> User Directory & Access Management</h3>
+<p style="color:#666;font-size:12px;margin-top:0">Manage registered users, reassign farms, or revoke access.</p>
+<div id="admin-user-list" style="max-height:200px;overflow-y:auto;border-top:1px solid #eee;padding-top:8px;">
+<p style="color:#888;font-size:13px">Loading users...</p>
+</div>
+</div>
+
+<div class="card danger-card admin-danger-bottom">
+<h3><i class="fas fa-building-circle-xmark" style="color:#c62828"></i> Delete Farm</h3>
+<p style="color:#666;font-size:12px;margin-top:0">For safety, a farm can only be deleted when it has no assigned users and no transaction records.</p>
+<div class="form-group">
+<select id="delete-farm-select" class="form-input"><option value="">Select farm to delete...</option></select>
+</div>
+<button id="delete-farm-btn" class="main-btn danger-btn" style="margin-bottom:0">Delete Farm</button>
+</div>
+</div>
+</div>
+<div id="admin-notifications" class="hidden">
+<div class="card admin-action-card">
+<h3><i class="fas fa-bell" style="color:#2e7d32"></i> Send Notification</h3>
+<div class="form-group"><label>Target Farm</label><select id="notification-farm" class="form-input"><option value="">Select a farm...</option></select></div>
+<div class="form-group"><label>Notification Type</label><select id="notification-type" class="form-input"><option value="in_app">In-App Only</option><option value="bar">Phone Notification Bar Only</option><option value="both">In-App + Phone Notification Bar</option></select></div>
+<div class="form-group"><label>Title</label><input id="notification-title" class="form-input" maxlength="80" placeholder="Notification title"></div>
+<div class="form-group"><label>Message</label><textarea id="notification-message" class="form-input" maxlength="300" rows="4" placeholder="Write the notification message..."></textarea></div>
+<button id="send-notification-btn" class="main-btn" style="margin-bottom:0"><i class="fas fa-paper-plane"></i> Send Notification</button>
+</div>
+<div class="card admin-action-card">
+<h3><i class="fas fa-list" style="color:#2e7d32"></i> Recent Notifications</h3>
+<div id="admin-notification-list"><p style="text-align:center;color:#888;font-size:12px">No notifications sent yet.</p></div>
+</div>
+</div>
+<div id="admin-chat" class="hidden">
+<div class="card admin-action-card">
+<h3><i class="fas fa-comments" style="color:#2e7d32"></i> Create Chat</h3>
+<div class="form-group"><label>Farm</label><select id="chat-farm" class="form-input"><option value="">Select a farm...</option></select></div>
+<div class="form-group"><label>Chat Name</label><input id="chat-name" class="form-input" maxlength="80" placeholder="e.g. Farm Management"></div>
+<div class="form-group"><label>Select Members</label><div id="chat-members" style="max-height:220px;overflow:auto;border:1px solid #ddd;border-radius:8px;padding:8px"><p style="color:#888;font-size:12px">Select a farm first.</p></div></div>
+<button id="create-chat-btn" class="main-btn"><i class="fas fa-plus"></i> Create Chat</button>
+</div>
+<div class="card admin-action-card">
+<h3><i class="fas fa-list"></i> Chats</h3>
+<div id="admin-chat-list"><p style="text-align:center;color:#888;font-size:12px">No chats yet.</p></div>
+</div>
+</div>
+
+</div>
+<script src="js/app.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
