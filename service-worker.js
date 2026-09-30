@@ -17,7 +17,9 @@ const APP_SHELL = [
   BASE + "chat.html",
   BASE + "admin.html",
   BASE + "notifications.html",
-  BASE + "admin-chat.html"
+  BASE + "admin-chat.html",
+  BASE + "add-record.html",
+  BASE + "handover.html"
 ];
 
 self.addEventListener("install", event => {
