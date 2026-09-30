@@ -1,32 +1,36 @@
-const CACHE_NAME = "farm-ledger-v20";
-const BASE = "/Farm-ledger/";
+const CACHE_NAME = "farm-ledger-v21";
+const BASE = self.registration.scope;
 const APP_SHELL = [
-  BASE,
-  BASE + "index.html",
-  BASE + "manifest.webmanifest",
-  BASE + "icon-192.png",
-  BASE + "icon-512.png",
-  BASE + "icon-512-maskable.png",
-  BASE + "apple-touch-icon-180.png",
-  BASE + "css/farm-ledger.css",
-  BASE + "js/app.js",
-  BASE + "js/pwa.js",
-  BASE + "index.html",
-  BASE + "dashboard.html",
-  BASE + "manage.html",
-  BASE + "records.html",
-  BASE + "chat.html",
-  BASE + "admin.html",
-  BASE + "notifications.html",
-  BASE + "admin-chat.html",
-  BASE + "add-record.html",
-  BASE + "handover.html"
+  "",
+  "index.html",
+  "manifest.webmanifest",
+  "icon-192.png",
+  "icon-512.png",
+  "icon-512-maskable.png",
+  "apple-touch-icon-180.png",
+  "css/farm-ledger.css",
+  "js/app.js",
+  "js/pwa.js",
+  "dashboard.html",
+  "manage.html",
+  "records.html",
+  "chat.html",
+  "admin.html",
+  "notifications.html",
+  "admin-chat.html",
+  "add-record.html",
+  "handover.html",
+  "verify.html"
 ];
+
+function shellUrl(path){
+  return new URL(path, BASE).href;
+}
 
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(APP_SHELL))
+      .then(cache => cache.addAll(APP_SHELL.map(shellUrl)))
       .then(() => self.skipWaiting())
   );
 });
@@ -49,9 +53,10 @@ self.addEventListener("message", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
+
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-  if (!url.pathname.startsWith(BASE)) return;
+  const scopeUrl = new URL(BASE);
+  if (url.origin !== scopeUrl.origin || !url.href.startsWith(scopeUrl.href)) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
@@ -63,7 +68,7 @@ self.addEventListener("fetch", event => {
           }
           return response;
         })
-        .catch(() => caches.match(request).then(cached => cached || caches.match(BASE + "index.html")))
+        .catch(() => caches.match(request).then(cached => cached || caches.match(shellUrl("index.html"))))
     );
     return;
   }
