@@ -88,7 +88,7 @@ function today(){return new Date().toISOString().slice(0,10);}
 
 function showScreen(id){
   if(id==="dashboard"||id==="manage"||id==="chat"||id==="admin"){
-    const pageMap={dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html"};
+    const pageMap={dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html",form:"add-record.html",handover:"handover.html"};
     const page=pageMap[id];
     if(page && !(window.location.pathname.endsWith("/"+page)||window.location.pathname.endsWith(page))){
       window.location.href=page;
@@ -118,6 +118,13 @@ function showScreen(id){
   }
 }
 
+function openFarmPage(page){
+  const map={form:"add-record.html",handover:"handover.html",dashboard:"dashboard.html",manage:"manage.html",chat:"chat.html",admin:"admin.html"};
+  const target=map[page];
+  if(target && !(window.location.pathname.endsWith("/"+target)||window.location.pathname.endsWith(target))){
+    window.location.href=target;
+  }
+}
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>{
   const target=item.dataset.screen;
   if(target==="dashboard"||target==="manage"||target==="chat"||target==="admin"){
