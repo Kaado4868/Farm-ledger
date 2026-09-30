@@ -116,6 +116,38 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
     }
 
+    match /farmUsers/{userId} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if signedIn()
+        && (
+          isSuperAdmin()
+          || hasFarmAccess(resource.data.farmId)
+        );
+
+      allow create: if isSuperAdmin()
+        && request.resource.data.farmId is string
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 300
+        && request.resource.data.type in ["in_app", "bar", "both"]
+        && request.resource.data.createdBy == request.auth.token.email;
+
+      allow update: if signedIn()
+        && hasFarmAccess(resource.data.farmId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["readBy"])
+        && request.resource.data.readBy is list
+        && request.resource.data.readBy.hasAll(resource.data.readBy);
+      
+      allow delete: if isSuperAdmin();
+    }
+
     match /chats/{chatId} {
       allow read: if canAccessChat(resource.data);
 
