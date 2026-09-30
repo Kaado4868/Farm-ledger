@@ -23,3 +23,11 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           projectId: goatledger-132c7
           channelId: live
+
+      - name: Deploy Firestore security rules
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          npx --yes firebase-tools@latest deploy --only firestore:rules --project goatledger-132c7 --non-interactive
+          rm -f "$RUNNER_TEMP/firebase-service-account.json"
