@@ -1744,6 +1744,7 @@ $("record-type").dispatchEvent(new Event("change"));
   // Keep the first back press inside the app and require a second press within 2 seconds.
   var backArmed = false;
   var backTimer = null;
+  var exitingByBack = false;
   function armBackExit(){
     if (backArmed) return;
     backArmed = true;
@@ -1773,7 +1774,13 @@ $("record-type").dispatchEvent(new Event("change"));
       }
       if (backArmed) {
         backArmed = false;
+        exitingByBack = true;
         clearTimeout(backTimer);
+        history.go(-1);
+        return;
+      }
+      if (exitingByBack) {
+        exitingByBack = false;
         return;
       }
       armBackExit();
