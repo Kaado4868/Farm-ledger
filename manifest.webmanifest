@@ -6,6 +6,8 @@
   "start_url": "/Farm-ledger/",
   "scope": "/Farm-ledger/",
   "display": "standalone",
+  "display_override": ["standalone"],
+  "launch_handler": {"client_mode": "focus-existing-or-navigate"},
   "background_color": "#f4f7f6",
   "theme_color": "#1b5e20",
   "orientation": "portrait-primary",
