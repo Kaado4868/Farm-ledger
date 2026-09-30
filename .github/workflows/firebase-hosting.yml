@@ -1,28 +1,62 @@
-name: Deploy Farm Ledger to Firebase Hosting
+name: Deploy Farm Ledger to Firebase
 
 on:
   push:
     branches:
       - main
+      - remediation-v1
   workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy to Firebase Hosting
+  validate:
+    name: Validate ledger code and security rules
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Run ledger unit tests
+        run: npm run test:ledger
+      - name: Run Firestore rules tests in emulator
+        run: npx firebase-tools@13.35.1 emulators:exec --only firestore --project farm-ledger-rules-test "npm run test:rules"
+      - name: Validate Firebase CLI
+        run: npx firebase-tools@13.35.1 --version
 
-      - name: Deploy to Firebase Hosting
+  deploy:
+    name: Deploy Hosting and Firestore rules
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools@13.35.1
+      - name: Configure Firebase service account
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
+      - name: Deploy Firestore rules
+        run: firebase deploy --only firestore:rules --project goatledger-132c7 --non-interactive
+      - name: Deploy Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           projectId: goatledger-132c7
           channelId: live
-
-      - name: Firestore rules status
-        run: echo "firestore.rules is kept in the repository; Firebase Hosting deployment completed. Rules deployment requires Service Usage permission on the Firebase service account."

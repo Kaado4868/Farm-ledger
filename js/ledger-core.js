@@ -1,0 +1,61 @@
+/* Farm Ledger shared ledger core. Dependency-free browser/test module. */
+(function(global){
+'use strict';
+const TYPES=Object.freeze(['purchase','death','medical','feed','herdsman','handover','other']);
+const ANIMAL_TYPES=Object.freeze(['goat','sheep','cattle','chicken','other']);
+const CUSTODY_STATES=Object.freeze(['on_farm','handed_over','returned','lost']);
+const MAX_AMOUNT=100000000000,MAX_COUNT=1000000;
+function finite(v){return typeof v==='number'&&Number.isFinite(v);}
+function amount(v){return finite(v)&&v>=0&&v<=MAX_AMOUNT;}
+function positiveInt(v){return Number.isInteger(v)&&v>0&&v<=MAX_COUNT;}
+function nonNegativeInt(v){return Number.isInteger(v)&&v>=0&&v<=MAX_COUNT;}
+function enumValue(v,list){return typeof v==='string'&&list.includes(v);}
+function date(v){return typeof v==='string'&&/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(v);}
+function validateTransaction(d){
+ const e=[]; if(!d||typeof d!=='object')return ['record must be an object'];
+ if(typeof d.farmId!=='string'||!d.farmId.trim()||d.farmId.length>120)e.push('invalid farmId');
+ if(typeof d.author!=='string'||!d.author.trim()||d.author.length>160)e.push('invalid author');
+ if(!enumValue(d.type,TYPES))e.push('invalid transaction type');
+ if(!enumValue(d.animalType,ANIMAL_TYPES))e.push('invalid animal type');
+ if(!amount(d.amount))e.push('invalid amount');
+ if(typeof d.description!=='string'||!d.description.trim()||d.description.length>300)e.push('invalid description');
+ if(!date(d.date))e.push('invalid date');
+ if(d.type==='purchase'||d.type==='death'||d.type==='handover'){if(!positiveInt(d.animalCount))e.push('animalCount must be a positive integer for livestock events');}
+ else if(d.animalCount!==undefined&&!nonNegativeInt(d.animalCount))e.push('invalid animalCount');
+ if(d.schemaVersion!==undefined&&d.schemaVersion!==2)e.push('unsupported schemaVersion');
+ return e;
+}
+function normalizeId(v){return typeof v==='string'&&/^[A-Za-z0-9_-]{3,80}$/.test(v)?v:null;}
+function buildInventoryFromRecords(records){
+ const inventory=new Map(),ordered=[];
+ (Array.isArray(records)?records:[]).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).forEach(r=>{
+  if(r.type==='purchase'){
+   const n=Number(r.animalCount)||0,ids=Array.isArray(r.inventoryIds)?r.inventoryIds:[];
+   for(let i=0;i<n;i++){const itemId=normalizeId(ids[i])||('legacy-'+String(r.id||'purchase')+'-'+(i+1));const item={id:itemId,animalType:r.animalType||'other',animalName:r.animalName||'',custodyState:'on_farm',sourceTransactionId:r.id||null};inventory.set(itemId,item);ordered.push(itemId);}
+  }else if(r.type==='death'){
+   let left=Number(r.animalCount)||0; for(const itemId of ordered){if(!left)break;const x=inventory.get(itemId);if(x&&x.animalType===r.animalType&&x.custodyState==='on_farm'){x.custodyState='lost';x.deceasedAt=r.date;x.lossTransactionId=r.id||null;left--;}}
+  }else if(r.type==='handover'){
+   const livestock=Array.isArray(r.handoverLivestock)?r.handoverLivestock:[]; livestock.forEach(x=>{const itemId=normalizeId(x.inventoryId||x.tagId);if(itemId&&inventory.has(itemId)){const item=inventory.get(itemId);item.custodyState='handed_over';item.handoverTransactionId=r.id||null;item.handoverReturnDate=r.handoverReturnDate||null;}});
+  }else if(r.type==='custody_return'){
+   const itemId=normalizeId(r.inventoryId),item=itemId&&inventory.get(itemId);if(item&&item.custodyState==='handed_over'){item.custodyState='returned';item.returnedAt=r.date;}
+  }else if(r.type==='custody_loss'){
+   const itemId=normalizeId(r.inventoryId),item=itemId&&inventory.get(itemId);if(item){item.custodyState='lost';item.lossTransactionId=r.id||null;}
+  }
+ });
+ return [...inventory.values()];
+}
+function applyInventoryEvent(inventory,event){
+ const next=Array.isArray(inventory)?inventory.map(x=>Object.assign({},x)):[],n=Number(event.animalCount)||0;
+ if(event.type==='purchase')for(let i=0;i<n;i++)next.push({id:normalizeId(event.inventoryIds?.[i])||('legacy-'+String(event.id||'')+'-'+(i+1)),animalType:event.animalType||'other',animalName:event.animalName||'',custodyState:'on_farm',sourceTransactionId:event.id||null});
+ else if(event.type==='death'){let left=n;for(const x of next){if(!left)break;if(x.animalType===event.animalType&&x.custodyState==='on_farm'&&!x.deceasedAt){x.deceasedAt=event.date;x.custodyState='lost';x.lossTransactionId=event.id||null;left--;}}if(left)return {ok:false,errors:['death exceeds available on-farm inventory'],inventory:next};}
+ return {ok:true,errors:[],inventory:next};
+}
+function calculateMetrics(records){
+ const totals={},value={},custody={on_farm:0,handed_over:0,returned:0,lost:0};let spent=0,lossValue=0;
+ const inventory=buildInventoryFromRecords(records);inventory.forEach(x=>custody[x.custodyState]=(custody[x.custodyState]||0)+1);
+ (Array.isArray(records)?records:[]).forEach(r=>{const n=Math.max(0,Number(r.animalCount)||0),a=Math.max(0,Number(r.amount)||0),animal=r.animalType||'other';if(r.type==='purchase'){value[animal]=(value[animal]||0)+a;}else if(r.type==='death')lossValue+=a;else if(['medical','feed','herdsman','other'].includes(r.type))spent+=a;if(r.type==='purchase'||r.type==='death')totals[animal]=(totals[animal]||0)+(r.type==='purchase'?n:-n);});
+ Object.keys(totals).forEach(k=>{totals[k]=inventory.filter(x=>x.animalType===k&&x.custodyState!=='lost').length;});
+ return {spent,lossValue,totalValue:Object.values(value).reduce((a,b)=>a+b,0),animalTotals:totals,custody,inventory};
+}
+global.FarmLedgerCore={TYPES,ANIMAL_TYPES,CUSTODY_STATES,MAX_AMOUNT,MAX_COUNT,validateTransaction,applyInventoryEvent,buildInventoryFromRecords,calculateMetrics};
+})(typeof window!=='undefined'?window:globalThis);
