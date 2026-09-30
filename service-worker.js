@@ -1,4 +1,4 @@
-const CACHE_NAME = "farm-ledger-v21";
+const CACHE_NAME = "farm-ledger-v22";
 const BASE = self.registration.scope;
 const APP_SHELL = [
   "",
@@ -69,6 +69,23 @@ self.addEventListener("fetch", event => {
           return response;
         })
         .catch(() => caches.match(request).then(cached => cached || caches.match(shellUrl("index.html"))))
+    );
+    return;
+  }
+
+  const isCoreAppAsset = /\/(?:js|css)\//.test(url.pathname) ||
+    /\/index\.html$/.test(url.pathname) || request.mode === "navigate";
+  if (isCoreAppAsset) {
+    event.respondWith(
+      fetch(request, {cache:"no-cache"})
+        .then(response => {
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
