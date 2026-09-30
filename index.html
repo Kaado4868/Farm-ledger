@@ -1560,7 +1560,7 @@ async function loadAdminChats(){
 $("chat-farm")?.addEventListener("change",loadChatMembers);
 $("create-chat-btn")?.addEventListener("click",async()=>{
  const farm=$("chat-farm")?.value,name=$("chat-name")?.value.trim();
- const members=[...document.querySelectorAll(".chat-member:checked")].map(x=>x.value);
+ const members=[...document.querySelectorAll(".chat-member:checked")].map(x=>String(x.value||"").trim().toLowerCase()).filter(Boolean);
  if(!farm)return showError("Select a farm.");if(!name)return showError("Enter a chat name.");if(!members.length)return showError("Select at least one member.");
  try{
   await db.collection("chats").add({farmId:farm,name,members,createdBy:(currentUser.email||"").toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp()});
