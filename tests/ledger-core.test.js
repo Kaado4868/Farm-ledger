@@ -7,10 +7,11 @@ const context = { window: {} };
 vm.runInNewContext(source, context);
 const core = context.window.FarmLedgerCore;
 
-assert.deepEqual(core.validateTransaction({
+const validErrors = core.validateTransaction({
   farmId:'farm-1', author:'user@example.com', type:'purchase', animalType:'goat',
   amount:50000, description:'Bought goats', date:'2026-09-30', animalCount:3
-}), []);
+});
+assert.equal(validErrors.length, 0, `unexpected validation errors: ${validErrors.join(', ')}`);
 
 assert.ok(core.validateTransaction({
   farmId:'farm-1', author:'user@example.com', type:'hacked', animalType:'goat',
