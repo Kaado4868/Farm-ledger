@@ -5,9 +5,11 @@
   "scripts": {
     "test:ledger": "node tests/ledger-core.test.js",
     "test": "npm run test:ledger",
+    "migrate:memberships": "node scripts/migrate-memberships.js",
     "validate:rules": "firebase deploy --only firestore:rules --project goatledger-132c7 --token \"$FIREBASE_TOKEN\""
   },
   "devDependencies": {
+    "firebase-admin": "^12.7.0",
     "firebase-tools": "^13.35.1"
   }
 }
