@@ -923,7 +923,7 @@ function renderNotifications(items){
 }
 function showPhoneNotification(n){
  if(!("Notification" in window)||Notification.permission!=="granted")return;
- const opts={body:n.message||"",icon:"/Farm-ledger/icon-192.png",badge:"/Farm-ledger/icon-192.png",tag:"farm-ledger-"+n.id};
+ const opts={body:n.message||"",icon:"./icon-192.png",badge:"./icon-192.png",tag:"farm-ledger-"+n.id};
  if("serviceWorker" in navigator)navigator.serviceWorker.ready.then(reg=>reg.showNotification(n.title||"Farm Ledger",opts)).catch(()=>{});else try{new Notification(n.title||"Farm Ledger",opts);}catch(e){}
 }
 function startNotificationListener(){
