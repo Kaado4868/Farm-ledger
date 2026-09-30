@@ -58,11 +58,11 @@ self.addEventListener("fetch", event => {
         .then(response => {
           if (response && response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(BASE + "index.html", copy));
+            caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
           }
           return response;
         })
-        .catch(() => caches.match(BASE + "index.html"))
+        .catch(() => caches.match(request).then(cached => cached || caches.match(BASE + "index.html")))
     );
     return;
   }
