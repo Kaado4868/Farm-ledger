@@ -293,7 +293,7 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <meta name="theme-color" content="#1b5e20">
 <meta name="description" content="Farm Ledger — secure livestock, expenses, losses and farm records.">
 <meta name="application-name" content="Farm Ledger">
-<meta name="version" content="10">
+<meta name="version" content="11">
 <meta name="format-detection" content="telephone=no">
 
 </head>
@@ -935,9 +935,12 @@ auth.onAuthStateChanged(async user=>{
  }catch(e){showError("Could not load your account: "+getFriendlyErrorMessage(e));}
 });
 
+let lastRecordsListenerRefresh=0;
 function loadRecords(){
  if(!currentFarmId)return;
+ const now=Date.now();
  if(unsubscribeRecords)unsubscribeRecords();
+ lastRecordsListenerRefresh=now;
  unsubscribeRecords=db.collection("transactions")
   .where("farmId","==",currentFarmId)
   .onSnapshot({includeMetadataChanges:true},snapshot=>{
@@ -948,9 +951,19 @@ function loadRecords(){
    render();
   },e=>{
    refreshConnectionStatus();
-   showError(getFriendlyErrorMessage(e));
+   if(navigator.onLine)showError(getFriendlyErrorMessage(e));
   });
 }
+
+// Firestore already streams changes in real time. These lightweight reconnection
+// hooks make the stream self-healing when the phone sleeps, changes network,
+// or the installed app is resumed without requiring a refresh button.
+window.addEventListener("online",()=>{
+ if(currentFarmId && Date.now()-lastRecordsListenerRefresh>1000)loadRecords();
+});
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden && currentFarmId && Date.now()-lastRecordsListenerRefresh>15000)loadRecords();
+});
 
 function getDateKey(r){return r.date||today();}
 function formatDateHeader(date){
@@ -1687,9 +1700,13 @@ $("record-type").dispatchEvent(new Event("change"));
               }
             });
           });
-          // Ask the browser to check for a newer service worker.
+          // Check immediately, when the app becomes visible, and periodically.
+          // This makes the Update button appear promptly after a new deployment.
           reg.update().catch(function(){});
-          setInterval(function(){ reg.update().catch(function(){}); }, 30 * 60 * 1000);
+          setInterval(function(){ reg.update().catch(function(){}); }, 2 * 60 * 1000);
+          document.addEventListener('visibilitychange', function(){
+            if (!document.hidden) reg.update().catch(function(){});
+          });
         })
         .catch(function(){});
     });
