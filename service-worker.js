@@ -4,10 +4,10 @@ const APP_SHELL = [
   BASE,
   BASE + "index.html",
   BASE + "manifest.webmanifest",
-  BASE + "icons/icon-192.png",
-  BASE + "icons/icon-512.png",
-  BASE + "icons/icon-512-maskable.png",
-  BASE + "icons/apple-touch-icon-180.png"
+  BASE + "icon-192.png",
+  BASE + "icon-512.png",
+  BASE + "icon-512-maskable.png",
+  BASE + "apple-touch-icon-180.png"
 ];
 
 self.addEventListener("install", event => {
