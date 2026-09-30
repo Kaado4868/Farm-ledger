@@ -222,6 +222,20 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .handover-list-row span{color:#777;text-align:right}
 
 .admin-action-card{border:1px solid #e4e9e6}
+.admin-panel-tabs{display:flex;background:#eee;border-radius:10px;padding:4px;margin-bottom:16px}
+.admin-panel-tab{flex:1;border:0;background:transparent;text-align:center;padding:9px;font-size:12px;font-weight:700;color:#666;border-radius:8px;cursor:pointer}
+.admin-panel-tab.active{background:#fff;color:#1b5e20;box-shadow:0 2px 5px rgba(0,0,0,.05)}
+.notification-panel{display:none;position:absolute;top:62px;right:10px;width:min(360px,calc(100% - 20px));max-height:70vh;overflow:auto;background:#fff;border:1px solid #e0e6e1;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);z-index:100001}
+.notification-panel.show{display:block}
+.notification-panel-head{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #eef1ef;font-weight:800}
+.notification-item{padding:11px 12px;border-bottom:1px solid #f0f2f1}
+.notification-item:last-child{border-bottom:0}
+.notification-item.unread{background:#f1f8f2}
+.notification-title{font-size:13px;font-weight:800;color:#222}
+.notification-message{font-size:12px;color:#666;line-height:1.4;margin-top:3px}
+.notification-time{font-size:10px;color:#999;margin-top:5px}
+.notification-badge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:#d32f2f;color:#fff;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 4px}
+.notification-btn-wrap{position:relative}
 .admin-danger-bottom{margin-top:22px;border-top:3px solid #ffebee}
 .import-help{font-size:11px;color:#777;line-height:1.45;margin:7px 0 10px}
 .import-status{font-size:12px;color:#2e7d32;background:#f1f8f2;border-radius:8px;padding:8px;margin-top:8px;display:none}
@@ -368,11 +382,13 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <div class="header-actions">
 <button id="install-app-btn" title="Install Farm Ledger"><i class="fas fa-download"></i> Install</button>
 
+<div class="notification-btn-wrap"><button id="notification-btn" class="icon-btn" title="Notifications"><i class="fas fa-bell"></i></button><span id="notification-badge" class="notification-badge">0</span></div>
 <button id="switch-farm-btn" class="icon-btn hidden" title="Switch Farm"><i class="fas fa-exchange-alt"></i></button>
 <button id="logout" class="icon-btn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
 </div>
 </div>
 
+<div id="notification-panel" class="notification-panel"><div class="notification-panel-head"><span><i class="fas fa-bell" style="color:#2e7d32"></i> Notifications</span><button id="notification-close" class="icon-btn" style="background:#f1f3f2;color:#555;width:28px;height:28px" title="Close"><i class="fas fa-times"></i></button></div><div id="notification-list"><p style="padding:18px;text-align:center;color:#888;font-size:12px">No notifications.</p></div></div>
 <div class="content">
 
 
@@ -583,6 +599,8 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 </div>
 
 <div id="admin" class="screen">
+<div class="admin-panel-tabs"><button type="button" class="admin-panel-tab active" data-admin-panel="admin-tools">Admin Tools</button><button type="button" class="admin-panel-tab" data-admin-panel="admin-notifications"><i class="fas fa-bell"></i> Notifications</button></div>
+<div id="admin-tools">
 <div class="card">
 <h3><i class="fas fa-store" style="color:#2e7d32"></i> Select Farm to View</h3>
 <div class="form-group">
@@ -649,9 +667,21 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 <button id="delete-farm-btn" class="main-btn danger-btn" style="margin-bottom:0">Delete Farm</button>
 </div>
 </div>
-
 </div>
-
+<div id="admin-notifications" class="hidden">
+<div class="card admin-action-card">
+<h3><i class="fas fa-bell" style="color:#2e7d32"></i> Send Notification</h3>
+<div class="form-group"><label>Target Farm</label><select id="notification-farm" class="form-input"><option value="">Select a farm...</option></select></div>
+<div class="form-group"><label>Notification Type</label><select id="notification-type" class="form-input"><option value="in_app">In-App Only</option><option value="bar">Phone Notification Bar Only</option><option value="both">In-App + Phone Notification Bar</option></select></div>
+<div class="form-group"><label>Title</label><input id="notification-title" class="form-input" maxlength="80" placeholder="Notification title"></div>
+<div class="form-group"><label>Message</label><textarea id="notification-message" class="form-input" maxlength="300" rows="4" placeholder="Write the notification message..."></textarea></div>
+<button id="send-notification-btn" class="main-btn" style="margin-bottom:0"><i class="fas fa-paper-plane"></i> Send Notification</button>
+</div>
+<div class="card admin-action-card">
+<h3><i class="fas fa-list" style="color:#2e7d32"></i> Recent Notifications</h3>
+<div id="admin-notification-list"><p style="text-align:center;color:#888;font-size:12px">No notifications sent yet.</p></div>
+</div>
+</div>
 
 <div class="nav">
 <div class="nav-item active" data-screen="dashboard"><i class="fas fa-chart-line"></i>Dashboard</div>
@@ -689,7 +719,8 @@ let firestoreReady=db.enablePersistence({synchronizeTabs:true}).catch(err=>{
 const googleProvider=new firebase.auth.GoogleAuthProvider();
 const SUPER_ADMIN="abdulkadirbukar2006@gmail.com";
 
-let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null;
+let currentUser=null,currentFarmId="",records=[],unsubscribeRecords=null,unsubscribeNotifications=null;
+let notificationKnownIds=new Set(),notificationInitialized=false;
 let selectedGoatImages=[],selectedReceipt=null,selectedHandoverPhotos=[],imagesCleared=false;
 let isSuperAdminViewingAsAdmin=false;
 let expensePeriod="all";
@@ -749,6 +780,11 @@ function showScreen(id){
  const nav=document.querySelector(`.nav-item[data-screen="${id}"]`); if(nav)nav.classList.add("active");
 }
 document.querySelectorAll(".nav-item").forEach(item=>item.onclick=()=>showScreen(item.dataset.screen));
+document.querySelectorAll(".admin-panel-tab").forEach(tab=>tab.onclick=()=>{
+ document.querySelectorAll(".admin-panel-tab").forEach(t=>t.classList.remove("active"));
+ document.querySelectorAll("#admin-tools,#admin-notifications").forEach(s=>s.classList.add("hidden"));
+ tab.classList.add("active");$(tab.dataset.adminPanel).classList.remove("hidden");
+});
 
 $("open-handover-tab").onclick=()=>{
  showScreen("manage");
@@ -922,12 +958,12 @@ auth.onAuthStateChanged(async user=>{
   if(email===SUPER_ADMIN && !isSuperAdminViewingAsAdmin){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
    $("farm-name").textContent="Super Admin Mode";$("app-view").classList.remove("hidden");
-   await loadAdminFarms();await loadAdminUsers();showScreen("admin");return;
+   await loadAdminFarms();await loadAdminUsers();await loadAdminNotifications();showScreen("admin");return;
   }
 
   if(email===SUPER_ADMIN){
    $("admin-nav").classList.remove("hidden");$("switch-farm-btn").classList.remove("hidden");
-   if(currentFarmId){$("app-view").classList.remove("hidden");loadRecords();return;}
+   if(currentFarmId){$("app-view").classList.remove("hidden");loadRecords();startNotificationListener();return;}
   }else $("admin-nav").classList.add("hidden");
 
   const profile=await ensureUserProfile(user);
@@ -1385,12 +1421,63 @@ async function loadAdminFarms(){
   $("import-farm-select").innerHTML=existingOptions;
   $("data-tools-farm").innerHTML=existingOptions;
   $("delete-farm-select").innerHTML=deleteOptions;
+  if($("notification-farm"))$("notification-farm").innerHTML=existingOptions;
   if(currentFarmId&&farms.includes(currentFarmId)){
    $("data-tools-farm").value=currentFarmId;
    $("import-farm-select").value=currentFarmId;
   }
  }catch(e){showError("Could not load farms: "+getFriendlyErrorMessage(e));}
 }
+function notificationRead(data){
+ const email=(currentUser?.email||"").toLowerCase();
+ return Array.isArray(data.readBy)&&data.readBy.includes(email);
+}
+function renderNotifications(items){
+ const list=$("notification-list"),badge=$("notification-badge");if(!list)return;
+ const unread=items.filter(n=>!n.read).length;
+ if(badge){badge.textContent=unread>99?"99+":String(unread);badge.style.display=unread?"flex":"none";}
+ if(!items.length){list.innerHTML='<p style="padding:18px;text-align:center;color:#888;font-size:12px">No notifications.</p>';return;}
+ list.innerHTML=items.slice(0,50).map(n=>'<div class="notification-item '+(n.read?"":"unread")+'" data-id="'+escapeHtml(n.id)+'"><div class="notification-title">'+escapeHtml(n.title||"Farm Ledger")+'</div><div class="notification-message">'+escapeHtml(n.message||"")+'</div><div class="notification-time">'+escapeHtml(n.createdAt&&n.createdAt.toDate?n.createdAt.toDate().toLocaleString("en-NG",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"")+'</div></div>').join("");
+ list.querySelectorAll(".notification-item").forEach(el=>el.onclick=async()=>{try{await db.collection("notifications").doc(el.dataset.id).set({readBy:firebase.firestore.FieldValue.arrayUnion((currentUser.email||"").toLowerCase())},{merge:true});}catch(e){}});
+}
+function showPhoneNotification(n){
+ if(!("Notification" in window)||Notification.permission!=="granted")return;
+ const opts={body:n.message||"",icon:"/Farm-ledger/icon-192.png",badge:"/Farm-ledger/icon-192.png",tag:"farm-ledger-"+n.id};
+ if("serviceWorker" in navigator)navigator.serviceWorker.ready.then(reg=>reg.showNotification(n.title||"Farm Ledger",opts)).catch(()=>{});else try{new Notification(n.title||"Farm Ledger",opts);}catch(e){}
+}
+function startNotificationListener(){
+ if(unsubscribeNotifications)unsubscribeNotifications();
+ notificationKnownIds=new Set();notificationInitialized=false;
+ if(!currentFarmId)return;
+ unsubscribeNotifications=db.collection("notifications").where("farmId","==",currentFarmId).onSnapshot(snapshot=>{
+  const items=[];
+  snapshot.forEach(doc=>{
+   const data=doc.data()||{},n={id:doc.id,...data,read:notificationRead(data)};
+   items.push(n);
+   if(notificationInitialized&&!notificationKnownIds.has(doc.id)&&(n.type==="bar"||n.type==="both"))showPhoneNotification(n);
+   notificationKnownIds.add(doc.id);
+  });
+  items.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  renderNotifications(items);notificationInitialized=true;
+ },()=>{});
+}
+async function loadAdminNotifications(){
+ const box=$("admin-notification-list");if(!box)return;
+ try{
+  const snap=await db.collection("notifications").get(),rows=[];
+  snap.forEach(doc=>rows.push({id:doc.id,...doc.data()}));
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  box.innerHTML=rows.slice(0,20).map(n=>'<div class="notification-item"><div class="notification-title">'+escapeHtml(n.title||"")+'</div><div class="notification-message">'+escapeHtml(n.message||"")+'</div><div class="notification-time">'+escapeHtml(n.farmId||"")+" • "+(n.type==="both"?"In-App + Phone Bar":n.type==="bar"?"Phone Bar":"In-App")+'</div></div>').join("")||'<p style="text-align:center;color:#888;font-size:12px">No notifications sent yet.</p>';
+ }catch(e){box.innerHTML='<p style="color:#c62828;font-size:12px">Could not load notifications.</p>';}
+}
+$("send-notification-btn")?.addEventListener("click",async()=>{
+ const farm=$("notification-farm")?.value,title=$("notification-title")?.value.trim(),message=$("notification-message")?.value.trim(),type=$("notification-type")?.value;
+ if(!farm)return showError("Select a target farm.");if(!title)return showError("Enter a notification title.");if(!message)return showError("Enter a notification message.");
+ try{await db.collection("notifications").add({farmId:farm,title,message,type,createdBy:(currentUser.email||"").toLowerCase(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),readBy:[]});$("notification-title").value="";$("notification-message").value="";showSuccess("Notification sent.");loadAdminNotifications();}catch(e){showError(getFriendlyErrorMessage(e));}
+});
+$("notification-btn")?.addEventListener("click",()=>$("notification-panel")?.classList.toggle("show"));
+$("notification-close")?.addEventListener("click",()=>$("notification-panel")?.classList.remove("show"));
+document.addEventListener("click",e=>{const p=$("notification-panel"),b=$("notification-btn");if(p?.classList.contains("show")&&!p.contains(e.target)&&!b?.contains(e.target))p.classList.remove("show");});
 function userStatus(data){return data?.status==="revoked"?"Revoked":data?.farmId?"Approved":"Pending";}
 async function loadAdminUsers(){
  try{
@@ -1431,7 +1518,7 @@ async function revokeUserAccess(email){
 $("enter-farm-btn").onclick=()=>{
  const farm=$("farm-select").value;if(!farm)return showError("Please select a farm first.");
  currentFarmId=farm;isSuperAdminViewingAsAdmin=false;$("farm-name").textContent="Farm: "+farm;$("switch-farm-btn").classList.remove("hidden");
- $("app-view").classList.remove("hidden");loadRecords();showScreen("dashboard");
+ $("app-view").classList.remove("hidden");loadRecords();startNotificationListener();showScreen("dashboard");
 };
 $("create-farm-btn").onclick=async()=>{
  const farm=$("new-farm-id").value.trim();
