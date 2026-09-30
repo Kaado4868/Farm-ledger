@@ -421,6 +421,17 @@ auth.onAuthStateChanged(async user=>{
  }catch(e){showError("Could not load your account: "+getFriendlyErrorMessage(e));}
 });
 
+function restorePendingPageEdits(){
+ const page=currentFarmLedgerPage();
+ if(page==="add-record"){
+  const id=sessionStorage.getItem("farm-ledger-edit-record");
+  if(id && records.some(r=>r.id===id)){sessionStorage.removeItem("farm-ledger-edit-record");editRecord(id);}
+ }
+ if(page==="handover"){
+  const id=sessionStorage.getItem("farm-ledger-edit-handover");
+  if(id && records.some(r=>r.id===id)){sessionStorage.removeItem("farm-ledger-edit-handover");editHandoverRecord(id);}
+ }
+}
 let lastRecordsListenerRefresh=0;
 function loadRecords(){
  if(!currentFarmId)return;
@@ -435,6 +446,7 @@ function loadRecords(){
    records.sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||Number(b.createdAt?.toMillis?.()||b.createdAt||0)-Number(a.createdAt?.toMillis?.()||a.createdAt||0));
    updateSyncStatus(snapshot.metadata.hasPendingWrites,snapshot.metadata.fromCache);
    render();
+   restorePendingPageEdits();
   },e=>{
    refreshConnectionStatus();
    if(navigator.onLine)showError(getFriendlyErrorMessage(e));
@@ -740,6 +752,11 @@ $("save-record").onclick=async()=>{
 function editRecord(id){
  if(!isSuperAdmin())return showError("Only the super administrator can update existing records.");
  const r=records.find(x=>x.id===id);if(!r)return;
+ if(currentFarmLedgerPage()!=="add-record"){
+  sessionStorage.setItem("farm-ledger-edit-record",id);
+  openFarmPage("form");
+  return;
+ }
  $("record-id").value=r.id;$("animal-type").value=r.animalType||"goat";$("record-type").value=r.type;
  $("other-animal-name").value=r.animalType==="other"?(r.animalName||""):"";
  $("other-animal-name").classList.toggle("hidden",r.animalType!=="other");
@@ -797,19 +814,21 @@ function renderHandoverLivestockRows(count,existing=[]){
   const item=existing[i]||{},row=document.createElement("div");row.className="livestock-row";
   row.innerHTML='<div class="livestock-row-title">Animal #'+(i+1)+'</div><div class="livestock-grid">'+
    '<div class="form-group"><label>Animal Type</label><select class="form-input handover-livestock-type"><option value="goat">Goat</option><option value="sheep">Sheep</option><option value="cattle">Cattle</option><option value="chicken">Chicken</option><option value="other">Other</option></select></div>'+
+   '<div class="form-group handover-other-name-box hidden"><label>Animal Name</label><input class="form-input handover-livestock-name" type="text" maxlength="80" placeholder="e.g. Camel"></div>'+
    '<div class="form-group"><label>Tag / ID</label><input class="form-input handover-livestock-id" type="text" maxlength="50" placeholder="e.g. G-014"></div>'+
    '<div class="form-group"><label>Sex</label><select class="form-input handover-livestock-sex"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option></select></div>'+
    '<div class="form-group"><label>Age</label><input class="form-input handover-livestock-age" type="text" maxlength="30" placeholder="e.g. 2 years"></div>'+
    '<div class="form-group" style="grid-column:1/-1"><label>Breed / Identifying Details</label><input class="form-input handover-livestock-details" type="text" maxlength="150" placeholder="Breed, colour, markings, etc."></div>'+
    '<div class="form-group" style="grid-column:1/-1"><label>Animal Photo</label><div class="livestock-photo-box"><input class="form-input handover-livestock-photo" type="file" accept="image/*" capture="environment"><div class="livestock-photo-preview"></div></div></div></div>';
-  row.querySelector(".handover-livestock-type").value=item.animalType||"goat";row.querySelector(".handover-livestock-id").value=item.tagId||"";row.querySelector(".handover-livestock-sex").value=item.sex||"";row.querySelector(".handover-livestock-age").value=item.age||"";row.querySelector(".handover-livestock-details").value=item.details||"";
+  row.querySelector(".handover-livestock-type").value=item.animalType||"goat";row.querySelector(".handover-livestock-name").value=item.animalName||"";row.querySelector(".handover-other-name-box").classList.toggle("hidden",(item.animalType||"goat")!=="other");row.querySelector(".handover-livestock-id").value=item.tagId||"";
+  row.querySelector(".handover-livestock-type").addEventListener("change",e=>row.querySelector(".handover-other-name-box").classList.toggle("hidden",e.target.value!=="other"));row.querySelector(".handover-livestock-sex").value=item.sex||"";row.querySelector(".handover-livestock-age").value=item.age||"";row.querySelector(".handover-livestock-details").value=item.details||"";
   if(item.photo){row.dataset.photo=item.photo;const img=document.createElement("img");img.src=item.photo;row.querySelector(".livestock-photo-preview").appendChild(img);}
   row.querySelector(".handover-livestock-photo").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const photo=await compressImage(file,300,.42);row.dataset.photo=photo;const preview=row.querySelector(".livestock-photo-preview");preview.innerHTML="";const img=document.createElement("img");img.src=photo;preview.appendChild(img);}catch(err){showError(getFriendlyErrorMessage(err));}};
   list.appendChild(row);
  }
 }
 function getHandoverLivestock(){
- return Array.from(document.querySelectorAll("#handover-livestock-list .livestock-row")).map(row=>({animalType:row.querySelector(".handover-livestock-type").value,animalName:"",tagId:row.querySelector(".handover-livestock-id").value.trim(),sex:row.querySelector(".handover-livestock-sex").value,age:row.querySelector(".handover-livestock-age").value.trim(),details:row.querySelector(".handover-livestock-details").value.trim(),photo:row.dataset.photo||""}));
+ return Array.from(document.querySelectorAll("#handover-livestock-list .livestock-row")).map(row=>({animalType:row.querySelector(".handover-livestock-type").value,animalName:row.querySelector(".handover-livestock-name").value.trim(),tagId:row.querySelector(".handover-livestock-id").value.trim(),sex:row.querySelector(".handover-livestock-sex").value,age:row.querySelector(".handover-livestock-age").value.trim(),details:row.querySelector(".handover-livestock-details").value.trim(),photo:row.dataset.photo||""}));
 }
 $("handover-livestock-count").onchange=()=>renderHandoverLivestockRows($("handover-livestock-count").value);
 $("handover-photos").onchange=async e=>{const files=Array.from(e.target.files).slice(0,3);selectedHandoverPhotos=[];$("handover-photo-preview").innerHTML="";for(const file of files)try{const data=await compressImage(file,420,.45);selectedHandoverPhotos.push(data);const img=document.createElement("img");img.src=data;$("handover-photo-preview").appendChild(img);}catch(err){showError(getFriendlyErrorMessage(err));}};
@@ -840,11 +859,16 @@ $("save-handover").onclick=async()=>{
 function editHandoverRecord(id){
  if(!isSuperAdmin())return showError("Only the super administrator can update existing handovers.");
  const r=records.find(x=>x.id===id);if(!r||r.type!=="handover")return;
+ if(currentFarmLedgerPage()!=="handover"){
+  sessionStorage.setItem("farm-ledger-edit-handover",id);
+  openFarmPage("handover");
+  return;
+ }
  $("handover-id").value=r.id;$("handover-date").value=r.date||"";$("handover-name").value=r.handoverName||"";$("handover-phone").value=r.handoverPhone||"";$("handover-location").value=r.handoverLocation||"";$("handover-purpose").value=r.handoverPurpose||"grazing";$("handover-return-date").value=r.handoverReturnDate||"";$("handover-notes").value=r.handoverNotes||"";$("handover-photos").value="";selectedHandoverPhotos=Array.isArray(r.images)?r.images.slice(0,3):[];$("handover-photo-preview").innerHTML="";selectedHandoverPhotos.forEach(p=>{const img=document.createElement("img");img.src=p;$("handover-photo-preview").appendChild(img);});
  const list=Array.isArray(r.handoverLivestock)?r.handoverLivestock:[];$("handover-livestock-count").value=Math.min(20,Math.max(1,list.length||1));renderHandoverLivestockRows($("handover-livestock-count").value,list);
  $("save-handover").innerHTML='<i class="fas fa-save"></i> Update Handover';
  document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
- const tab=document.querySelector('.manage-tab[data-sub="sub-handover"]');tab.classList.add("active");$("sub-handover").classList.remove("hidden");showScreen("manage");
+ const tab=document.querySelector('.manage-tab[data-sub="sub-handover"]');if(tab)tab.classList.add("active");const handoverPanel=$("sub-handover");if(handoverPanel)handoverPanel.classList.remove("hidden");
 }
 
 async function deleteRecord(id){
@@ -977,8 +1001,16 @@ async function loadAdminChats(){
   box.querySelectorAll(".delete-chat-btn").forEach(btn=>btn.onclick=async()=>{
    if(!confirm("Delete this chat and all its messages?"))return;
    try{
-    const id=btn.dataset.chatId, msgs=await db.collection("chats").doc(id).collection("messages").get();
-    const batch=db.batch();msgs.forEach(m=>batch.delete(m.ref));batch.delete(db.collection("chats").doc(id));await batch.commit();
+    const id=btn.dataset.chatId;
+    const ref=db.collection("chats").doc(id);
+    const msgs=await ref.collection("messages").get();
+    const refs=msgs.docs.map(m=>m.ref);
+    for(let start=0;start<refs.length;start+=450){
+      const batch=db.batch();
+      refs.slice(start,start+450).forEach(messageRef=>batch.delete(messageRef));
+      await batch.commit();
+    }
+    const finalBatch=db.batch();finalBatch.delete(ref);await finalBatch.commit();
     showSuccess("Chat deleted.");loadAdminChats();
    }catch(e){showError(getFriendlyErrorMessage(e));}
   });
