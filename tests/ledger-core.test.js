@@ -23,6 +23,11 @@ assert.ok(core.validateTransaction({
   amount:0, description:'Death', date:'2026-09-30', animalCount:0
 }).includes('animalCount must be a positive integer for livestock events'));
 
+assert.ok(core.validateTransaction({
+  farmId:'farm-1', author:'user@example.com', type:'purchase', animalType:'goat',
+  amount:50, description:'x', date:'2026-02-30', animalCount:1
+}).includes('invalid date'));
+
 const inventory = [
   {id:'g1', animalType:'goat', custodyState:'on_farm'},
   {id:'g2', animalType:'goat', custodyState:'on_farm'}
