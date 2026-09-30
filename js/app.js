@@ -415,7 +415,7 @@ auth.onAuthStateChanged(async user=>{
   if(profile?.farmId && profile.status!=="revoked"){
    currentFarmId=profile.farmId;
    $("farm-name").textContent="Farm: "+currentFarmId;
-   $("app-view").classList.remove("hidden");loadRecords();startChatListener();
+   $("app-view").classList.remove("hidden");loadRecords();startChatListener();startNotificationListener();
   }else{
    $("pending-view").classList.remove("hidden");
   }
@@ -459,9 +459,13 @@ function loadRecords(){
 // or the installed app is resumed without requiring a refresh button.
 window.addEventListener("online",()=>{
  if(currentFarmId && Date.now()-lastRecordsListenerRefresh>1000)loadRecords();
+ if(currentFarmId && currentUser)startNotificationListener();
 });
 document.addEventListener("visibilitychange",()=>{
- if(!document.hidden && currentFarmId && Date.now()-lastRecordsListenerRefresh>15000)loadRecords();
+ if(!document.hidden && currentFarmId && Date.now()-lastRecordsListenerRefresh>15000){
+  loadRecords();
+  if(currentUser)startNotificationListener();
+ }
 });
 
 function getDateKey(r){return r.date||today();}
