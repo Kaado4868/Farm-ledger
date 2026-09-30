@@ -90,7 +90,7 @@
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function(){
-      navigator.serviceWorker.register('/Farm-ledger/service-worker.js', {scope:'/Farm-ledger/'})
+      navigator.serviceWorker.register('./service-worker.js', {scope:'./'})
         .then(function(reg){
           if (reg.waiting) showUpdate(reg);
           reg.addEventListener('updatefound', function(){
