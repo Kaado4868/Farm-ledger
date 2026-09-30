@@ -10,7 +10,14 @@ const APP_SHELL = [
   BASE + "apple-touch-icon-180.png",
   BASE + "css/farm-ledger.css",
   BASE + "js/app.js",
-  BASE + "js/pwa.js"
+  BASE + "js/pwa.js",
+  BASE + "index.html",
+  BASE + "dashboard.html",
+  BASE + "manage.html",
+  BASE + "chat.html",
+  BASE + "admin.html",
+  BASE + "notifications.html",
+  BASE + "admin-chat.html"
 ];
 
 self.addEventListener("install", event => {
