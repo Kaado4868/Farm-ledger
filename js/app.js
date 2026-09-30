@@ -772,8 +772,9 @@ function editRecord(id){
  selectedGoatImages=[];selectedReceipt=null;imagesCleared=false;
  $("image-preview").innerHTML="";$("receipt-preview").style.display="none";
  if((r.images&&r.images.length)||r.receipt)$("clear-images-btn").classList.remove("hidden");else $("clear-images-btn").classList.add("hidden");
- document.querySelectorAll(".manage-tab")[1].click();showScreen("manage");
-}
+ if(currentFarmLedgerPage()==="manage"){
+  const tab=document.querySelector('.manage-tab[data-sub="sub-form"]');if(tab)tab.click();
+ }
 
 
 function renderHerdsmanLivestockRows(count,existing=[]){
