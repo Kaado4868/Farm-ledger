@@ -227,7 +227,7 @@ select:focus,.form-input:focus{border-color:#2e7d32;background:#fff}
 .dashboard-admin-note{font-size:11px;color:#777;margin:7px 0 0}
 .expense-value-card{margin-bottom:16px}
 
-#install-app-btn{display:flex;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.18);
+#install-app-btn{display:none;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.18);
 border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;align-items:center;gap:6px}
 #install-app-btn.show{display:flex}
 
@@ -261,10 +261,11 @@ button,.nav-item,.manage-tab,.txn-row,.auth-link{-webkit-touch-callout:none;touc
 #sync-status-bar.pending{background:#1565c0;color:#fff}
 #sync-status-bar.synced{background:#2e7d32;color:#fff}
 #pwa-offline-bar{
-  display:none;position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;
+  display:none;position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));
   transform:translateX(-50%);width:calc(100% - 24px);max-width:456px;
-  background:#6d4c41;color:#fff;border-radius:9px;padding:7px 10px;
-  z-index:99998;text-align:center;font-size:11px;font-weight:700
+  background:#6d4c41;color:#fff;border-radius:10px;padding:9px 12px;
+  z-index:99998;text-align:center;font-size:11px;font-weight:700;
+  line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.18)
 }
 #pwa-offline-bar.show{display:block}
 #pwa-splash-brand{font-size:14px;font-weight:800;color:#2e7d32;letter-spacing:.4px}
@@ -693,9 +694,13 @@ let isSuperAdminViewingAsAdmin=false;
 let expensePeriod="all";
 const $=id=>document.getElementById(id);
 
+let errorToastTimer=null,successToastTimer=null;
 function showError(message){
- const box=$("error-box"); box.textContent=message; box.style.display="block";
- setTimeout(()=>box.style.display="none",5000);
+ const text=String(message||"");
+ if(!navigator.onLine && /network|offline|failed to get document|unavailable/i.test(text)) return;
+ const box=$("error-box"); box.textContent=text; box.style.display="block";
+ clearTimeout(errorToastTimer);
+ errorToastTimer=setTimeout(()=>box.style.display="none",5000);
 }
 function showSuccess(message){
  const box=$("success-box"); box.textContent=message; box.style.display="block";
@@ -848,8 +853,8 @@ function updateSyncStatus(pendingWrites, fromCache){
 
   bar.classList.remove("offline","pending","synced");
   if(!navigator.onLine){
-    bar.classList.add("offline");
-    text.textContent=pendingWrites ? "Offline • changes waiting to sync" : "Offline • local data available";
+    bar.classList.remove("show");
+    return;
   }else if(pendingWrites){
     bar.classList.add("pending");
     text.textContent="Syncing changes…";
@@ -869,10 +874,10 @@ function refreshConnectionStatus(){
   const bar=$("sync-status-bar"), text=$("sync-status-text");
   if(!bar||!text)return;
   if(!navigator.onLine){
-    bar.classList.remove("pending","synced");
-    bar.classList.add("offline","show");
-    text.textContent=lastSyncHadPendingWrites ? "Offline • changes waiting to sync" : "Offline • local data available";
-  }else if(lastSyncHadPendingWrites){
+    bar.classList.remove("offline","pending","synced","show");
+    return;
+  }
+  if(lastSyncHadPendingWrites){
     bar.classList.remove("offline","synced");
     bar.classList.add("pending","show");
     text.textContent="Syncing changes…";
@@ -1612,6 +1617,7 @@ $("record-type").dispatchEvent(new Event("change"));
   var updateBar = document.getElementById('pwa-update-bar');
   var updateBtn = document.getElementById('pwa-update-btn');
   var offlineBar = document.getElementById('pwa-offline-bar');
+  var offlineTimer = null;
   var reloading = false;
 
   function isStandalone(){
@@ -1620,8 +1626,17 @@ $("record-type").dispatchEvent(new Event("change"));
   }
 
   function setOfflineState(){
-    if (!offlineBar) return;
-    offlineBar.classList.toggle('show', !navigator.onLine);
+    if (offlineBar) {
+      clearTimeout(offlineTimer);
+      if (!navigator.onLine) {
+        offlineBar.classList.add('show');
+        offlineTimer = setTimeout(function(){
+          offlineBar.classList.remove('show');
+        }, 5000);
+      } else {
+        offlineBar.classList.remove('show');
+      }
+    }
     if (window.refreshConnectionStatus) window.refreshConnectionStatus();
   }
   window.addEventListener('online', setOfflineState);
@@ -1723,6 +1738,45 @@ $("record-type").dispatchEvent(new Event("change"));
       if (reloading) return;
       reloading = true;
       window.location.reload();
+    });
+  }
+  // Android/Chrome can otherwise leave a standalone PWA with a single back press.
+  // Keep the first back press inside the app and require a second press within 2 seconds.
+  var backArmed = false;
+  var backTimer = null;
+  function armBackExit(){
+    if (backArmed) return;
+    backArmed = true;
+    if (window.showSuccess) window.showSuccess('Press back again to exit Farm Ledger.');
+    clearTimeout(backTimer);
+    backTimer = setTimeout(function(){ backArmed = false; }, 2000);
+    history.pushState({farmLedger:true}, document.title, location.href);
+  }
+  if (window.history && window.history.pushState) {
+    history.replaceState({farmLedger:true}, document.title, location.href);
+    history.pushState({farmLedger:true}, document.title, location.href);
+    window.addEventListener('popstate', function(){
+      var appVisible = document.getElementById('app-view') &&
+        !document.getElementById('app-view').classList.contains('hidden');
+      var viewer = document.getElementById('image-viewer');
+      var installHelp = document.getElementById('pwa-install-help');
+      if (!appVisible) return;
+      if (viewer && viewer.style.display === 'flex') {
+        viewer.style.display = 'none';
+        history.pushState({farmLedger:true}, document.title, location.href);
+        return;
+      }
+      if (installHelp && !installHelp.classList.contains('hidden')) {
+        installHelp.classList.add('hidden');
+        history.pushState({farmLedger:true}, document.title, location.href);
+        return;
+      }
+      if (backArmed) {
+        backArmed = false;
+        clearTimeout(backTimer);
+        return;
+      }
+      armBackExit();
     });
   }
 })();
