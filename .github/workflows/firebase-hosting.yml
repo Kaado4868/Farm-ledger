@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       - name: Run ledger unit tests
         run: npm run test:ledger
       - name: Run Firestore rules tests in emulator
