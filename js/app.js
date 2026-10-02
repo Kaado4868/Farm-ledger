@@ -29,7 +29,7 @@ const missingElement=(()=>{
   return new Proxy({value:"",checked:false,files:[],innerHTML:"",textContent:"",style,classList},
     {get(target,key){
       if(key in target)return target[key];
-      if(key==="addEventListener"||key==="removeEventListener"||key==="appendChild"||key==="prepend"||key==="focus"||key==="click"||key==="scrollIntoView")return ()=>{};
+      if(key==="addEventListener"||key==="removeEventListener"||key==="appendChild"||key==="prepend"||key==="focus"||key==="click"||key==="scrollIntoView"||key==="dispatchEvent")return ()=>{};
       if(key==="querySelector"||key==="querySelectorAll")return ()=>key==="querySelectorAll"?[]:null;
       return undefined;
     },set(target,key,val){target[key]=val;return true;}});
