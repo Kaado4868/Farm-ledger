@@ -1,4 +1,4 @@
-const CACHE_NAME = "farm-ledger-v28";
+const CACHE_NAME = "farm-ledger-v29";
 const BASE = self.registration.scope;
 const APP_SHELL = ["","index.html","login.html","manifest.webmanifest","icon-192.png","icon-512.png","icon-512-maskable.png","apple-touch-icon-180.png","css/farm-ledger.css","js/app.js","js/pwa.js","js/ui-fixes.js","dashboard.html","manage.html","records.html","chat.html","admin.html","notifications.html","admin-chat.html","add-record.html","handover.html","verify.html"];
 function shellUrl(path){return new URL(path,BASE).href;}
