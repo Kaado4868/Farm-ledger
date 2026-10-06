@@ -856,8 +856,16 @@ $("open-handover-tab").onclick=()=>{
 document.querySelectorAll(".manage-tab").forEach(tab=>{
  tab.onclick=()=>{
   document.querySelectorAll(".manage-tab").forEach(t=>t.classList.remove("active"));
-  document.querySelectorAll(".sub-screen").forEach(s=>s.classList.add("hidden"));
-  tab.classList.add("active"); $(tab.dataset.sub).classList.remove("hidden");
+  document.querySelectorAll(".sub-screen").forEach(s=>{
+   s.classList.add("hidden");
+   s.style.display="none";
+  });
+  tab.classList.add("active");
+  const panel=$(tab.dataset.sub);
+  if(panel){
+   panel.classList.remove("hidden");
+   panel.style.display="block";
+  }
   if(tab.dataset.sub==="sub-handover"){resetHandoverForm();}
  };
 });
