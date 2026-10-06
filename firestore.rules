@@ -57,10 +57,7 @@ service cloud.firestore {
 
     function canAccessChat(chatData) {
       return isSuperAdmin()
-        || (
-          isChatMember(chatData)
-          && hasFarmAccess(chatData.farmId)
-        );
+        || hasFarmAccess(chatData.farmId);
     }
 
     function validChatCreate() {
